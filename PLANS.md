@@ -241,8 +241,6 @@ which still holds. Re-run that grep at implementation.
 
 ### Apply suite extraction: move the Kvantum data-home note cases beside the optional-selection helper checks (planned 2026-11-20 by the plan role)
 
-**Needs review 2026-11-21 by feature: plan defect — the Kvantum move cannot pass the invariants checker with its base named `StubTools`.** `tests/support/invariants.py::_defined_names` resolves an imported base only when its name ends in `TestCase`. `StubTools` is imported into `tests/test_apply_theme.py` and `tests/test_apply_optional_helpers.py`, so `make check` fails the existing `docs/invariants.md` row naming `tests/test_apply_theme.py::TestKonsoleFontStep` ("names a class that is not a test case", in `test_invariants` and `test_checker_mutations`) and the moved `apply-kvantum-note-theme-already-at-default-home` anchor in `tests/support/validation_gaps/no_fake.py` (`test_every_entry_names_a_real_test`). The entry also omits that `tests/test_entry_point_guards.py` requires the `__main__` guard to be the last statement, so the appended class needs the guard moved to the end of the module (lesson L7). Plan role: name the base with a `TestCase` suffix (for example `ApplyStubTestCase`, matching `ApplyGtkTestCase` in `tests/support/apply_gtk_case.py`) and correct the `StubTools` references in the entry. Nothing from this entry is merged; the attempted diff was reverted.
-
 **Goal.** `tests/test_apply_theme.py` has 778 lines, and most of its classes
 run `apply_theme.main` against shell stubs. `TestKvantumDataHomeNote` is the
 odd one out: it never calls `main`. It drives
@@ -256,7 +254,9 @@ touches the apply suites.
 **Approach and files touched.**
 
 1. New `tests/support/apply_theme_stubs.py`. Move the `StubTools` base class
-   there from `tests/test_apply_theme.py`, with its setUp, `stub`, `unstub`,
+   there from `tests/test_apply_theme.py` and rename it `ApplyStubTestCase`
+   (matching `ApplyGtkTestCase` in `tests/support/apply_gtk_case.py`), with
+   its setUp, `stub`, `unstub`,
    `broken_stub`, `recorded` and `env_recorded` methods and its docstring.
    It imports what it needs itself (`os`, `shutil`, `stat`, `tempfile`,
    `unittest`, `Path`, `mock`, `support.recorded_lines.recorded_lines` and
@@ -264,20 +264,35 @@ touches the apply suites.
    `tests/support/apply_gtk_case.py` base-class pattern. Per lesson L4, the
    moved class and the classes that stay behind both need this base, so it
    goes into support rather than having one test module import another.
-2. `tests/test_apply_theme.py`: import `StubTools` from
-   `support.apply_theme_stubs`. Delete the `TestKvantumDataHomeNote` class,
+   The `TestCase` suffix is required, not cosmetic:
+   `tests/support/invariants.py::_defined_names` counts a class whose base is
+   imported from another module as a test case only when that base's name
+   ends in `TestCase`. Under the old name, every `docs/invariants.md` row
+   naming a `tests/test_apply_theme.py` class (e.g. `TestKonsoleFontStep`)
+   fails with "names a class that is not a test case" in `test_invariants`
+   and `test_checker_mutations`. The `no_fake.py` reproduction check
+   (`test_every_entry_names_a_real_test`) fails the same way for the moved
+   class.
+2. `tests/test_apply_theme.py`: import `ApplyStubTestCase` from
+   `support.apply_theme_stubs`, and change the base of every class that
+   subclassed `StubTools` (`TestCommandOrder`, `TestFailurePaths`,
+   `TestTimeoutPaths`, `TestUnrunnableTools`, `TestTermination`,
+   `TestSessionBus`, `TestKonsoleFontStep`) to it. Delete the `TestKvantumDataHomeNote` class,
    and drop the imports the remaining classes no longer use: check `stat`,
    `io` and `contextlib` with grep after the deletion. In the module
    docstring, add a routing sentence saying the Kvantum data-home note checks
    live in `test_apply_optional_helpers.py`.
-3. `tests/test_apply_optional_helpers.py`: append `TestKvantumDataHomeNote`
-   after `TestOptionalSelectionHelpers`, subclassing `StubTools` from the new
-   support module. Keep every method name, body and assertion unchanged:
+3. `tests/test_apply_optional_helpers.py`: add `TestKvantumDataHomeNote`
+   after `TestOptionalSelectionHelpers` and before the
+   `if __name__ == "__main__":` guard, which must stay the module's last
+   statement (`tests/test_entry_point_guards.py`
+   `test_every_test_module_ends_with_the_guard`). It subclasses
+   `ApplyStubTestCase` from the new support module. Keep every method name, body and assertion unchanged:
    `note`, `select`, `theme_directory_at_default` and the thirteen `test_*`
    methods. Add the imports it needs (`from tools import apply_theme` for
-   `COMMAND_TIMEOUT`, plus the `StubTools` import). Its class docstring says
+   `COMMAND_TIMEOUT`, plus the `ApplyStubTestCase` import). Its class docstring says
    "the stubbed ``kvantummanager`` machinery above". Reword that to name
-   `support.apply_theme_stubs.StubTools`, and widen the module docstring to
+   `support.apply_theme_stubs.ApplyStubTestCase`, and widen the module docstring to
    mention the Kvantum data-home note.
 4. Re-point the moved anchors (`tests/test_apply_theme.py::TestKvantumDataHomeNote`
    becomes `tests/test_apply_optional_helpers.py::TestKvantumDataHomeNote`):
@@ -287,14 +302,14 @@ touches the apply suites.
      `tests/support/validation_gaps/no_fake.py` (keep `NO_FAKE_BASELINE`
      unchanged, because no record is added).
 5. In the `tests/test_apply_theme_locks.py` module docstring, which says its
-   case base "mirrors its ``StubTools`` setUp", name the base's new home,
-   `tests/support/apply_theme_stubs.py`. The locks suite keeps its own base;
+   case base "mirrors its ``StubTools`` setUp", name the base by its new name and home,
+   `ApplyStubTestCase` in `tests/support/apply_theme_stubs.py`. The locks suite keeps its own base;
    merging the two is out of scope.
 
 A grep on 2026-11-20 of `*.py`, `*.md`, `Makefile` and `*.yml` found no
 other live reference to `TestKvantumDataHomeNote` outside PLANS-DONE.md.
 That included `docs/rendering.md`, `docs/fidelity.md` and
-`tests/test_ci_workflow.py`. The only users of the apply `StubTools` were
+`tests/test_ci_workflow.py`. A grep on 2026-11-21 found the only users of the apply `StubTools` were
 `tests/test_apply_theme.py` and the docstring in
 `tests/test_apply_theme_locks.py`. `tests/support/render_stub_tools.py` and
 the render suites define a separate `StubTools` of their own and stay
@@ -308,13 +323,16 @@ untouched. Re-run both greps at implementation. Nothing under `tools/`,
   and they pass. `git diff --color-moved` shows the moved method bodies
   unchanged.
 - `tests/test_apply_theme.py` no longer defines `TestKvantumDataHomeNote`
-  or `StubTools`. Its remaining stub-driven classes (`TestCommandOrder`,
+  or `StubTools`, and `grep -rn 'StubTools' tests/test_apply_theme*.py
+  tests/test_apply_optional_helpers.py tests/support/apply_theme_stubs.py`
+  finds nothing. Its remaining stub-driven classes (`TestCommandOrder`,
   `TestFailurePaths`, `TestTimeoutPaths`, `TestUnrunnableTools`,
   `TestTermination`, `TestSessionBus`, `TestKonsoleFontStep`) still pass under
   `make check CHECK_TESTS='test_apply_theme test_apply_theme_locks'`.
 - No test module imports another test module. `grep -rn
   'test_apply_theme.py::TestKvantumDataHomeNote' docs tests` finds nothing.
-- `make check CHECK_TESTS='test_invariants test_validation_gaps'` passes
+- `make check CHECK_TESTS='test_invariants test_checker_mutations
+  test_validation_gaps test_entry_point_guards'` passes
   apart from any failure already present on main before the change. As of
   2026-11-20, main's `TestNoReproLedger` failure is filed separately. After
   the final edit, `make check` shows no failure the change introduced.
