@@ -77,12 +77,9 @@ The two bookmark cases use only `FirefoxChromeTestCase` methods
 `support.selector_matching`, and `BUTTON_REFERENCES` and
 `VIEWITEM_REFERENCES` from `support.firefox_chrome_cases`. They do not use
 `FACE` or `SELECTION`, which only the staying downloads and all-tabs cases
-use. So no `tests/support` module is needed. This plan is independent of the
-waiting "Firefox Library suite extraction: move the downloads and
-details-pane suites into their own module" plan, which moves code out of
-`tests/test_firefox_theme_library.py`, not this file. The two plans do edit
-the same module-list sentences in the two support docstrings named below.
-Whichever plan merges second keeps the other's module name in those lists.
+use. So no `tests/support` module is needed. The earlier "Firefox Library
+suite extraction" plan has since merged (see PLANS-DONE.md); keep the module
+names it left in the two support docstrings named below.
 
 **Approach.**
 
@@ -103,8 +100,9 @@ Whichever plan merges second keeps the other's module name in those lists.
    import, because the staying cases still use each one.
 4. In `docs/invariants.md`, the bookmark editor's row (it begins "The
    bookmark editor's fields") names
-   `tests/test_firefox_theme_panels.py::TestFirefoxPanelRows`. Point that
-   anchor at `tests/test_firefox_theme_bookmark_editor.py::TestFirefoxBookmarkEditor`.
+   `tests/test_firefox_theme_panels.py::TestFirefoxPanelRows::test_bookmark_panel_control_paint_is_scoped_to_the_bookmark_panel`.
+   Point that anchor at
+   `tests/test_firefox_theme_bookmark_editor.py::TestFirefoxBookmarkEditor::test_bookmark_panel_control_paint_is_scoped_to_the_bookmark_panel`.
    Leave the other rows that name `TestFirefoxPanelRows` alone, because
    their cases stay.
 5. Add `tests/test_firefox_theme_bookmark_editor.py` to the section-module
@@ -137,9 +135,12 @@ Whichever plan merges second keeps the other's module name in those lists.
 - The bookmark-editor invariant row in `docs/invariants.md` names the new
   module's class, and `tests/test_invariants.py` passes.
 - `make check CHECK_TESTS='test_firefox_theme_panels test_firefox_theme_bookmark_editor test_invariants'`
-  passes, and `make check` passes after the final edit.
-
-**Needs review 2026-11-21 by feature: could not converge — check failed (`make check`): AssertionError: 7 not less than or equal to 6 : the no-repro tag grew past its baseline (records at BUGS-FIXED.md lines /home/zach/kde-macos8.6-theme/.tumwater/worktrees/_merge/BUGS-FIXED.md:42, /home/zach/kde-macos8.6-theme/.tumwater/worktrees/_merge/BUGS-FIXED.md:131, /home/zach/kde-macos8.6-them…; test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok; test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok; test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok; test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok; test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok; ----------------------------------------------------------------------; Ran 16 tests in 0.001s; OK; check: 509 modules, 1 module failed; make: *** [Makefile:491: check] Error 1; main 1b59cfa3 is red too, but these failures are this change's own: test_every_record_names_a_reproduction (test_validation_gaps.TestNoReproLedger.test_every_record_names_a_reproduction) (source='/home/zach/kde-macos8.6-theme/.tumwater/worktrees/_merge/BUGS-FIXED.md', line=42)**
+  passes. A full `make check` after the final edit fails nothing beyond
+  main's own known-red `test_validation_gaps.TestNoReproLedger` cases. Those
+  fail on main without this change: `BUGS-FIXED.md` holds seven `no-repro`
+  records against `NO_REPRO_BASELINE = 6` in
+  `tests/support/validation_gaps/no_repro.py`, and the ci role owns that fix.
+  This change edits neither `BUGS-FIXED.md` nor that baseline.
 
 ### Cursor set suite extraction: move the per-glyph shape pins into their own module (planned 2026-11-20 by the plan role)
 
