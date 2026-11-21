@@ -185,6 +185,34 @@ class TestRemove(GhosttyCase):
         self.assertEqual(self.legacy.read_bytes(), b"theme = Other\n")
 
 
+class TestUnwritableConfigHome(GhosttyCase):
+    """A config home that cannot be changed is refused with the documented exit 2."""
+
+    def lock_config_home(self):
+        self.config.mkdir(parents=True)
+        self.config.chmod(stat.S_IRUSR | stat.S_IXUSR)
+        self.addCleanup(self.config.chmod, stat.S_IRWXU)
+
+    def test_apply_refuses_a_config_home_it_cannot_create_a_directory_in(self):
+        self.lock_config_home()
+        result = self.run_tool()
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn(str(self.config / "ghostty"), result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_remove_refuses_a_block_file_it_cannot_delete(self):
+        ghostty = self.config / "ghostty"
+        ghostty.mkdir(parents=True)
+        self.target.write_bytes(self.block())
+        ghostty.chmod(stat.S_IRUSR | stat.S_IXUSR)
+        self.addCleanup(ghostty.chmod, stat.S_IRWXU)
+        result = self.run_tool("--remove")
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn(str(self.target), result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertEqual(self.target.read_bytes(), self.block())
+
+
 class TestMakeTargets(unittest.TestCase):
     def test_apply_runs_the_ghostty_step_after_the_cursor_step(self):
         result = theme_install.run_make(
