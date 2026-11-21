@@ -188,6 +188,65 @@ these files or anchors.
 - Nothing under `theme/`, `tools/` or the `Makefile` changes.
 - `make check` passes after the final edit.
 
+### Theme install suite extraction: move the data-home fallback and FLOCK_TIMEOUT guard tests into their own module (planned 2026-11-21 by the plan role)
+
+**Goal.** `tests/test_theme_install.py` is 565 lines. Two of its classes pin the `install`/
+`uninstall` recipes' environment guards rather than what the install copies:
+`TestXdgDataHomeDefault` (six tests: the empty/relative `XDG_DATA_HOME` fallback to
+`$HOME/.local/share` and the unset/relative `HOME` refusals) and `TestFlockTimeout` (six tests:
+the `FLOCK_TIMEOUT` validation and the `install -d` status-75 diagnostic), about 190 lines
+together. PRINCIPLES.md asks for one responsibility per file, so move both classes whole —
+class names, docstrings, the `HOME` attribute, `_install_dry_run`, `_assert_refused` and every
+test body unchanged — into a new `tests/test_theme_install_guards.py`. No tool, Makefile or
+check behavior changes. The plan is independent of every other Planned entry and of the pending
+plans: none touches these files. It adds no `tests/support/` module, because the moved classes
+call no module-level helper of the file (`_assert_install_packages_refused` serves only
+`TestInstallPackagesGuard`, which stays) (L4).
+
+**Approach and files touched.**
+
+- **New `tests/test_theme_install_guards.py`.** A module docstring saying it pins the
+  `install`/`uninstall` data-home resolution (empty or relative `XDG_DATA_HOME` falls back to
+  the XDG default; an unset or relative `HOME` with no absolute data home is refused) and the
+  `FLOCK_TIMEOUT` guard (refused before the data home is created), and that install paths,
+  symlink guards and `INSTALL_PACKAGES` stay in `tests/test_theme_install.py`. Then the two
+  classes in their current order, then an `if __name__ == "__main__": unittest.main()` guard
+  (L1). Imports: `os`, `unittest`, `from support import installed_paths, theme_install`,
+  `from support.process_assertions import assert_failed, assert_succeeded` and
+  `from support.tmp_dir import make_tmp_dir`.
+- **`tests/test_theme_install.py`.** Delete the two classes. Keep every import: a planning
+  count found `assert_succeeded`, `assert_failed`, `make_tmp_dir`, `installed_paths`,
+  `GTK4_CSS_MARKER` and `unittest.mock` each still used by the remaining classes. Rewrite the
+  module docstring: drop the clauses claiming the empty/relative data-home fallback and the
+  `FLOCK_TIMEOUT` refusal, and add a sentence naming `test_theme_install_guards.py` for them.
+- **`tests/support/theme_install.py`.** `uninstall_recipe`'s docstring says the data-home and
+  flock guards "are covered by ``test_theme_install``"; name
+  ``test_theme_install_guards`` for the guards instead.
+- **Anchors.** A planning grep of `docs/`, `tests/` (including `tests/support/validation_gaps/`),
+  `tools/`, the `Makefile`, `README.md` and `.github/` found `TestXdgDataHomeDefault` and
+  `TestFlockTimeout` only in the file they leave; the `docs/invariants.md` rows anchored in
+  `tests/test_theme_install.py` name `TestInstallPackagesGuard`, `TestThemeSymlinkGuard` and
+  `TestUninstallSymlinkParents`, which stay. The implementer re-runs the grep and repoints
+  anything new.
+
+**Acceptance criteria.**
+
+- `python3 -m unittest test_theme_install_guards` run from `tests/` runs twelve tests, named as
+  `TestXdgDataHomeDefault`'s and `TestFlockTimeout`'s methods were before the move, and they
+  pass.
+- `tests/test_theme_install.py` defines neither moved class; `TestThemeSymlinkGuard`,
+  `TestMakeEnv`, `TestWhitespaceInInstallPaths`, `TestUninstallSymlinkParents`,
+  `TestShellUnsafeXdgConfigHome`, `TestInstallPackages` and `TestInstallPackagesGuard` keep
+  every method name, and the module passes.
+- `grep -rn 'TestXdgDataHomeDefault\|TestFlockTimeout' --exclude-dir=.git
+  --exclude-dir=__pycache__ .`, excluding `PLANS.md`, `PLANS-DONE.md` and `BUGS-FIXED.md`,
+  finds only `tests/test_theme_install_guards.py`.
+- `tests/test_theme_install.py` is under 400 lines and the new module under 240 (`wc -l`).
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's known-red
+  `TestNoReproLedger` tests, if main still fails them (L6). Do not edit `BUGS-FIXED.md` or the
+  ledger baseline to make them pass.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
