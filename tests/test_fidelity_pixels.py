@@ -90,11 +90,19 @@ class TestWorstPixels(unittest.TestCase):
             self.assertEqual(actual, expected)
 
 
+def _worst_pixel_candidate(x, y):
+    """Return the candidate's red value 9 at (1,1) and (2,1), 7 at (3,2), else 0."""
+    if (x, y) in ((1, 1), (2, 1)):
+        return 9, 0, 0
+    if (x, y) == (3, 2):
+        return 7, 0, 0
+    return 0, 0, 0
+
+
 class TestWorstPixelsCli(FidelityCliTestCase):
     """Test worst-pixel reports, crop coordinates, and CLI validation."""
     def test_offset_pages_json_text_and_different_crop_origins(self):
-        _, candidate = rgb_image(5, 3, lambda x, y: (
-            9 if (x, y) in ((1, 1), (2, 1)) else 7 if (x, y) == (3, 2) else 0, 0, 0))
+        _, candidate = rgb_image(5, 3, _worst_pixel_candidate)
         reference = make_png(6, 4, [bytes(18) for _ in range(4)])
         args = ("--candidate-crop", "1,1,3,2", "--crop", "2,2,3,2",
                 "--max-mae", "2", "--worst-pixels", "2", "--worst-pixel-offset", "1")
@@ -147,8 +155,7 @@ class TestWorstPixelsCli(FidelityCliTestCase):
         self.assertEqual(result.returncode, 0)
 
     def test_source_positions_for_ranked_records_and_explanation(self):
-        _, candidate = rgb_image(5, 3, lambda x, y: (
-            9 if (x, y) in ((1, 1), (2, 1)) else 7 if (x, y) == (3, 2) else 0, 0, 0))
+        _, candidate = rgb_image(5, 3, _worst_pixel_candidate)
         reference = make_png(6, 4, [bytes(18) for _ in range(4)])
         result = self._run_png_pair(candidate, reference, "--candidate-crop", "1,1,3,2",
                                     "--crop", "2,2,3,2", "--max-mae", "2",

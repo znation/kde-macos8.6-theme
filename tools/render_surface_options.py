@@ -94,9 +94,19 @@ def parse_options(argv: list[str] | None = None) -> tuple[argparse.Namespace, tu
                         help="seconds before the render session is killed (default 90, or 180 with --desktop or --splash); must be longer than --settle")
     args = parser.parse_args(argv)
     if args.settle is None:
-        args.settle = _DESKTOP_SETTLE if args.desktop else _SPLASH_SETTLE if args.splash else 8.0
+        if args.desktop:
+            args.settle = _DESKTOP_SETTLE
+        elif args.splash:
+            args.settle = _SPLASH_SETTLE
+        else:
+            args.settle = 8.0
     if args.timeout is None:
-        args.timeout = _DESKTOP_TIMEOUT if args.desktop else _SPLASH_TIMEOUT if args.splash else 90.0
+        if args.desktop:
+            args.timeout = _DESKTOP_TIMEOUT
+        elif args.splash:
+            args.timeout = _SPLASH_TIMEOUT
+        else:
+            args.timeout = 90.0
     dialog_flags = [mode.flag for mode in DIALOG_MODES if getattr(args, mode.attr)]
     if len(dialog_flags) > 1:
         parser.error("the dialog modes open one dialog client each: give one of "
