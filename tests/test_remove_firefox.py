@@ -294,6 +294,22 @@ class TestRemove(FirefoxProfileTestCase):
         self.assertEqual(js_bytes, self.user_js_path().read_bytes())
         self.assertEqual(content_bytes, self.content_sheet_path().read_bytes())
 
+    def test_a_directory_at_user_js_keeps_installed_sheets_byte_for_byte(self):
+        # Removal reads both installed sheets and then user.js. A directory at
+        # user.js must refuse by name before any sheet is unlinked, so the
+        # installed userChrome.css and userContent.css keep their exact bytes.
+        self.install()
+        chrome_bytes = self.sheet_path().read_bytes()
+        content_bytes = self.content_sheet_path().read_bytes()
+        self.user_js_path().unlink()
+        self.user_js_path().mkdir()
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(2, result.returncode, result.stderr)
+        self.assertIn(str(self.user_js_path()), result.stderr)
+        self.assertTrue(self.user_js_path().is_dir())
+        self.assertEqual(chrome_bytes, self.sheet_path().read_bytes())
+        self.assertEqual(content_bytes, self.content_sheet_path().read_bytes())
+
     def test_non_utf8_user_js_is_reported_without_writing_the_sheet(self):
         # The reader decodes user.js as UTF-8 and promises a by-name error for
         # invalid bytes, while the directory case above pins a non-regular
