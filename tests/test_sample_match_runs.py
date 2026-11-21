@@ -95,10 +95,15 @@ class TestSampleMatchRuns(CliTestCase):
             [target, (0, 0, 0), target],
             [target, target, (9, 20, 30)],
         ]
-        encoded = make_png(5, 5, [bytes(
-            channel for x in range(5) for channel in (
-                (*rows[y - 2][x - 1], 255) if 1 <= x <= 3 and 2 <= y <= 4
-                else (0, 0, 0, 255))) for y in range(1, 6)], color_type=6)
+        def pixel(x, y):
+            if 1 <= x <= 3 and 2 <= y <= 4:
+                return (*rows[y - 2][x - 1], 255)
+            return (0, 0, 0, 255)
+
+        def scanline(y):
+            return bytes(channel for x in range(5) for channel in pixel(x, y))
+
+        encoded = make_png(5, 5, [scanline(y) for y in range(1, 6)], color_type=6)
         path = self._write(self._tmp_dir(), "crop.png", encoded)
         args = (path, "1", "1", "--width", "3", "--height", "3", "--find-color",
                 "0a141e", "--color-tolerance", "1", "--match-alpha", "255",

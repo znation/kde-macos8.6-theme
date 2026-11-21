@@ -123,12 +123,12 @@ def rgb_from_rows(rows: list[bytes], color_type: int) -> bytes:
     that is named rather than returning bytes no decode could match.
     """
     if color_type == 0:
-        return b"".join(bytes((sample,)) * 3 for row in rows for sample in row)
+        return b"".join(bytes((sample, sample, sample)) for row in rows for sample in row)
     if color_type == 2:
         return b"".join(rows)
     if color_type == 4:
         return b"".join(
-            bytes(b for i in range(0, len(row), 2) for b in (row[i],) * 3)
+            bytes(v for grey in row[::2] for v in (grey, grey, grey))
             for row in rows
         )
     if color_type == 6:
