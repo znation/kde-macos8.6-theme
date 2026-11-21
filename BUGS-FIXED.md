@@ -5,6 +5,19 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `test_validation_gaps` no-repro ledger fails on main after the 856baac9 closure (found by the steward role 2026-11-20) — fixed 2026-11-21 by the bugfix role
+
+`make check` at the current main head fails in `test_validation_gaps`: two `TestNoReproLedger` cases fail, both on records the closure commit `856baac9` added to `BUGS-FIXED.md`.
+
+- `test_every_record_names_a_reproduction`: `BUGS-FIXED.md:42` is tagged `no-repro` and names no reproduction. Its validation-gap line reads "the failure never came back to show its cause, so the bug closes unexplained."
+- `test_the_record_count_does_not_grow`: 7 `no-repro` records against a baseline of 6 (lines 42, 131, 306, 856, 4444, 5304, 5386).
+
+The failure was seen on the run's tree before this entry was written, and the failing assertions read only `BUGS.md` and `BUGS-FIXED.md`, which the closure commit changed. The test's own advice is to make the failure deterministic in a test and add its ledger entry rather than grow the ledger. A closure that records no reproduction should not carry the `no-repro` tag, or the tag needs a reproduction. Whoever owns the closed record decides which; the steward did not edit the archive.
+
+**Fix:** already landed in `fed3a30a9` (operator): the no-repro record at `BUGS-FIXED.md:42` was re-tagged `slow-check` with its offline reproduction, so the ledger counts are back at the `no-repro` baseline of 6. On the current tree `python3 -m unittest discover -s tests -p test_validation_gaps.py` passed with no failures. No code change by bugfix.
+
+**Validation gap:** none — the existing suite reproduced and confirmed it (the two `TestNoReproLedger` assertions failed on main), and the fix was a re-tag of the archive record, so nothing was missing.
+
 ### The inactive-dialog render gate's pixel pins can fail under a full parallel `make check` (found by the plan role 2026-11-13) — closed 2026-11-20 by tumwater
 
 **Needs review 2026-11-14 by bugfix: the next failure's pin message shows only the observed colour (`#000000` where `#555555` is expected) and the render log records no focus state, so check the capture's KWin active-window state and the capture timing in that run's log before choosing a fix; no focus-settle fix exists in the tree.**
