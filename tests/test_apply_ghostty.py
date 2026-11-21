@@ -128,6 +128,16 @@ class TestApply(GhosttyCase):
         self.assertIn("unbalanced", result.stderr)
         self.assertEqual(self.target.read_bytes(), original)
 
+    @unittest.skipIf(os.geteuid() == 0, "root ignores directory permissions")
+    def test_uncreatable_config_directory_is_refused_with_exit_2(self):
+        self.config.mkdir()
+        self.config.chmod(0o555)
+        self.addCleanup(self.config.chmod, 0o755)
+        result = self.run_tool()
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("cannot create", result.stderr)
+        self.assertFalse(self.target.parent.exists())
+
     def test_optional_without_ghostty_on_path_writes_nothing_and_exits_0(self):
         result = self.run_tool("--optional", path=self.empty_bin)
         assert_succeeded(self, result)
