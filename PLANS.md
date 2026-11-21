@@ -212,6 +212,81 @@ module and creates no support file.
   `make check CHECK_TESTS='test_process_group test_process_group_split test_popen_signal test_check_parallel_workers test_invariants'`
   passes, and `make check` passes after the final edit.
 
+### Icon theme suite extraction: move the per-icon geometry pins into their own module (planned 2026-11-21 by the plan role; independent of the waiting Kvantum, process-group and apply-cursor extractions, which touch other files)
+
+**Goal.** `tests/test_icon_theme.py` (654 lines) holds the icon theme's identity, index,
+SVG-safety, placeholder, geometry and install tests. The geometry pins are about 280 of those
+lines: the `_shape` and `_drawing_elements` helpers, the `ICON_SHAPES` registry, the loop that
+copies the folder tuple onto every alias, and `TestIconGeometry`. Move them into a new
+`tests/test_icon_theme_geometry.py`. `TestIconGeometry` also reads inventory constants that
+`TestIndex`, `TestIcons` and `TestInstall` keep using, so those move into a support module
+rather than having one test module import another (L4). No theme file changes, and every test
+body stays the same.
+
+**Approach.**
+- Create `tests/support/icon_theme_inventory.py`. Its docstring says it holds the icon theme
+  package's identity and shipped-icon inventory, shared by `test_icon_theme` and
+  `test_icon_theme_geometry`. Move into it, word for word and with their comment blocks:
+  `ICON_ID`, `PACKAGE`, `SHIPPED_ICONS` (including the `SHIPPED_ICONS += tuple(...)`
+  standard-places extension), `STANDARD_PLACES`, `USER_PLACES_ICONS` and `FOLDER_ALIASES`.
+  It imports `os` and `ROOT` from `support.repo_root`. Define no classes in it.
+- In `tests/test_icon_theme.py`, delete those constants and import them from
+  `support.icon_theme_inventory`. Keep `INDEX`, `PLACEHOLDERS`, `SHIPPED_CURSORS`,
+  `SVG_NS`, `_declared_size`, `_icon_path` and `_read_icon_text` here. Keep the module-level
+  `from support.repo_root import ROOT` import: `TestIconTextContainment` patches
+  `sys.modules[__name__].ROOT`, and `_read_icon_text` reads that name. Delete `_shape`,
+  `_drawing_elements`, the `ICON_SHAPES` comment and mapping, the folder-alias `for _size`
+  loop with its comment, and `TestIconGeometry`. Remove each import that nothing left uses
+  (grep each name), and keep `local_name` only if something still calls it. In the module
+  docstring, change "per-size SVG shape and palette" so it says the per-icon drawing pins
+  live in `test_icon_theme_geometry`.
+- Create `tests/test_icon_theme_geometry.py`. Its docstring says it pins every shipped icon's
+  drawing elements in document order, and that the folder name and every folder alias share
+  one drawing. It holds, word for word and in their current order: `_shape`,
+  `_drawing_elements`, the `ICON_SHAPES` comment and mapping, the alias loop with its
+  comment, and `class TestIconGeometry(unittest.TestCase)` with its four tests and
+  `_assert_aliases_share_folder_art`. It imports `os` and `unittest`, `PACKAGE`,
+  `SHIPPED_ICONS`, `STANDARD_PLACES`, `USER_PLACES_ICONS` and `FOLDER_ALIASES` from
+  `support.icon_theme_inventory`, `parse_svg` from `support.svg_case` and `local_name` from
+  `svg_assertions`. Put the `unittest.main()` guard last (L1).
+- Re-point the anchors. In `docs/invariants.md`, the row "Every shipped icon draws its
+  pinned drawing elements in document order, ..." names
+  `tests/test_icon_theme_geometry.py::TestIconGeometry` in place of
+  `tests/test_icon_theme.py::TestIconGeometry`. The `TestIndex` row and the
+  `tests/support/validation_gaps/unclear_invariant.py` `TestIndex` anchor stay as they are.
+  Grep `docs/`, `README.md`, `tests/` and `.github/` for `TestIconGeometry`, `ICON_SHAPES`
+  and `_drawing_elements`, and fix any hit that names the old file (L1, L3). At planning
+  time the only other hit was a prose comment in `tests/test_kvantum_svg.py` that names
+  the class but not the file. It stays true, so leave that file alone (another run is
+  working on it).
+
+**Files touched.** `tests/test_icon_theme.py`, `tests/test_icon_theme_geometry.py` (new),
+`tests/support/icon_theme_inventory.py` (new), `docs/invariants.md`.
+
+**Acceptance criteria.**
+- The new module runs and passes its four `TestIconGeometry` tests. Every remaining test in
+  `tests/test_icon_theme.py` (`TestIconTextContainment`, `TestIndex`, `TestIcons`,
+  `TestInstall`) still runs and passes. `grep -n 'ICON_SHAPES\|_drawing_elements\|class TestIconGeometry' tests/test_icon_theme.py`
+  prints nothing.
+- For each moved test, helper and constant, a `diff` of its body before and after is empty.
+  The `ICON_SHAPES` mapping is compared as a whole.
+- `tests/support/icon_theme_inventory.py` defines each of the six inventory constants.
+  `grep -n '^\(ICON_ID\|PACKAGE\|SHIPPED_ICONS\|STANDARD_PLACES\|USER_PLACES_ICONS\|FOLDER_ALIASES\) = ' tests/test_icon_theme.py tests/test_icon_theme_geometry.py`
+  prints nothing. Other modules define their own unrelated `PACKAGE`. Neither test module
+  imports the other.
+- Probe: in the worktree, change the first `rect`'s `fill` in
+  `theme/icons/org.macos8.desktop/32x32/devices/drive-harddisk.svg` from `#000000` to
+  `#111111`. `test_each_icon_draws_its_pinned_artwork` in the new module must fail. Restore
+  the file, then check that `git diff --exit-code theme/` passes (L5). Describe the probe in
+  VERIFIED.
+- The `docs/invariants.md` geometry row names
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`. Outside the archives, no file cites
+  `tests/test_icon_theme.py::TestIconGeometry`.
+- Nothing under `theme/`, `tools/` or the `Makefile` changes.
+- `make check` passes after the final edit. The only allowed exception is main's
+  known-red `TestNoReproLedger` tests, if main still fails them (L6). Do not edit
+  `BUGS-FIXED.md` or the ledger baseline to make them pass.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
