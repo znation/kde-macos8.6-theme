@@ -39,6 +39,15 @@ class TestGhosttyInstall(unittest.TestCase):
             self, SOURCE, _installed_platinum(tmp)
         )
 
+    def test_default_install_includes_the_ghostty_family(self):
+        # No INSTALL_PACKAGES: the Makefile's default family list must name
+        # `ghostty`, so a plain `make install` ships the theme file too.
+        tmp = str(make_tmp_dir(self))
+        assert_succeeded(self, theme_install.install(tmp))
+        theme_install.assert_files_identical(
+            self, SOURCE, _installed_platinum(tmp)
+        )
+
     def test_install_writes_nothing_outside_the_ghostty_directory(self):
         tmp = str(make_tmp_dir(self))
         assert_succeeded(self, theme_install.install(tmp, packages="ghostty"))
