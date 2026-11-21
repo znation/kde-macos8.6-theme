@@ -460,7 +460,7 @@ police the whole suite, not one family — as does `config_home_cases`
 
 ### PNG chunk suite extraction: move the byte-framing rules and the iterator tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
-**Needs review 2026-11-21 by feature: plan defect — the deliverable is already on main in b269bf29, which adds `tests/test_png_chunk_framing.py` and removes the moved tests from `tests/test_png_chunks.py`; complete against that commit rather than re-running the assigned work.**
+**Needs review 2026-11-21 by feature: plan defect — the deliverable is already on main: b269bf29 adds `tests/test_png_chunk_framing.py` (a copy at first) and the reviewer fix da0b8da8d deletes the duplicated tests from `tests/test_png_chunks.py`; complete against those two commits rather than re-running the assigned work.**
 
 **Goal.** `tests/test_png_chunks.py` (512 lines) mixes two concerns. Most of
 `TestChunkFraming` pins the chunk-stream ordering rules through `decode_png`
