@@ -467,6 +467,22 @@ check: 504 modules, 1 module failed
 make: *** [Makefile:491: check] Error 1
 ~~~~
 
+### the stage self-check finding "tests/test_firefox_theme_panels.py had 192 lines moved to tests/test_firefox_theme_bookmark_editor.py, but it is still…" was not closed by the fix-up turn and re-fires each run (filed by tumwater 2026-11-21)
+
+- **Symptom:** the pre-queue self-check raised this finding on the run's change; the one-turn fix-up could not close it and reverted the whole change instead, so the run ended `no_change` (`selfCheckReverted`) and the finding lived only in the run's warning event.
+- **Finding:** `tests/test_firefox_theme_panels.py had 192 lines moved to tests/test_firefox_theme_bookmark_editor.py, but it is still named at: docs/invariants.md:106, docs/invariants.md:107, docs/invariants.md:109, docs/invariants.md:113, docs/invariants.md:114, docs/invariants.md:120, tests/support/css_header.p…`
+- **Reproduce:** author a change that trips a pre-queue self-check finding the fix-up resolves by reverting the whole change (clean tree); the run ends `no_change` with only the self-check warning carrying the finding.
+- **Cause:** a finding the fix-up could not close was never filed to BUGS.md, so the same finding re-burned the same authoring each run instead of becoming bugfix work.
+- **Fix sketch:** fix the finding's cause — the file and line it names, or the check that raised it — and move this entry to Fixed with a Fix paragraph showing the finding gone.
+
+### the stage self-check finding "this run moved a backlog entry another instance of this role is working on: "Firefox panels suite extraction: move the…" was not closed by the fix-up turn and re-fires each run (filed by tumwater 2026-11-21)
+
+- **Symptom:** the pre-queue self-check raised this finding on the run's change; the one-turn fix-up could not close it and reverted the whole change instead, so the run ended `no_change` (`selfCheckReverted`) and the finding lived only in the run's warning event.
+- **Finding:** `this run moved a backlog entry another instance of this role is working on: "Firefox panels suite extraction: move the bookmark-editor cases into their own module (planned 2026-11-19 by the plan role)" — it is that instance's task (see <held-entries>), so revert every edit made for it, including th…`
+- **Reproduce:** author a change that trips a pre-queue self-check finding the fix-up resolves by reverting the whole change (clean tree); the run ends `no_change` with only the self-check warning carrying the finding.
+- **Cause:** a finding the fix-up could not close was never filed to BUGS.md, so the same finding re-burned the same authoring each run instead of becoming bugfix work.
+- **Fix sketch:** fix the finding's cause — the file and line it names, or the check that raised it — and move this entry to Fixed with a Fix paragraph showing the finding gone.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
