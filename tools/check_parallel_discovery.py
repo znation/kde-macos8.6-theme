@@ -21,6 +21,34 @@ class DiscoveryError(Exception):
     """
 
 
+def _entry_is_directory(item: os.DirEntry) -> bool | None:
+    """Return whether *item* is a directory, or ``None`` when discovery skips it.
+
+    Symlinks return ``None``: unittest discovery does not follow
+    package-directory symlinks, and following one here could import
+    contributor-controlled code from outside the selected test tree.
+    """
+    try:
+        if item.is_symlink():
+            return None
+        return item.is_dir()
+    except OSError as entry_error:
+        # Unlike DirEntry predicates, the original path checks
+        # suppress metadata errors (e.g. on filesystems that need
+        # a stat call to determine an entry's type). Use explicit
+        # stat calls so a second metadata failure cannot silently
+        # omit a test module from the run.
+        try:
+            metadata = os.lstat(item.path)
+            if stat.S_ISLNK(metadata.st_mode):
+                return None
+            return stat.S_ISDIR(os.stat(item.path).st_mode)
+        except OSError as exc:
+            raise DiscoveryError(
+                f"cannot inspect {item.path}: {exc}"
+            ) from entry_error
+
+
 def discover_modules(tests_dir: str, pattern: str | None = None) -> list[str]:
     """Return the dotted module names unittest discovery would import.
 
@@ -45,28 +73,9 @@ def discover_modules(tests_dir: str, pattern: str | None = None) -> list[str]:
             raise DiscoveryError(f"cannot list {directory}: {exc}") from exc
         for item in entries:
             entry = item.name
-            # unittest discovery does not follow package-directory symlinks;
-            # following one here could import contributor-controlled code
-            # from outside the selected test tree.
-            try:
-                if item.is_symlink():
-                    continue
-                is_directory = item.is_dir()
-            except OSError as entry_error:
-                # Unlike DirEntry predicates, the original path checks
-                # suppress metadata errors (e.g. on filesystems that need
-                # a stat call to determine an entry's type). Use explicit
-                # stat calls so a second metadata failure cannot silently
-                # omit a test module from the run.
-                try:
-                    metadata = os.lstat(item.path)
-                    if stat.S_ISLNK(metadata.st_mode):
-                        continue
-                    is_directory = stat.S_ISDIR(os.stat(item.path).st_mode)
-                except OSError as exc:
-                    raise DiscoveryError(
-                        f"cannot inspect {item.path}: {exc}"
-                    ) from entry_error
+            is_directory = _entry_is_directory(item)
+            if is_directory is None:
+                continue
             if is_directory:
                 if os.path.isfile(os.path.join(item.path, "__init__.py")):
                     visit(item.path, f"{prefix}{entry}.")
