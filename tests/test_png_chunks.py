@@ -212,6 +212,20 @@ class TestChunkFraming(unittest.TestCase):
         self.assertIn("2147483648", message)
         self.assertIn("2147483647", message)
 
+    def test_a_chunk_length_at_the_spec_maximum_is_not_refused_as_oversized(self):
+        # The cap is inclusive: 2**31 - 1 is a legal declared length, so a
+        # file that declares it with no payload present is refused as a
+        # truncated chunk, not as above the maximum. A strict ``>=`` would
+        # swap the diagnosis for the cap message at exactly this value.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        boundary = ihdr_end(data)
+        at_maximum = struct.pack(">I", 0x7FFFFFFF) + b"IDAT"
+        message = decode_error_message(self, data[:boundary] + at_maximum)
+        self.assertIn("truncated PNG chunk 'IDAT'", message)
+        self.assertIn(f"offset {boundary}", message)
+        self.assertIn("declared 2147483647 payload bytes", message)
+        self.assertNotIn("above", message)
+
     def test_ignored_ancillary_chunk_still_has_its_crc_checked(self):
         # Ignoring a chunk's contents must not skip its integrity check: a
         # corrupt ancillary chunk means the file is damaged and could hide a
