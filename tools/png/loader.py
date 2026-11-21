@@ -7,14 +7,11 @@ hang ``open()``, rejects any non-regular file, bounds the read with
 letting :func:`decode_png` report it as "not a PNG file". :func:`read_rgba`
 uses the same guards and decodes the image into packed RGBA bytes; passing
 ``alpha=True`` to :func:`read_png` does the same and splits them into an
-:class:`Image`'s colour and alpha planes.
-:func:`read_png_size`
-uses the same guards but reads only a header-sized prefix, returning the
-declared ``(width, height)`` without decoding rows or loading a large file.
-Decoding itself lives in
-``read.py`` (inflate), ``stream.py`` (chunk collection), ``header.py``
-(header validation) and
-``expand.py`` (color expansion).
+:class:`Image`'s colour and alpha planes. :func:`read_png_size` uses the same
+guards but reads only a header-sized prefix, returning the declared
+``(width, height)`` without decoding rows or loading a large file. Decoding
+itself lives in ``read.py`` (inflate), ``stream.py`` (chunk collection),
+``header.py`` (header validation) and ``expand.py`` (color expansion).
 """
 
 from __future__ import annotations

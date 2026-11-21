@@ -3,9 +3,8 @@
 :func:`iter_chunks` walks the chunk stream after the signature and yields
 ``(type, payload)`` for each chunk, rejecting an oversized length, an invalid
 type code, a truncated payload or CRC, a bad checksum, a non-empty IEND
-payload, and a trailing fragment
-after IEND by name. Chunk ordering and payload collection is
-``tools/png/stream.py``'s concern; IHDR field validation lives in
+payload, and a trailing fragment after IEND by name. Chunk ordering and payload
+collection is ``tools/png/stream.py``'s concern; IHDR field validation lives in
 ``tools/png/header.py``.
 """
 

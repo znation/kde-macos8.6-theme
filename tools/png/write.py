@@ -1,10 +1,9 @@
 """Encode an 8-bit RGB or RGBA image as a PNG file using only the standard library.
 
 ``tools/png/loader.py`` reads a PNG file and ``tools/png/read.py`` decodes it;
-this is their minimal inverse, used to generate
-the wallpaper images and the RGBA cursor frames. The output is deterministic:
-every row uses filter type
-0 and one IDAT chunk is compressed at zlib level 9, so the same pixels always
+this is their minimal inverse, used to generate the wallpaper images and the
+RGBA cursor frames. The output is deterministic: every row uses filter type 0
+and one IDAT chunk is compressed at zlib level 9, so the same pixels always
 produce the same bytes.
 """
 

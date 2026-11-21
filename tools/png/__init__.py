@@ -2,8 +2,7 @@
 
 Reads 8-bit, non-interlaced PNG images into tightly packed RGB or RGBA bytes
 and writes 8-bit RGB or RGBA images back to PNG, using only the Python
-standard library.
-The pieces are split by concern and re-exported here, so a consumer imports a
+standard library. The pieces are split by concern and re-exported here, so a consumer imports a
 public name from ``tools.png`` regardless of which submodule defines it:
 ``tools/png/image.py`` holds :class:`Image`, :class:`PngError` and
 :func:`pixel_at`, ``tools/png/loader.py`` the file reader :func:`read_png`,
@@ -14,8 +13,8 @@ pipeline :func:`decode_png` and :func:`decode_rgba`, and
 ``tools/png/chunks.py``, ``tools/png/stream.py``, ``tools/png/header.py``,
 ``tools/png/trns.py``, ``tools/png/scanlines.py``, ``tools/png/expand.py`` and
 ``tools/png/filters.py`` hold the chunk framing, chunk ordering and collection,
-header validation, tRNS length rules, unfiltering,
-color expansion and filter arithmetic those are built from.
+header validation, tRNS length rules, unfiltering, color expansion and filter
+arithmetic those are built from.
 """
 
 from __future__ import annotations
