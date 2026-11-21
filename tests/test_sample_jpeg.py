@@ -209,6 +209,19 @@ class TestJpegFailureRoutes(CliTestCase):
         self.assertNotIn("decoded.png", result.stderr)
         self.assertNotIn("magick-", result.stderr)
 
+    def test_oversized_jpeg_is_refused_before_conversion(self):
+        path = self._image()
+        with (
+            mock.patch.object(sample, "_MAX_JPEG_BYTES", 8),
+            mock.patch.object(jpeg_convert, "convert_jpeg", return_value=None) as convert,
+        ):
+            result = self._run(path, "0", "0")
+        convert.assert_not_called()
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, "")
+        self.assertIn(path, result.stderr)
+        self.assertIn("larger than the 8-byte limit", result.stderr)
+
     def test_out_of_bounds_pixel_reports_the_decoded_size(self):
         path = self._image()
         result = self._run(path, str(QUILT_WIDTH), "0")

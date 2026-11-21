@@ -37,18 +37,32 @@ else:  # run directly: python3 tools/sample.py
     from sample_report_common import format_image_header
 
 
-def _read_entire(fd: int) -> bytes:
+_MAX_JPEG_BYTES = 512 * 1024 * 1024
+
+
+def _read_entire(fd: int, source_path: str) -> bytes:
     """Read the open regular file *fd* whole through its stable handle.
 
     The bytes come off the same handle the sniffer sniffed, so a concurrent
     directory swap cannot supply different bytes to the conversion.
     """
+    size = os.fstat(fd).st_size
+    if size > _MAX_JPEG_BYTES:
+        raise PngError(
+            f"cannot read {source_path}: file is {size} bytes, larger than the "
+            f"{_MAX_JPEG_BYTES}-byte limit"
+        )
     chunks: list[bytes] = []
     position = 0
     while True:
-        chunk = os.pread(fd, 1 << 20, position)
+        chunk = os.pread(fd, min(1 << 20, _MAX_JPEG_BYTES + 1 - position), position)
         if not chunk:
             return b"".join(chunks)
+        if position + len(chunk) > _MAX_JPEG_BYTES:
+            raise PngError(
+                f"cannot read {source_path}: file is larger than the "
+                f"{_MAX_JPEG_BYTES}-byte limit"
+            )
         chunks.append(chunk)
         position += len(chunk)
 
@@ -63,8 +77,9 @@ def _sample_jpeg(args, fd: int) -> int:
     ``/proc/self/fd`` rewrite above carries the operator's name instead of
     the stable handle's.
     """
+    input_bytes = _read_entire(fd, args.image)
     try:
-        with decoded_png(_read_entire(fd), "sample-jpeg-") as temp_png:
+        with decoded_png(input_bytes, "sample-jpeg-") as temp_png:
             return _sample_temp_png(args, temp_png)
     except JpegDecodeError as problem:
         return report_error(
