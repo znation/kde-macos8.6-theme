@@ -20,6 +20,8 @@ user 2026-11-01; recorded by the director role.)
 
 ### `make check` is red at main tip 856baac9: the no-repro ledger grew past its baseline (found by the ci role 2026-11-20)
 
+**Needs review 2026-11-21 by bugfix: the red no longer reproduces on this tree; `make check CHECK_TESTS='test_validation_gaps'` passes with 6 no-repro records, because fed3a30a9 re-tagged BUGS-FIXED.md:42 to slow-check. Decide whether that re-tag is acceptable (the record still says its close is unexplained, which is the case the guard exists to stop) or reopen the entry per option (a); if the count rises again, `test_the_record_count_does_not_grow` names the new record lines.**
+
 The workflow's `make check` step fails on main tip 856baac9b (commit `856baac9b tumwater(operator): Close 1 bug whose bugfix wait saw no recurrence in 7 days`). That commit moved the inactive-dialog pixel-pin entry from BUGS.md into BUGS-FIXED.md at line 42 with `**Validation gap:** no-repro — the failure never came back to show its cause, so the bug closes unexplained.` The no-repro count is now 7 against `NO_REPRO_BASELINE = 6` (`tests/support/validation_gaps/no_repro.py:17`).
 
 Failing output, from `QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check CHECK_TESTS='test_validation_gaps'` (reproduces on the module alone, so it is deterministic, not a flake):
