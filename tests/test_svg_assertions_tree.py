@@ -11,7 +11,7 @@ from __future__ import annotations
 import unittest
 import xml.etree.ElementTree as ET
 
-from support.svg_fixtures import SvgBodyCase, _svg_tree
+from svg_assertions.fixtures import SvgBodyCase, _svg_tree
 from svg_assertions import (
     attribute_values,
     children_named,

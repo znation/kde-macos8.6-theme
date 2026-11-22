@@ -12,7 +12,7 @@ from __future__ import annotations
 import unittest
 
 from support.rejection_assertions import NoSubTest, assert_rejects
-from support.svg_fixtures import _svg_tree
+from svg_assertions.fixtures import _svg_tree
 from svg_assertions import (
     SLICE_IDS,
     assert_center_tile_is,

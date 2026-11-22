@@ -1,6 +1,6 @@
 """Pins for the kwinrc uninstall-diagnostic suites' shared body builders.
 
-`tests/support/kwinrc_uninstall_wording.py` shares the kwinrc body bytes
+`tests/support/kde/kwinrc_uninstall_wording.py` shares the kwinrc body bytes
 the aurorae-pair and theme-key suites stage as file content for the
 `make _uninstall` scanners to parse; a missing newline, a swapped key or a
 dropped value would silently change which shape a suite exercises. These
@@ -11,7 +11,7 @@ them.
 
 import unittest
 
-from support.kwinrc_uninstall_wording import (
+from support.kde.kwinrc_uninstall_wording import (
     REMOVAL_GROUP,
     aurorae_pair_body,
     aurorae_pair_lines,

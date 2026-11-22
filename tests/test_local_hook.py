@@ -26,7 +26,7 @@ from support import tmp_dir
 from support.atomic_write_failures import crashing_fdopen, swapping_mkstemp
 from support.close_tracking import failing_fdopen
 from support.executable_stubs import write_executable
-from support.local_hook_repos import (
+from support.local_hook.repos import (
     assert_refuses_a_foreign_hook,
     assert_refuses_an_oversize_hook,
     hook_path,

@@ -12,7 +12,7 @@ import unittest
 from unittest import mock
 
 from support.error_assertions import assert_error_names, error_message
-from support.svg_fixtures import _svg_tree
+from svg_assertions.fixtures import _svg_tree
 from svg_assertions import (
     _MAX_RENDERED_PIXELS,
     bevel_corner_maps,

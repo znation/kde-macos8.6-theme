@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import unittest
 
-from support.svg_fixtures import _svg_tree
+from svg_assertions.fixtures import _svg_tree
 from svg_assertions import (
     nine_slice_hint_geometry,
     nine_slice_id_set,

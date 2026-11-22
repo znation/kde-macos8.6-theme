@@ -12,7 +12,7 @@ selection stays silent.
 The parse state every diagnostic builds on -- the config-home resolution, the
 bounded read and the INI scanning -- lives in
 :mod:`uninstall_config` and keeps the semantics
-``tests/support/kde_ini_corpus.py`` pins through ``tests/test_kde_ini_parity.py``.
+``tests/support/kde/ini_corpus.py`` pins through ``tests/test_kde_ini_parity.py``.
 The handlers for the live config files live in
 :mod:`uninstall_live_diagnostics`, the handlers for the
 ``kdedefaults`` layer in :mod:`uninstall_defaults_diagnostics`; this module is

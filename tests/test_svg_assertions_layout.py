@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 
 from support.error_assertions import assert_error_names
 from support.rejection_assertions import assert_rejects
-from support.svg_fixtures import _svg_tree
+from svg_assertions.fixtures import _svg_tree
 from svg_assertions import (
     SLICE_IDS,
     assert_arcs_share_center,

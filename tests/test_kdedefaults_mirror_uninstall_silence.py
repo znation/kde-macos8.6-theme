@@ -13,7 +13,7 @@ import unittest
 
 from support.process_assertions import assert_succeeded
 from support.theme_install import write_file
-from support.kdedefaults_mirror_cases import (
+from support.kde.kdedefaults_mirror_cases import (
     LNF_ID,
     icons_rule,
     mirror_kwinrc_rule,

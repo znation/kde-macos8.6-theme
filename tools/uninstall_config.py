@@ -19,7 +19,7 @@ The ini files the diagnostics read -- ``kdeglobals``,
 ``kdedefaults/kwinrc``, ``kdedefaults/plasmarc`` and either
 ``settings.ini`` -- are read with :func:`read_selected_values`, which keeps
 the semantics the recipe's inline awks used that
-``tests/support/kde_ini_corpus.py`` pins through ``tests/test_kde_ini_parity.py``:
+``tests/support/kde/ini_corpus.py`` pins through ``tests/test_kde_ini_parity.py``:
 a leading UTF-8 BOM on the first line is stripped, each line is trimmed before
 parsing, a trimmed line opening with ``[`` and closing with ``]`` opens the
 bracketed section, a line whose first character is ``#`` or ``;`` is a comment

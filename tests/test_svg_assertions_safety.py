@@ -14,7 +14,7 @@ import time
 import unittest
 
 from support.rejection_assertions import assert_rejection_names
-from support.svg_fixtures import _svg_tree
+from svg_assertions.fixtures import _svg_tree
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,

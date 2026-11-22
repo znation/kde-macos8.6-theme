@@ -2,14 +2,14 @@
 
 The install side, the hook body and the Makefile targets are tested in
 ``test_local_hook.py``. Each test makes a throwaway ``git init`` repository
-through the fixtures in ``support.local_hook_repos``.
+through the fixtures in ``support.local_hook.repos``.
 """
 
 import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.local_hook_repos import (
+from support.local_hook.repos import (
     assert_refuses_a_foreign_hook,
     assert_refuses_an_oversize_hook,
     hook_path,

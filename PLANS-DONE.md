@@ -5,6 +5,49 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Group the tests/support kde, local_hook and svg_assertions modules into their packages (part 6/6 of the tests/support regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Land the kde-config, local-hook and svg-assertions slices of the
+tests/support regroup (see part 1/6 for the split's counts and rules; the
+parts are independent).
+
+**Modules to move (importer files counted on main).** `kde_ini_corpus` (1),
+`kdedefaults_mirror_cases` (2), `kwinrc_uninstall_wording` (4) →
+`tests/support/kde/` with `__init__.py`: `ini_corpus.py`,
+`kdedefaults_mirror_cases.py`, `kwinrc_uninstall_wording.py`.
+`local_hook_repos` (3) → `tests/support/local_hook/` with `__init__.py`:
+`repos.py`. `svg_fixtures` (7) → `tests/svg_assertions/fixtures.py`, per
+the recorded lesson that generic SVG test helpers live in
+`tests/svg_assertions/<concern>.py`, not under `tests/support/`; update
+the re-exporting modules and their tests there.
+
+**Approach.** As in part 1/6: move, rewrite importer lines and bare
+references, retarget `mock.patch` strings, verify importers before each
+move. Known stays, already measured: the meta-test fixtures
+(`unused_imports`, `mutant_module`, `invariants_mutations`,
+`placeholders_mutations`, `check_parallel_fixtures`) stay flat — they
+police the whole suite, not one family — as does `config_home_cases`
+(spans the kde config surfaces and the other install families).
+
+**Files touched.** The five moved modules, their importer files under
+`tests/` (for `svg_fixtures`, the `tests/svg_assertions/` modules), any
+`mock.patch` target strings, and docs naming the old paths.
+
+**Acceptance criteria.**
+
+- `ls tests/support/kde/ tests/support/local_hook/` lists both
+  `__init__.py` files and the four moved modules, and
+  `tests/svg_assertions/fixtures.py` exists;
+  `rg -n 'support\.(kde_ini_corpus|kdedefaults_mirror_cases|kwinrc_uninstall_wording|local_hook_repos|svg_fixtures)'`
+  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
+  reference.
+- Every `mock.patch` string naming a moved module resolves, and the tests
+  that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### PNG chunk suite extraction: move the byte-framing rules and the iterator tests into their own module (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_png_chunks.py` (512 lines) mixes two concerns. Most of

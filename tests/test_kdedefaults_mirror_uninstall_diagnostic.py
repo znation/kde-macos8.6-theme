@@ -28,7 +28,7 @@ from support.config_home_cases import (
     assert_home_fallback,
     assert_no_config_home,
 )
-from support.kdedefaults_mirror_cases import (
+from support.kde.kdedefaults_mirror_cases import (
     LNF_ID,
     icons_rule,
     mirror_kwinrc_rule,

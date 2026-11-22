@@ -30,7 +30,7 @@ from support.theme_install import (
 )
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_config_home
-from support.kwinrc_uninstall_wording import (
+from support.kde.kwinrc_uninstall_wording import (
     RIGHT_KEY,
     LEFT_KEY,
     REMOVAL_GROUP,

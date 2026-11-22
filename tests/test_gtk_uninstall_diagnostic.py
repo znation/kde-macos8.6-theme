@@ -9,7 +9,7 @@ sheets and warns when a settings file it removed the theme for still holds a
 never unset): a later duplicate key naming a foreign theme never unmarks an
 earlier one of ours, and `tools/gtk_settings.py::-remove_theme_name` deletes
 those duplicate-key spellings too. The ini lookup rule the module's other
-diagnostics share is last-value-wins (``tests/support/kde_ini_corpus.py``
+diagnostics share is last-value-wins (``tests/support/kde/ini_corpus.py``
 pins it); the latch is the GTK diagnostic's own contract, pinned here
 through ``tools/uninstall_diagnostics.py``'s ``diagnostics``, through
 ``tools/uninstall_config.py``'s ``latched_match`` and through ``_uninstall``

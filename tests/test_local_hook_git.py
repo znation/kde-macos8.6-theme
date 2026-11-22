@@ -18,7 +18,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
 from support.executable_stubs import write_executable
-from support.local_hook_repos import (
+from support.local_hook.repos import (
     hook_path,
     in_directory,
     make_repo,

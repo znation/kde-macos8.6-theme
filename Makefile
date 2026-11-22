@@ -908,7 +908,7 @@ _uninstall:
 # which the recipes above own; the readers share one scanner in
 # tools/uninstall_config.py, which resolves the config home the way this
 # recipe did (`XDG_CONFIG_HOME` absolute, else `$HOME/.config`) and keeps the
-# read rules the corpus in tests/support/kde_ini_corpus.py pins; the handlers
+# read rules the corpus in tests/support/kde/ini_corpus.py pins; the handlers
 # for one config surface each live in tools/uninstall_live_diagnostics.py and
 # tools/uninstall_defaults_diagnostics.py, so tools/uninstall_diagnostics.py
 # only owns the CLI and the ordered calls. The scan of
