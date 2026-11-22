@@ -45,7 +45,9 @@ which no tool check sees because a package is not a command — a render whose a
 refuses with exit 2 before any session, naming the applet id and the searched
 `plasma/plasmoids` locations. A `make` or `dbus-run-session`
 that exists but cannot be started is reported the same way, as is a scratch session
-directory that cannot be created. It
+directory that cannot be created. An output path that is a directory, or whose parent is
+missing, is not a directory or is not writable, exits 2 naming the problem before any session
+starts. It
 installs into a scratch data home and leaves your own Plasma configuration alone. The
 scratch config home takes its `[kwinrc][org.kde.kdecoration2]` selection from the look-and-feel
 `defaults` (`library=org.kde.kwin.aurorae`, `theme=org.macos8.desktop`), the `KWin/Decoration`
