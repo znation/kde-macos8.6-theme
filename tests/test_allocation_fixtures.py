@@ -2,7 +2,8 @@
 
 ``peak_allocation`` wraps the memory-bound tests: it runs a callable under
 ``tracemalloc`` and returns the call's result beside the peak traced
-allocation. The three suites that use it (``test_png_read``,
+allocation. The four suites that use it (``test_png_read``,
+``test_png_read_size``,
 ``test_png_malformed`` and ``test_check_references_io``) always pass a
 callable that returns -- their guards catch the ``PngError`` and hand back a
 message -- so only the normal path was ever driven. This module pins the two

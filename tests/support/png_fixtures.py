@@ -4,7 +4,8 @@ Test-only: builds 8-bit, non-interlaced PNGs (including deliberately malformed
 ones) so the image test modules -- ``tests/test_png_decode.py``,
 ``tests/test_png_chunks.py``, ``tests/test_png_malformed.py``,
 ``tests/test_png_filters.py``, ``tests/test_png_scanlines.py``,
-``tests/test_png_read.py``, ``tests/test_png_rgba.py``,
+``tests/test_png_read.py``, ``tests/test_png_read_size.py``,
+``tests/test_png_rgba.py``,
 ``tests/test_png_fixtures.py``, ``tests/test_sample_cli.py``,
 ``tests/test_fidelity_metrics.py``, ``tests/test_fidelity_cli.py``,
 ``tests/test_fidelity_cli_crops.py`` and the shared
@@ -19,6 +20,7 @@ from __future__ import annotations
 import contextlib
 import struct
 import tempfile
+import unittest
 import zlib
 from collections.abc import Callable
 from pathlib import Path
@@ -28,6 +30,7 @@ from support.error_assertions import (  # noqa: E402
     assert_error_names,
     error_message,
 )
+from support.tmp_dir import make_tmp_dir  # noqa: E402
 from tools import png  # noqa: E402
 from tools.ints import is_plain_int  # noqa: E402
 
@@ -36,6 +39,13 @@ _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 # color_type -> channels per pixel at bit depth 8, mirroring tools/png/header.py's set.
 _CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
+
+
+def input_file(case: unittest.TestCase, name: str, data: bytes) -> Path:
+    """Write *data* to *name* in a fresh test temp directory."""
+    path = make_tmp_dir(case) / name
+    path.write_bytes(data)
+    return path
 
 
 def _chunk(ctype: bytes, payload: bytes) -> bytes:
