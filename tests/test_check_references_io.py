@@ -110,6 +110,19 @@ class TestOversizeSources(CheckerTestCase):
         )
         self.assertLess(peak, limit + 1024 * 1024)
 
+    def test_sources_exactly_at_the_cap_is_read_not_refused(self):
+        # The cap is inclusive: a record of exactly ``limit`` bytes is within
+        # it, so only one byte more is refused as oversize.
+        module = self.checker
+        limit = 4096
+        with reference_set(module, b"#" * limit) as root:
+            with mock.patch.object(reference_sources, "_MAX_SOURCES_BYTES", limit):
+                problems = module.check_references(root)
+        self.assertFalse(
+            any("larger than" in line for line in problems), problems
+        )
+        self.assertEqual(problems, [])
+
 
 class TestUndecodableSources(CheckerTestCase):
     """A sources.txt that is not valid UTF-8 is reported, not raised."""
