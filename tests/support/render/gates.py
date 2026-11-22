@@ -241,7 +241,7 @@ class Renders:
         ("slider", ("--slider-dialog",), "dialog.png"),
         ("textbox", ("--textbox-dialog",), "dialog.png"),
         ("gtk", ("--gtk-dialog", "--settle", "20"), "dialog.png"),
-        ("inactive", ("--inactive-dialog",), "dialog.png"),
+        ("inactive", ("--inactive-dialog", "--settle", "20"), "dialog.png"),
         ("file_dialog", ("--file-dialog",), "dialog.png"),
         ("desktop", ("--desktop",), "desktop.png"),
         ("splash", ("--splash",), "splash.png"),

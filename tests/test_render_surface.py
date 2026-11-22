@@ -401,15 +401,16 @@ class TestRenderBudgets(unittest.TestCase):
         settle = flags[flags.index("--settle") + 1]
         self.assertEqual(settle, "20")
 
-    def test_the_inactive_gate_renders_at_the_documented_default_settle(self):
-        # The two-window inactive capture rides the same dialog defaults as
-        # the kdialog widget gates: its flags in Renders.KINDS carry
-        # no --settle argument, so the dialog default paint budget governs
-        # and no under-budgeted override can shorten the two-window
-        # session's settle. A static pin of the shipped flag list, like the
-        # sibling applet pin below.
+    def test_the_inactive_gate_settles_for_twenty_seconds(self):
+        # The two-window inactive capture spawns its focused kdialog 2 s
+        # after the unfocused one, and the capture lands at the settle
+        # ceiling. At the 8 s default the focused window can still be
+        # unmapped under the parallel check's load, so the capture reads the
+        # unfocused window as active (the '#CCCCCC' != '#000000' flake in
+        # BUGS.md). It takes the same 20 s budget as the GTK and icon gates.
         flags = dict((kind, flags) for kind, flags, _ in Renders.KINDS)["inactive"]
-        self.assertNotIn("--settle", flags)
+        self.assertIn("--settle", flags)
+        self.assertEqual(flags[flags.index("--settle") + 1], "20")
 
     def test_the_applet_gate_renders_at_the_documented_default_settle(self):
         # The offline reproduction of the archived slow-check record about the
