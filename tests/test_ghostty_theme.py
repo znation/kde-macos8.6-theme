@@ -39,6 +39,7 @@ ALLOWED_KEYS = {
     "palette",
 }
 
+
 def _read_pairs(path):
     """Return the `(key, value)` pairs of a Ghostty config file, in order."""
     pairs = []
