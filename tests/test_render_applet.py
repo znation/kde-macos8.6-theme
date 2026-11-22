@@ -242,6 +242,29 @@ class TestDerivedRoots(unittest.TestCase):
             self.derived(XDG_DATA_HOME="/one", XDG_DATA_DIRS="/two::/three"),
         )
 
+    def test_a_relative_data_home_falls_back_to_the_default_home(self):
+        # XDG Base Directory spec: a relative path in these variables is
+        # invalid and ignored, so the data home is the default one.
+        self.assertEqual(
+            [Path.home() / ".local" / "share", Path("/two")],
+            self.derived(XDG_DATA_HOME="scratch/home", XDG_DATA_DIRS="/two"),
+        )
+
+    def test_relative_data_dirs_entries_are_dropped_and_absolute_kept_in_order(self):
+        self.assertEqual(
+            [Path("/one"), Path("/two"), Path("/three")],
+            self.derived(
+                XDG_DATA_HOME="/one",
+                XDG_DATA_DIRS="rel/share:/two:other::/three",
+            ),
+        )
+
+    def test_only_relative_data_dirs_entries_leave_just_the_data_home(self):
+        self.assertEqual(
+            [Path("/one")],
+            self.derived(XDG_DATA_HOME="/one", XDG_DATA_DIRS="rel/share:.:"),
+        )
+
     def test_a_data_dirs_value_of_only_separators_is_not_empty_so_no_defaults(self):
         # XDG Base Directory spec: the defaults apply only when XDG_DATA_DIRS
         # is unset or empty. A value of separators is non-empty, so it

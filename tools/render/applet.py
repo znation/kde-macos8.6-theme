@@ -36,19 +36,26 @@ def data_roots_from_environment(
 ) -> list[Path]:
     """Return the XDG data roots a KPackage search would cover.
 
-    ``environ`` defaults to ``os.environ``; a root derived from an unset or
-    empty variable is the XDG default for it. The ``XDG_DATA_DIRS`` entries
-    keep their listed order and drop empty components.
+    ``environ`` defaults to ``os.environ``; a root derived from an unset,
+    empty or relative ``XDG_DATA_HOME`` is the XDG default for it. The
+    ``XDG_DATA_DIRS`` entries keep their listed order; empty and relative
+    components are dropped, as the XDG Base Directory spec requires (a
+    relative path is invalid and must be ignored, not resolved against the
+    working directory).
     """
     if environ is None:
         environ = os.environ
     home = environ.get("XDG_DATA_HOME")
-    roots = [Path(home) if home else _default_data_home()]
+    roots = [Path(home) if home and os.path.isabs(home) else _default_data_home()]
     dirs = environ.get("XDG_DATA_DIRS")
     if not dirs:
         roots.extend(Path(entry) for entry in _DEFAULT_DATA_DIRS)
     else:
-        roots.extend(Path(entry) for entry in dirs.split(":") if entry)
+        roots.extend(
+            Path(entry)
+            for entry in dirs.split(":")
+            if entry and os.path.isabs(entry)
+        )
     return roots
 
 
