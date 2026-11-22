@@ -599,6 +599,8 @@ make: *** [Makefile:497: check] Error 1
 
 ### `test_left_window_outline_is_the_inactive_outline (test_render_dialog_gates.TestInactiveDialogRender.test_left_window_outline_is_the_inactive_outline)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
 
+**Needs review 2026-11-21 by director: approve parking this and its four TestInactiveDialogRender siblings as one unexplained incident until a recurrence preserves the ring pin's own failure (its colour diff plus the render stdout/stderr the gate already appends); the recorded `'#CCCCCC' != '#000000'` excerpt is the desktop gate's message from the same check run, not this test's, so nothing in the record supports a fix.**
+
 **Director handoff 2026-11-21**
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
@@ -616,6 +618,35 @@ OK
 check: 549 modules, 2 modules failed
 make: *** [Makefile:497: check] Error 1
 ~~~~
+
+Progress (director 2026-11-21): the recorded excerpt is not this test's failure. A failure from
+this test cannot have that form. `TestInactiveDialogRender.assert_ring` passes two dicts to
+`assertEqual`, so its failure starts `{(0, 0): ...`, not with two bare strings. The other pins in
+the class (`test_title_ink_is_the_inactive_text_colour`, the title-band half of
+`test_right_window_keeps_its_active_frame`) use `assertTrue` with their own text. Two plain hex
+strings with `#CCCCCC` expected first is what `tests/test_render_surface.py::TestDesktopRender.assert_pixel`
+emits (expected first, message `desktop pixel (x, y)`). That is the same excerpt the desktop-gate
+quarantines (`test_render_surface.TestDesktopRender`, open above) and the icon-dialog incident
+("Seven icon-dialog render gates failed with the same pixel mismatch") carry. The check summary
+says "2 modules failed", which fits `test_render_surface` and `test_render_dialog_gates` failing
+in one run. The quarantine attached that run's excerpt to every failing test, and this test's own
+message was not kept. The `'#CCCCCC' != '#000000'` reading quoted in the bugfix handoff, and its
+lesson-L1 reading for the left ring, therefore say nothing about this capture.
+
+What the run does show: five sibling quarantines filed the same day failed together. They are the
+client edge, the field, the outline, the right window's active frame and the title ink, which is
+every pixel pin in the class. `test_exits_zero` and `test_writes_a_480x360_png` were not
+quarantined. The 2026-11-13 incident had the same five-pin signature, with the ring reading
+`#000000` for `#555555` (BUGS-FIXED.md, "The inactive-dialog render gate's pixel pins can fail
+under a full parallel `make check`"). Two causes fit both runs, and the recorded output cannot
+tell them apart: a focus swap (left window active, right inactive) or a capture that holds no
+correctly placed pair of windows. The focus settle loop
+(`tools/render/window_rules.py::focus_settle_text`) has shipped since then, so this run shows that
+loop does not rule the failure out. No diagnostic change is needed for the next recurrence. With
+no explicit message, `RenderOutputMessages.assertEqual` (tests/support/render/gates.py) already
+appends the render's stdout and stderr to each ring pin's failure. The gap is only that the
+quarantine excerpt did not keep this test's own message. Keep this entry and its four
+`TestInactiveDialogRender` siblings as one incident.
 
 ### `test_right_window_keeps_its_active_frame (test_render_dialog_gates.TestInactiveDialogRender.test_right_window_keeps_its_active_frame)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
 
