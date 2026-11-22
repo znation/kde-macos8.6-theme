@@ -8,7 +8,8 @@ KIO chooser session. Its owning assertions remain in
 # The title bar's leftmost 13x13 box (window icon box, x=4..16,
 # y=7..19): a #888888-outline box with the fallback-theme icon mark
 # inside and the #FFFFFF bevel column/row at x=16/y=19, measured
-# pixel-exact on the runs named in the class docstring.
+# pixel-exact on the runs named in ``TestFileDialogRender``'s class
+# docstring in ``tests/test_render_file_dialog.py``.
 ICON_BOX_ROWS = (
     ("#888888", "#888888", "#888888", "#888888", "#888888", "#888888",
      "#888888", "#888888", "#888888", "#888888", "#888888", "#888888",
