@@ -11,7 +11,7 @@ import os
 import unittest
 
 from support import installed_paths, theme_install
-from support.process_assertions import assert_succeeded
+from support.process_assertions import assert_failed, assert_succeeded
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
 
@@ -78,6 +78,26 @@ class TestKonsoleUninstall(unittest.TestCase):
         self.assertFalse(os.path.exists(_installed_scheme(tmp)))
         self.assertTrue(os.path.isfile(foreign), foreign)
         self.assertTrue(os.path.isdir(konsole), konsole)
+
+    def test_a_linked_konsole_directory_cannot_redirect_removal(self):
+        # `konsole/` is in uninstall's symlink-refusal list: a link planted
+        # there must stop the run before `rm -f` follows it outside DATA_HOME.
+        tmp = make_tmp_dir(self)
+        data_home = tmp / "data"
+        outside = tmp / "outside"
+        outside.mkdir()
+        sentinel = outside / "MacOS8.colorscheme"
+        sentinel.write_text("foreign scheme", encoding="utf-8")
+        data_home.mkdir()
+        (data_home / "konsole").symlink_to(outside, target_is_directory=True)
+        env = theme_install.make_env("XDG_DATA_HOME")
+        env["XDG_DATA_HOME"] = str(data_home)
+
+        result = theme_install.run_make(["uninstall"], env=env)
+
+        assert_failed(self, result)
+        self.assertIn("refusing a symlink in the install destination", result.stderr)
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "foreign scheme")
 
 
 if __name__ == "__main__":
