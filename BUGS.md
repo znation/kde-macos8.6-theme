@@ -573,6 +573,8 @@ make: *** [Makefile:497: check] Error 1
 
 ### `test_left_window_outline_is_the_inactive_outline (test_render_dialog_gates.TestInactiveDialogRender.test_left_window_outline_is_the_inactive_outline)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
 
+**Director handoff 2026-11-21**
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
