@@ -9,10 +9,10 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from support import splash_fixtures
+from support.splash import fixtures as splash_fixtures
 from support import snippet_child
 from support.fifo_fixtures import assert_fifo_read_refused
-from support.splash_fixtures import object_source, qml_unit_expression, read_qml
+from support.splash.fixtures import object_source, qml_unit_expression, read_qml
 from support.symlink_fixtures import symlinked_repo
 from tools import containment as tools_containment
 
@@ -247,7 +247,7 @@ class TestSplashQmlContainment(unittest.TestCase):
             os.mkfifo(fifo)
             child = snippet_child.run(
                 [
-                    "import sys; import support.splash_fixtures as f; "
+                    "import sys; import support.splash.fixtures as f; "
                     "f.ROOT, f.SPLASH = sys.argv[1], sys.argv[2]; "
                     "f.read_qml()",
                     str(root),

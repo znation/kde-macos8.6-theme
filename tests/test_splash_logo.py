@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from support.splash_fixtures import LOGO
+from support.splash.fixtures import LOGO
 from support.placeholders import REGISTER, cross_check
 from support.repo_root import ROOT
 from support.svg_case import SvgCase

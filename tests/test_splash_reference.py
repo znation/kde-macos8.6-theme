@@ -11,7 +11,7 @@ from __future__ import annotations
 import unittest
 
 from support.platinum_palette import hex_colour
-from support.splash_fixtures import (
+from support.splash.fixtures import (
     LOGO,
     SplashReferenceCase,
     qml_border_width,

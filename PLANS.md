@@ -176,46 +176,6 @@ paths.
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
-### Group the tests/support splash, icon and desktoptheme modules into subpackages (part 5/6, slice B of the tests/support regroup) (planned 2026-11-21 by the plan role)
-
-**Goal.** Land the splash-, icon- and desktoptheme-family slices of the
-tests/support regroup (see part 1/6 for the split's counts and rules;
-the parts are independent). Split from the single part 5/6 entry after
-feature parked it as too large for one run; slice A carries the apply,
-cursor and xcursor slices and neither slice depends on the other.
-
-**Modules to move (importer files counted on main).** `splash_fixtures`
-(3) → `tests/support/splash/` with `__init__.py`: `fixtures.py`.
-`icon_theme_inventory` (2) → `tests/support/icon/` with `__init__.py`:
-`theme_inventory.py`. `raised_face_case` (2), `thumb_fixtures` (3) →
-`tests/support/desktoptheme/` with `__init__.py`: `raised_face_case.py`,
-`thumb_fixtures.py`. Ten importer files under `tests/` in total.
-
-**Approach.** As in part 1/6: move, rewrite importer lines and bare
-references, retarget `mock.patch` strings, verify importers before each
-move. Known stays, already measured: `firstboot_lineedit`,
-`sunken_field_reference` and `reference_button` (each spans two
-families).
-
-**Files touched.** The four moved modules, their ten importer files
-under `tests/`, any `mock.patch` target strings, and docs naming the old
-paths.
-
-**Acceptance criteria.**
-
-- `ls tests/support/splash/ tests/support/icon/
-  tests/support/desktoptheme/` lists each `__init__.py` and the four
-  moved modules;
-  `rg -n 'support\.(splash_fixtures|icon_theme_inventory|raised_face_case|thumb_fixtures)'`
-  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
-  reference.
-- Every `mock.patch` string naming a moved module resolves, and the tests
-  that patch them pass.
-- No behavior change: `git diff` shows moves, import lines, patch targets
-  and doc paths only.
-- `make check` passes after the final edit, apart from main's known-red
-  tests.
-
 ### Wallpaper: ground the flat desktop field in the reference desktop's `#63639C` (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup parts — its only shared surface, the desktop render gate, rides this same change)
 **Needs review 2026-11-21 by feature: plan defect — the desktop area of a fresh `--desktop` capture is not a stable flat value on this host, so the pin in step 5 has no consecutive pair to take. Four consecutive full runs (`tools/render_surface.py <scratch>/desktop.png --desktop`, all exit 0): runs 1 and 3 paint rows 20..399 solid `#000000` (243200 of 243200 pixels), runs 2 and 4 paint solid `#63639C`. No two consecutive runs agree, so the entry's stop condition holds. The black captures look like the wallpaper not yet painted at the capture point; this was not measured on the unchanged `#CCCCCC` tree, so it is not yet shown to be caused by the new tile. The plan role should decide how the gate settles the wallpaper before the pin is taken. The wallpaper edits (generator, tests, invariants, prose) were reverted and nothing is landed.**
 

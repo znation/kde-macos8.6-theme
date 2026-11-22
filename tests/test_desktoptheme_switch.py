@@ -7,7 +7,7 @@ import unittest
 from support.desktoptheme_paths import SWITCH_SVG
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import TROUGH, WHITE, assert_fill_palette
-from support.thumb_fixtures import (
+from support.desktoptheme.thumb_fixtures import (
     raised_thumb_pixels,
     ring_pixels,
     sunken_thumb_pixels,

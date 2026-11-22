@@ -5,6 +5,46 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Group the tests/support splash, icon and desktoptheme modules into subpackages (part 5/6, slice B of the tests/support regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Land the splash-, icon- and desktoptheme-family slices of the
+tests/support regroup (see part 1/6 for the split's counts and rules;
+the parts are independent). Split from the single part 5/6 entry after
+feature parked it as too large for one run; slice A carries the apply,
+cursor and xcursor slices and neither slice depends on the other.
+
+**Modules to move (importer files counted on main).** `splash_fixtures`
+(3) → `tests/support/splash/` with `__init__.py`: `fixtures.py`.
+`icon_theme_inventory` (2) → `tests/support/icon/` with `__init__.py`:
+`theme_inventory.py`. `raised_face_case` (2), `thumb_fixtures` (3) →
+`tests/support/desktoptheme/` with `__init__.py`: `raised_face_case.py`,
+`thumb_fixtures.py`. Ten importer files under `tests/` in total.
+
+**Approach.** As in part 1/6: move, rewrite importer lines and bare
+references, retarget `mock.patch` strings, verify importers before each
+move. Known stays, already measured: `firstboot_lineedit`,
+`sunken_field_reference` and `reference_button` (each spans two
+families).
+
+**Files touched.** The four moved modules, their ten importer files
+under `tests/`, any `mock.patch` target strings, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tests/support/splash/ tests/support/icon/
+  tests/support/desktoptheme/` lists each `__init__.py` and the four
+  moved modules;
+  `rg -n 'support\.(splash_fixtures|icon_theme_inventory|raised_face_case|thumb_fixtures)'`
+  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
+  reference.
+- Every `mock.patch` string naming a moved module resolves, and the tests
+  that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Group the flat gtk_* tools modules into tools/gtk/ (part 8/8 of the tools regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** Land the gtk-family slice of the flat-`tools/` regroup (see

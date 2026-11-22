@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 
 from support.desktoptheme_paths import TOOLBAR_SVG
-from support.raised_face_case import RaisedFaceCase
+from support.desktoptheme.raised_face_case import RaisedFaceCase
 
 
 class TestToolBar(RaisedFaceCase, unittest.TestCase):

@@ -7,7 +7,7 @@ import unittest
 from support.desktoptheme_paths import SLIDER_SVG
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import TROUGH, assert_fill_palette
-from support.thumb_fixtures import raised_thumb_pixels
+from support.desktoptheme.thumb_fixtures import raised_thumb_pixels
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,

@@ -7,7 +7,7 @@ import unittest
 from support.desktoptheme_paths import CONTAINMENT_CONTROLS_SVG
 from support.platinum_palette import BLACK, FACE, SELECTION, assert_fill_palette
 from support.svg_case import SvgCase
-from support.thumb_fixtures import raised_thumb_pixels
+from support.desktoptheme.thumb_fixtures import raised_thumb_pixels
 from svg_assertions import (
     assert_ids_present,
     assert_no_external_references,

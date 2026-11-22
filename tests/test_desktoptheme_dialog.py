@@ -17,7 +17,7 @@ from support.desktoptheme_paths import (
     FANDOM_REFERENCE,
 )
 from support.platinum_palette import BLACK, FACE, WHITE, hex_colour
-from support.raised_face_case import RaisedFaceCase
+from support.desktoptheme.raised_face_case import RaisedFaceCase
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
 from svg_assertions import (

@@ -7,7 +7,7 @@ stay the same art as the folder at every shipped size.
 import os
 import unittest
 
-from support.icon_theme_inventory import (
+from support.icon.theme_inventory import (
     FOLDER_ALIASES,
     PACKAGE,
     SHIPPED_ICONS,
