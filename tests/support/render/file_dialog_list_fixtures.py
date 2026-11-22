@@ -66,3 +66,28 @@ ROW_BANDS = (
 ROW_BAND_HEIGHT = 20
 ROW_TEXT_BANDS = ((191, 241), (375, 393), (395, 473))
 EMPTY_ROWS = (183, 251)
+
+# The header band's style-drawn sort arrow (a solid #000000
+# downward-pointing triangle with antialiased arms), byte-pinned as
+# measured at x=336..346, rows 106..114. A moved, dropped, recoloured
+# or resampled arrow fails the byte-compare.
+SORT_ARROW = (
+    ("#DDDDDD", "#373737", "#000000", "#000000", "#000000",
+     "#000000", "#000000", "#000000", "#000000", "#373737", "#DDDDDD"),
+    ("#DDDDDD", "#A6A6A6", "#000000", "#000000", "#000000",
+     "#000000", "#000000", "#000000", "#000000", "#A6A6A6", "#DDDDDD"),
+    ("#DDDDDD", "#DDDDDD", "#373737", "#000000", "#000000",
+     "#000000", "#000000", "#000000", "#373737", "#DDDDDD", "#DDDDDD"),
+    ("#DDDDDD", "#DDDDDD", "#A6A6A6", "#000000", "#000000",
+     "#000000", "#000000", "#000000", "#A6A6A6", "#DDDDDD", "#DDDDDD"),
+    ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#373737", "#000000",
+     "#000000", "#000000", "#373737", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+    ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#A6A6A6", "#000000",
+     "#000000", "#000000", "#A6A6A6", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+    ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#373737",
+     "#000000", "#373737", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+    ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#A6A6A6",
+     "#000000", "#A6A6A6", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+    ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
+     "#6E6E6E", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
+)

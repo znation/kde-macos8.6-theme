@@ -16,6 +16,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.aurorae_fixtures import AURORAE_DIR
+from support.render import file_dialog_chrome_fixtures as chrome_fixtures
 from support.render import file_dialog_list_fixtures as list_fixtures
 from support.render import file_dialog_sidebar_fixtures as sidebar_fixtures
 from support.platinum_palette import hex_colour
@@ -49,7 +50,11 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
     Aurorae maximize and collapse (windowshade) widgets drawn 1:1 by KWin,
     re-derived from ``render_slices`` like the sibling art-side pins;
     the leftmost box holds the window icon, whose mark is the fallback
-    icon theme's rendering, pinned as measured.
+    icon theme's rendering, pinned as measured. The measured pixel maps
+    live in ``tests/support/render/file_dialog_chrome_fixtures.py`` (the
+    icon box), ``tests/support/render/file_dialog_list_fixtures.py`` (the
+    sort arrow and the list panel) and
+    ``tests/support/render/file_dialog_sidebar_fixtures.py`` (the sidebar).
 
     The list panel's content faces are pinned too, re-derived on
     2026-11-11 from three consecutive ``--file-dialog`` renders that
@@ -101,52 +106,6 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
     # band's stripes elsewhere.
     TITLE_BAND = (211, 7, 247, 18)  # x0, y0, x1, y1
 
-    # The title bar's leftmost 13x13 box (window icon box, x=4..16,
-    # y=7..19): a #888888-outline box with the fallback-theme icon mark
-    # inside and the #FFFFFF bevel column/row at x=16/y=19, measured
-    # pixel-exact on the runs named in the class docstring.
-    ICON_BOX_ROWS = (
-        ("#888888", "#888888", "#888888", "#888888", "#888888", "#888888",
-         "#888888", "#888888", "#888888", "#888888", "#888888", "#888888",
-         "#CCCCCC"),
-        ("#888888", "#222222", "#222222", "#222222", "#222222", "#222222",
-         "#222222", "#222222", "#222222", "#222222", "#222222", "#222222",
-         "#FFFFFF"),
-        ("#888888", "#222222", "#FFFFFF", "#CCCCCC", "#CCCCCC", "#CCCCCC",
-         "#CCCCCC", "#CCCCCC", "#CCCCCC", "#CCCCCC", "#CCCCCC", "#222222",
-         "#FFFFFF"),
-        ("#888888", "#222222", "#CCCCCC", "#999999", "#999999", "#AAAAAA",
-         "#AAAAAA", "#BBBBBB", "#BBBBBB", "#CCCCCC", "#888888", "#222222",
-         "#FFFFFF"),
-        ("#888888", "#222222", "#CCCCCC", "#999999", "#AAAAAA", "#AAAAAA",
-         "#BBBBBB", "#BBBBBB", "#CCCCCC", "#CCCCCC", "#888888", "#222222",
-         "#FFFFFF"),
-        ("#888888", "#222222", "#CCCCCC", "#AAAAAA", "#AAAAAA", "#BBBBBB",
-         "#BBBBBB", "#CCCCCC", "#CCCCCC", "#DDDDDD", "#888888", "#222222",
-         "#FFFFFF"),
-        ("#888888", "#222222", "#CCCCCC", "#AAAAAA", "#BBBBBB", "#BBBBBB",
-         "#CCCCCC", "#CCCCCC", "#DDDDDD", "#DDDDDD", "#888888", "#222222",
-         "#FFFFFF"),
-        ("#888888", "#222222", "#CCCCCC", "#BBBBBB", "#BBBBBB", "#CCCCCC",
-         "#CCCCCC", "#DDDDDD", "#DDDDDD", "#EEEEEE", "#888888", "#222222",
-         "#FFFFFF"),
-        ("#888888", "#222222", "#CCCCCC", "#BBBBBB", "#CCCCCC", "#CCCCCC",
-         "#DDDDDD", "#DDDDDD", "#EEEEEE", "#EEEEEE", "#888888", "#222222",
-         "#FFFFFF"),
-        ("#888888", "#222222", "#CCCCCC", "#CCCCCC", "#CCCCCC", "#DDDDDD",
-         "#DDDDDD", "#EEEEEE", "#EEEEEE", "#FFFFFF", "#888888", "#222222",
-         "#FFFFFF"),
-        ("#888888", "#222222", "#CCCCCC", "#888888", "#888888", "#888888",
-         "#888888", "#888888", "#888888", "#888888", "#888888", "#222222",
-         "#FFFFFF"),
-        ("#888888", "#222222", "#222222", "#222222", "#222222", "#222222",
-         "#222222", "#222222", "#222222", "#222222", "#222222", "#222222",
-         "#FFFFFF"),
-        ("#CCCCCC", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
-         "#FFFFFF"),
-    )
-
     # The title bar's two right-hand boxes: the shipped Aurorae maximize
     # widget (21x13, its glyph box in columns 5..17 with a pinstripe-matching
     # left pad) drawn at x=442..462, and the collapse (windowshade) widget
@@ -174,30 +133,6 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
     # all inking rows 105..114.
     HEADER_CAPTIONS = ((155, 187), (355, 379), (406, 433))
     CAPTION_ROWS = (105, 114)
-    # The header band's style-drawn sort arrow (a solid #000000
-    # downward-pointing triangle with antialiased arms), byte-pinned as
-    # measured at x=336..346, rows 106..114. A moved, dropped, recoloured
-    # or resampled arrow fails the byte-compare.
-    SORT_ARROW = (
-        ("#DDDDDD", "#373737", "#000000", "#000000", "#000000",
-         "#000000", "#000000", "#000000", "#000000", "#373737", "#DDDDDD"),
-        ("#DDDDDD", "#A6A6A6", "#000000", "#000000", "#000000",
-         "#000000", "#000000", "#000000", "#000000", "#A6A6A6", "#DDDDDD"),
-        ("#DDDDDD", "#DDDDDD", "#373737", "#000000", "#000000",
-         "#000000", "#000000", "#000000", "#373737", "#DDDDDD", "#DDDDDD"),
-        ("#DDDDDD", "#DDDDDD", "#A6A6A6", "#000000", "#000000",
-         "#000000", "#000000", "#000000", "#A6A6A6", "#DDDDDD", "#DDDDDD"),
-        ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#373737", "#000000",
-         "#000000", "#000000", "#373737", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
-        ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#A6A6A6", "#000000",
-         "#000000", "#000000", "#A6A6A6", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
-        ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#373737",
-         "#000000", "#373737", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
-        ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#A6A6A6",
-         "#000000", "#A6A6A6", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
-        ("#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD",
-         "#6E6E6E", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD", "#DDDDDD"),
-    )
     SORT_ARROW_RECT = (336, 106)
 
     # The places sidebar's two group headers: live-ink bands (measured
@@ -390,7 +325,7 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         # docstring): the #888888-outline box at x=4..15, y=7..18 with the
         # fallback-theme icon mark inside, its #FFFFFF bevel column at x=16
         # and bevel row 19 at x=5..16.
-        self.assert_band((4, 7, 13, 13), self.ICON_BOX_ROWS)
+        self.assert_band((4, 7, 13, 13), chrome_fixtures.ICON_BOX_ROWS)
         # The two right-hand boxes re-derived from the shipped Aurorae
         # widgets: the maximize art (21x13, glyph box plus pinstripe-matching
         # left pad) at x=442 and the collapse art (13x13) at x=463. A
@@ -786,7 +721,7 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         divider_columns = {x for x, _ in self.HEADER_DIVIDERS}
         caption_y0, caption_y1 = self.CAPTION_ROWS
         arrow_x0, arrow_y0 = self.SORT_ARROW_RECT
-        arrow_width, arrow_height = len(self.SORT_ARROW[0]), len(self.SORT_ARROW)
+        arrow_width, arrow_height = len(list_fixtures.SORT_ARROW[0]), len(list_fixtures.SORT_ARROW)
         for y in range(99, 121):
             for x in range(152, 474):
                 if caption_y0 <= y <= caption_y1 and any(
@@ -825,8 +760,8 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
                 )
         self.assert_band(
             (self.SORT_ARROW_RECT[0], self.SORT_ARROW_RECT[1],
-             len(self.SORT_ARROW[0]), len(self.SORT_ARROW)),
-            self.SORT_ARROW,
+             len(list_fixtures.SORT_ARROW[0]), len(list_fixtures.SORT_ARROW)),
+            list_fixtures.SORT_ARROW,
         )
 
     def test_the_list_rows_pin_their_band_faces(self):
