@@ -24,18 +24,40 @@ from __future__ import annotations
 import os
 import shlex
 import shutil
+import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
 try:
     from tools.render.session_script import session_script
+    from tools.terminal import escape_controls
 except ImportError:  # imported from a directly run tool
     from render.session_script import session_script
+    from terminal import escape_controls
 
 SOCKET = "render-surface"
 COLOR_SCHEME = "MacOS8"
 CLIENT_EXITED_DURING_CAPTURE = "render-session: client exited during the capture"
+
+
+def _remove_scratch_root(root: Path) -> None:
+    """Remove the scratch *root*; a failure is reported, not raised.
+
+    A removal that fails leaves the session's files behind on disk, so the
+    note names that leftover path and the error on stderr. It does not raise:
+    the caller is already finishing a render, and that render's own outcome
+    (a failure it reports, or the exception it is unwinding) must stay the one
+    the operator sees.
+    """
+    try:
+        shutil.rmtree(root)
+    except OSError as exc:
+        print(
+            "render_surface: note: could not remove scratch session directory "
+            f"{escape_controls(str(root))}: {escape_controls(str(exc))}",
+            file=sys.stderr,
+        )
 
 
 def _session_directories(root: Path) -> tuple[Path, Path, Path, Path, Path]:
@@ -103,7 +125,7 @@ class Session:
             runtime, config, data, home, surface = _session_directories(root)
             environment = _session_environment(runtime, config, data, home)
         except BaseException:
-            shutil.rmtree(root, ignore_errors=True)
+            _remove_scratch_root(root)
             raise
         return cls(
             root=root,
@@ -118,8 +140,8 @@ class Session:
         )
 
     def cleanup(self) -> None:
-        """Remove the scratch root, leaving no session files behind."""
-        shutil.rmtree(self.root, ignore_errors=True)
+        """Remove the scratch root; a leftover is named on stderr, not raised."""
+        _remove_scratch_root(self.root)
 
     def __enter__(self) -> "Session":
         return self
