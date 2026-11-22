@@ -545,7 +545,7 @@ Covered by the project-wide SIGKILL decision in PRINCIPLES.md (directed by the u
 2026-11-02). Partial publication and leftover backups after SIGKILL are accepted limitations;
 roles should use that standing decision when triaging equivalent reports.
 
-`tools/gtk_staging.py::commit` publishes the GTK 3 settings, GTK 4 settings and GTK 4 user CSS
+`tools/gtk/staging.py::commit` publishes the GTK 3 settings, GTK 4 settings and GTK 4 user CSS
 with separate replacements. Its rollback runs only when Python catches an exception; if the
 process receives `SIGKILL` after one replacement, later files retain their old contents while
 the first file contains the new selection, and its hidden hard-link backup remains. The GTK
