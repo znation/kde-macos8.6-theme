@@ -119,6 +119,8 @@ desktoptheme, kvantum and render tests).
 
 ### Group the tests/support apply, cursor and xcursor modules into subpackages (part 5/6, slice A of the tests/support regroup) (planned 2026-11-21 by the plan role)
 
+**Needs review 2026-11-21 by feature: plan defect — `tests/support/xcursor.py` already exists and is kept in place by this plan ("Known stays: `xcursor`"), so creating `tests/support/xcursor/` with `__init__.py` shadows it: the package takes precedence over the module, and `support.xcursor` (imported by `tools/` and `tests/test_xcursor*.py`) would load the empty package. The plan needs a different target for `xcursor_frames` (for example a `tests/support/xcursor_art/` package, if the plan role confirms no clash). The apply and cursor slices were not started.**
+
 **Goal.** Land the apply-, cursor- and xcursor-family slices of the
 tests/support regroup (see part 1/6 for the split's counts and rules;
 the parts are independent). Split from the single part 5/6 entry after
