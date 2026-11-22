@@ -1,4 +1,4 @@
-"""Direct tests for tools/gtk_user_files.py.
+"""Direct tests for tools/gtk/user_files.py.
 
 ``tests/test_apply_gtk.py`` drives these helpers through the whole tool; these
 pin the read and user-CSS decisions on their own: which occupants read as
@@ -18,7 +18,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import tmp_dir
 from support.close_tracking import tracking_closes
 from support.theme_install import write_file
-from tools import gtk_user_files
+from tools.gtk import user_files as gtk_user_files
 
 
 class TestReadConfigText(unittest.TestCase):

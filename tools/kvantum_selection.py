@@ -14,7 +14,7 @@ comments and each line's own ending — byte-identical. An absent ``Kvantum/``
 directory, an absent file or a selection not naming our id is left alone,
 with a note saying so, and nothing is created.
 
-The line surgery reuses the generic ``tools/gtk_settings`` ini scanners
+The line surgery reuses the generic ``tools/gtk/settings`` ini scanners
 through ``remove_key_from_section`` — the same BOM, ending and key parsing
 the GTK tests pin — so the behaviour matches the file ``kvantummanager``
 writes. The runs serialize on the same
@@ -48,8 +48,8 @@ if __package__:
     from tools.atomic_write import write_bytes_atomically
     from tools.diagnostics import report_error, report_note
     from tools.file_lock import parent_dir_lock
-    from tools.gtk_settings import remove_key_from_section
-    from tools.gtk_user_files import ConfigError, read_config_text
+    from tools.gtk.settings import remove_key_from_section
+    from tools.gtk.user_files import ConfigError, read_config_text
     from tools.os_error_refusal import refusing_os_errors
     from tools.symlink_refusal import refuse_symlink
 else:  # run directly: python3 tools/kvantum_selection.py
@@ -58,8 +58,8 @@ else:  # run directly: python3 tools/kvantum_selection.py
     from atomic_write import write_bytes_atomically
     from diagnostics import report_error, report_note
     from file_lock import parent_dir_lock
-    from gtk_settings import remove_key_from_section
-    from gtk_user_files import ConfigError, read_config_text
+    from gtk.settings import remove_key_from_section
+    from gtk.user_files import ConfigError, read_config_text
     from os_error_refusal import refusing_os_errors
     from symlink_refusal import refuse_symlink
 
@@ -81,7 +81,7 @@ def remove_theme(text: str) -> tuple[str, bool]:
 
     Returns ``(new_text, removed)``; the surgery, its byte-identical line
     keeping and its no-match no-rewrite contract are
-    :func:`tools.gtk_settings.remove_key_from_section` applied to the
+    :func:`tools.gtk.settings.remove_key_from_section` applied to the
     ``[General]`` ``theme`` key and :data:`KVANTUM_ID`.
     """
     return remove_key_from_section(text, "General", "theme", KVANTUM_ID)

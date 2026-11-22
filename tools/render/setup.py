@@ -6,17 +6,17 @@ from pathlib import Path
 
 if __package__.startswith("tools"):
     from tools.atomic_write import write_bytes_atomically
-    from tools.gtk_selection import ConfigError as _ConfigError  # noqa: F401 (re-exported)
-    from tools.gtk_selection import apply as _gtk_apply
-    from tools.gtk_selection import installed_sheets as _gtk_installed_sheets
+    from tools.gtk.selection import ConfigError as _ConfigError  # noqa: F401 (re-exported)
+    from tools.gtk.selection import apply as _gtk_apply
+    from tools.gtk.selection import installed_sheets as _gtk_installed_sheets
     from tools.process_group import run_logged
     from tools.render.session import Session
     from tools.repo_root import ROOT
     from tools.theme_defaults import write_configs
 else:  # run directly from render_surface.py
     from atomic_write import write_bytes_atomically
-    from gtk_selection import ConfigError as _ConfigError
-    from gtk_selection import apply as _gtk_apply, installed_sheets as _gtk_installed_sheets
+    from gtk.selection import ConfigError as _ConfigError
+    from gtk.selection import apply as _gtk_apply, installed_sheets as _gtk_installed_sheets
     from process_group import run_logged
     from render.session import Session
     from repo_root import ROOT

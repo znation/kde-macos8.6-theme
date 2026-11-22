@@ -21,7 +21,7 @@ from support.process_assertions import (
 )
 from support.theme_install import write_file
 from support.unlink_failure import unlink_failing_for
-from tools import gtk_user_files
+from tools.gtk import user_files as gtk_user_files
 
 
 class TestSettingsErrors(ApplyGtkTestCase):

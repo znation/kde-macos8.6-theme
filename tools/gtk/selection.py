@@ -12,11 +12,11 @@ from __future__ import annotations
 from collections.abc import Callable
 from pathlib import Path
 
-if __package__:
+if __package__ == "tools.gtk":
     from tools.diagnostics import report_failure
-    from tools.gtk_settings import GTK_ID, remove_theme_name, set_theme_name
-    from tools.gtk_staging import commit, discard, stage_all
-    from tools.gtk_user_files import (
+    from tools.gtk.settings import GTK_ID, remove_theme_name, set_theme_name
+    from tools.gtk.staging import commit, discard, stage_all
+    from tools.gtk.user_files import (
         ConfigError,
         MAX_CONFIG_FILE_BYTES,
         read_config_text,
@@ -28,9 +28,9 @@ if __package__:
     from tools.symlink_refusal import refuse_symlink
 else:  # imported from a directly run tool
     from diagnostics import report_failure
-    from gtk_settings import GTK_ID, remove_theme_name, set_theme_name
-    from gtk_staging import commit, discard, stage_all
-    from gtk_user_files import (
+    from gtk.settings import GTK_ID, remove_theme_name, set_theme_name
+    from gtk.staging import commit, discard, stage_all
+    from gtk.user_files import (
         ConfigError,
         MAX_CONFIG_FILE_BYTES,
         read_config_text,

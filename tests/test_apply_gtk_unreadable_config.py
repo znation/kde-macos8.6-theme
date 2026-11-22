@@ -19,7 +19,7 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.theme_install import write_file
-from tools import gtk_user_files
+from tools.gtk import user_files as gtk_user_files
 
 
 class TestUnreadableConfig(ApplyGtkTestCase):

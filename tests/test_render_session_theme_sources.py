@@ -14,9 +14,9 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import apply_theme, apply_optional  # noqa: E402
 from tools.render import session as render_session, setup as render_setup  # noqa: E402
-from tools.gtk_selection import ConfigError as _ConfigError  # noqa: E402
-from tools.gtk_selection import installed_sheet  # noqa: E402
-from tools.gtk_user_files import GTK4_CSS_MARKER  # noqa: E402
+from tools.gtk.selection import ConfigError as _ConfigError  # noqa: E402
+from tools.gtk.selection import installed_sheet  # noqa: E402
+from tools.gtk.user_files import GTK4_CSS_MARKER  # noqa: E402
 
 
 class TestSessionThemeSources(unittest.TestCase):

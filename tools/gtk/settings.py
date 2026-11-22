@@ -2,14 +2,14 @@
 
 The functions here are pure text transforms: they preserve every foreign
 line with its own line ending, keep a leading UTF-8 BOM, and leave text
-unchanged when removal finds nothing of ours. ``tools/gtk_user_files.py``
+unchanged when removal finds nothing of ours. ``tools/gtk/user_files.py``
 reads the files, ``tools/apply_gtk.py`` drives the selection and
-``tools/gtk_staging.py`` publishes the writes.
+``tools/gtk/staging.py`` publishes the writes.
 """
 
 from __future__ import annotations
 
-if __package__:
+if __package__ == "tools.gtk":
     from tools.text_lines import BOM, join_line_pairs
 else:  # imported from a directly run tool
     from text_lines import BOM, join_line_pairs
@@ -102,8 +102,8 @@ def remove_key_from_section(
     line. When nothing matched, *text* is returned unchanged so a foreign
     file is not rewritten.
 
-    The ini scanners of :mod:`tools.gtk_settings` serve both callers:
-    :func:`tools.gtk_settings.remove_theme_name` (``[Settings]``
+    The ini scanners of :mod:`tools.gtk.settings` serve both callers:
+    :func:`tools.gtk.settings.remove_theme_name` (``[Settings]``
     ``gtk-theme-name``) and :func:`tools.kvantum_selection.remove_theme`
     (``[General]`` ``theme``).
     """

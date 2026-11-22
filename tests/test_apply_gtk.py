@@ -24,7 +24,8 @@ from support.apply_target_cases import ApplyTargetMakeCases
 from support.cli_fixtures import run_main_with_env
 from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import assert_failed, assert_succeeded
-from tools import apply_gtk, gtk_user_files
+from tools import apply_gtk
+from tools.gtk import user_files as gtk_user_files
 
 
 class TestApply(ApplyGtkTestCase):

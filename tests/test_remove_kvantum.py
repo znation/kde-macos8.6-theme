@@ -6,7 +6,7 @@ other line of ``kvantum.kvconfig`` byte-identical; the driver runs in-process
 with ``XDG_CONFIG_HOME`` and ``HOME`` pointed at a temp root, so no user
 configuration is touched. The Makefile target and the uninstall diagnostic
 are pinned in ``tests/test_kvantum_selection_make.py``. The line surgery
-reuses ``tools/gtk_settings``' scanners, whose own behaviour its existing
+reuses ``tools/gtk/settings``' scanners, whose own behaviour its existing
 tests pin; the tests here pin what the Kvantum tool builds on them.
 """
 

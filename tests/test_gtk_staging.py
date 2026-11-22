@@ -1,6 +1,6 @@
-"""Direct tests for tools/gtk_staging.py's staging and commit helpers.
+"""Direct tests for tools/gtk/staging.py's staging and commit helpers.
 
-``tools/gtk_selection.py`` drives these helpers through the CLI, so ``tests/test_apply_gtk.py``
+``tools/gtk/selection.py`` drives these helpers through the CLI, so ``tests/test_apply_gtk.py``
 covers the shapes the apply and remove paths produce end to end. These tests
 pin the helpers on their own and add the branch that suite cannot reach: a
 rename that fails during :func:`commit`, the step that actually replaces the
@@ -29,7 +29,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.gtk.staging_case import StagingTestCase
 from support.theme_install import write_file
-from tools.gtk_staging import (
+from tools.gtk.staging import (
     _attempt_all,
     _restore,
     _same_file,
@@ -38,7 +38,7 @@ from tools.gtk_staging import (
     discard,
     stage_all,
 )
-from tools.gtk_user_files import ConfigError
+from tools.gtk.user_files import ConfigError
 
 
 class TestStage(StagingTestCase):

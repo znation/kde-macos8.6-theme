@@ -1,6 +1,6 @@
-"""Tests for tools/gtk_settings.py's pure ``settings.ini`` text transforms.
+"""Tests for tools/gtk/settings.py's pure ``settings.ini`` text transforms.
 
-``tools/gtk_selection.py`` drives ``set_theme_name`` and ``remove_theme_name``
+``tools/gtk/selection.py`` drives ``set_theme_name`` and ``remove_theme_name``
 through the CLI entry point, so ``tests/test_apply_gtk.py`` covers the choose/replace,
 insert, append and removal shapes end to end, including a CRLF file read and
 written back as bytes. These tests pin the transforms directly and add the
@@ -20,7 +20,7 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.gtk_settings import (
+from tools.gtk.settings import (
     GTK_ID,
     remove_key_from_section,
     remove_theme_name,

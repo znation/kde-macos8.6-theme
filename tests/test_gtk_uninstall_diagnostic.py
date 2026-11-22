@@ -7,7 +7,7 @@ sheets and warns when a settings file it removed the theme for still holds a
 `gtk-theme-name=org.macos8.desktop` line. That hold latches on any
 `[Settings]` line, as the recipe's original awk did (`found=1` set once and
 never unset): a later duplicate key naming a foreign theme never unmarks an
-earlier one of ours, and `tools/gtk_settings.py::-remove_theme_name` deletes
+earlier one of ours, and `tools/gtk/settings.py::-remove_theme_name` deletes
 those duplicate-key spellings too. The ini lookup rule the module's other
 diagnostics share is last-value-wins (``tests/support/kde/ini_corpus.py``
 pins it); the latch is the GTK diagnostic's own contract, pinned here
@@ -25,7 +25,7 @@ from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_config_home, make_tmp_dir
 from tools import uninstall_diagnostics
 from tools.uninstall import config as uninstall_config
-from tools.gtk_user_files import GTK4_CSS_MARKER
+from tools.gtk.user_files import GTK4_CSS_MARKER
 
 # The published sheet's first line, spelled by the publisher: a fixture
 # hand-copy would keep testing a spelling the apply side could rename.

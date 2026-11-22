@@ -5,6 +5,35 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Group the flat gtk_* tools modules into tools/gtk/ (part 8/8 of the tools regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Land the gtk-family slice of the flat-`tools/` regroup (see
+part 1/8 for the split's shared rules; the parts are independent).
+
+**Modules to move (import lines per module; importer files counted on
+main).** `gtk_selection` (12), `gtk_settings` (5), `gtk_staging` (6),
+`gtk_user_files` (20) → `tools/gtk/` with `__init__.py`: `selection.py`,
+`settings.py`, `staging.py`, `user_files.py`. 21 files import a `gtk_*`
+member. `apply_gtk.py` and `kvantum_selection.py` stay (CLI and its flat
+helper) and rewrite their import lines in this change.
+
+**Files touched.** The four moved modules, their 21 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tools/gtk/` lists `__init__.py` and the four moved modules, and
+  `rg -n 'tools[./]gtk_(selection|settings|staging|user_files)\b|import (gtk_selection|gtk_settings|gtk_staging|gtk_user_files)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Group the flat firefox_* tools modules into tools/firefox/ (part 6/8 of the tools regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** Land the firefox-family slice of the flat-`tools/` regroup (see

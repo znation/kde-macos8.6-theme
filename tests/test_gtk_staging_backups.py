@@ -18,8 +18,8 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.gtk.staging_case import StagingTestCase
 from support.theme_install import write_file
 from support.unlink_failure import unlink_failing_for
-from tools.gtk_staging import commit, stage_all
-from tools.gtk_user_files import ConfigError
+from tools.gtk.staging import commit, stage_all
+from tools.gtk.user_files import ConfigError
 
 
 class TestCommitBackups(StagingTestCase):
@@ -142,7 +142,7 @@ class TestCommitBackups(StagingTestCase):
         staged = stage_all([(target, "new settings\n")])
 
         with mock.patch(
-            "tools.gtk_staging.secrets.token_hex",
+            "tools.gtk.staging.secrets.token_hex",
             side_effect=["occupied", "available"],
         ) as token:
             commit(staged)
@@ -163,7 +163,7 @@ class TestCommitBackups(StagingTestCase):
         staged = stage_all([(first, "new first\n"), (blocked, "new second\n")])
 
         with mock.patch(
-            "tools.gtk_staging.secrets.token_hex", return_value="occupied"
+            "tools.gtk.staging.secrets.token_hex", return_value="occupied"
         ):
             with self.assertRaises(ConfigError) as caught:
                 commit(staged)

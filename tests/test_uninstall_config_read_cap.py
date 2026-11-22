@@ -23,7 +23,7 @@ from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_config_home, make_tmp_dir
 from tools import containment, uninstall_diagnostics
 from tools.uninstall import config as uninstall_config
-from tools.gtk_user_files import GTK4_CSS_MARKER
+from tools.gtk.user_files import GTK4_CSS_MARKER
 
 STYLE_RESET = "kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle --delete"
 STYLE_RULE_TAIL = (

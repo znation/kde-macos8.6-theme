@@ -314,7 +314,7 @@ GTK_FILES := index.theme \
 	assets/window-maximize.svg \
 	assets/window-minimize.svg
 
-# The marker comment `tools/gtk_selection.py` publishes as the first line of
+# The marker comment `tools/gtk/selection.py` publishes as the first line of
 # `$XDG_CONFIG_HOME/gtk-4.0/gtk.css`; uninstall's dangling-selection diagnostic
 # recognizes a published GTK user CSS by that literal comment.
 GTK_USER_CSS_MARKER := /* org.macos8.desktop GTK 4 user CSS */

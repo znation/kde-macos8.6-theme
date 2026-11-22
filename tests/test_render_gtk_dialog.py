@@ -97,7 +97,7 @@ class TestGtkDialogRender(DialogGate, unittest.TestCase):
 
     A real GTK 4 client (zenity, a GTK 4 build with no theme-name CSS
     switch) wears this theme through the selection
-    ``tools/gtk_selection.py::apply`` publishes into the scratch config
+    ``tools/gtk/selection.py::apply`` publishes into the scratch config
     home: the ``gtk-4.0/settings.ini`` theme-name keys and the user CSS
     ``@import`` of the installed sheet. The capture-level assertions pin
     the 480x360 size the other dialog gates byte-compare at and a plane

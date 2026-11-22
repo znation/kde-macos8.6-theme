@@ -19,7 +19,7 @@ import unittest.mock
 from support import installed_paths, theme_install
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
-from tools.gtk_user_files import GTK4_CSS_MARKER
+from tools.gtk.user_files import GTK4_CSS_MARKER
 
 
 def _assert_install_packages_refused(case, value, *expected):

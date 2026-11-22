@@ -1,6 +1,6 @@
 """The GTK 4 user-CSS marker spells one string across apply and uninstall.
 
-``tools/gtk_user_files.py``'s ``GTK4_CSS_MARKER`` is the first line
+``tools/gtk/user_files.py``'s ``GTK4_CSS_MARKER`` is the first line
 ``make apply-gtk`` publishes into ``$XDG_CONFIG_HOME/gtk-4.0/gtk.css`` and
 the spelling ``make remove-gtk`` recognizes the sheet by. ``make uninstall``
 reaches the same literal through the Makefile's ``GTK_USER_CSS_MARKER``
@@ -22,7 +22,7 @@ import re
 import unittest
 
 from support import repo_root
-from tools.gtk_user_files import GTK4_CSS_MARKER
+from tools.gtk.user_files import GTK4_CSS_MARKER
 
 MAKEFILE = os.path.join(repo_root.ROOT, "Makefile")
 # One simple definition per line, e.g. ``GTK_USER_CSS_MARKER := /* ... */``.
@@ -101,7 +101,7 @@ class TestFixturesUseThePublishedMarker(unittest.TestCase):
             [],
             inline,
             "a test file spells the GTK 4 user-CSS marker literal inline; "
-            "import or alias tools.gtk_user_files.GTK4_CSS_MARKER instead",
+            "import or alias tools.gtk.user_files.GTK4_CSS_MARKER instead",
         )
 
 

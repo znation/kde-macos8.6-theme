@@ -7,7 +7,7 @@ back to its default below an absolute ``$HOME`` (``.local/share`` or
 resolved, so the caller refuses instead of guessing where to read or write;
 :func:`require_home` raises that refusal with the shared diagnostic naming the
 received values, which the GTK and Kvantum selection tools raise through
-their own :class:`~tools.gtk_user_files.ConfigError`.
+their own :class:`~tools.gtk.user_files.ConfigError`.
 """
 
 from __future__ import annotations

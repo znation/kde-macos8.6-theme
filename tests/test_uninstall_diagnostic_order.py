@@ -24,7 +24,7 @@ from support.cli_fixtures import run_main
 from support.theme_install import read_bytes, write_file
 from support.tmp_dir import make_config_home, make_tmp_dir
 from tools import uninstall_diagnostics
-from tools.gtk_user_files import GTK4_CSS_MARKER
+from tools.gtk.user_files import GTK4_CSS_MARKER
 
 IDS = dict(
     scheme_id="org.macos8.desktop",

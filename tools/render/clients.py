@@ -57,7 +57,7 @@ def gtk_dialog_client(_session: Session) -> tuple[str, ...]:
 
     A ``zenity`` text-entry dialog with a content-area ``GtkEntry``: zenity
     is a GTK 4 client (no theme-name CSS switch exists) and wears this theme
-    exactly through the selection ``tools/gtk_selection.py::apply`` publishes
+    exactly through the selection ``tools/gtk/selection.py::apply`` publishes
     into the scratch config home -- the settings theme-name keys and the
     user CSS ``@import`` of the installed gtk-4.0 sheet, whose relative
     ``../assets/*`` icon URLs resolve beneath the scratch data home. The

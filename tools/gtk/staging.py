@@ -15,13 +15,13 @@ from collections.abc import Callable, Iterable
 from functools import partial
 from pathlib import Path
 
-if __package__:
+if __package__ == "tools.gtk":
     from tools.atomic_write import write_atomically
-    from tools.gtk_user_files import ConfigError
+    from tools.gtk.user_files import ConfigError
     from tools.os_error_refusal import refusing_os_errors
 else:  # imported from a directly run tool
     from atomic_write import write_atomically
-    from gtk_user_files import ConfigError
+    from gtk.user_files import ConfigError
     from os_error_refusal import refusing_os_errors
 
 

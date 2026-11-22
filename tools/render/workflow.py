@@ -12,7 +12,7 @@ if __package__.startswith("tools"):
     from tools.png import PngError, read_png
     from tools.process_group import run_logged
     from tools.render.output import publish
-    from tools.gtk_user_files import ConfigError
+    from tools.gtk.user_files import ConfigError
     from tools.render.splash_client import splash_client
     from tools.render.dialogs import DIALOG_MODES, DialogMode
     from tools.render.session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command
@@ -38,7 +38,7 @@ else:  # run directly from render_surface.py
     from png import PngError, read_png
     from process_group import run_logged
     from render.output import publish
-    from gtk_user_files import ConfigError
+    from gtk.user_files import ConfigError
     from render.splash_client import splash_client
     from render.dialogs import DIALOG_MODES, DialogMode
     from render.session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command

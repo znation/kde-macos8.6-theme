@@ -26,7 +26,7 @@ from support.theme_install import (
     uninstall_recipe,
     write_file,
 )
-from tools.gtk_user_files import GTK4_CSS_MARKER  # noqa: E402
+from tools.gtk.user_files import GTK4_CSS_MARKER  # noqa: E402
 
 
 def _installed_dir(destdir):
@@ -309,7 +309,7 @@ class TestUninstallWarnsForTheDanglingGtkSelection(unittest.TestCase):
     so a selection still naming them points at files that no longer exist
     and GTK applications silently keep their default style. The recipe warns
     and names `make remove-gtk`, reads the ini files the way
-    ``tools.gtk_settings`` reads them, and must not edit the user's config.
+    ``tools.gtk.settings`` reads them, and must not edit the user's config.
     """
 
     def _uninstall(self, tmp, config=None, home=None):
@@ -411,7 +411,7 @@ class TestUninstallWarnsForTheDanglingGtkSelection(unittest.TestCase):
         )
 
     def test_warns_for_a_bom_prefixed_indented_selection(self):
-        # tools.gtk_settings strips the first line's BOM and trims each line,
+        # tools.gtk.settings strips the first line's BOM and trims each line,
         # and apply-gtk preserves both; the recipe's awk must read the file
         # the same way or it silently misses the dangling selection.
         tmp = make_tmp_dir(self)
@@ -443,7 +443,7 @@ class TestUninstallWarnsForTheDanglingGtkSelection(unittest.TestCase):
         self.assertEqual(foreign_css, self._read(css))
 
     def test_the_ini_peek_agrees_with_the_settings_scanner(self):
-        # tools.gtk_settings selects keys only under `[Settings]`: a key in
+        # tools.gtk.settings selects keys only under `[Settings]`: a key in
         # another section, before any section, or a comment line names no
         # live selection, and a section switch stops a later key from
         # counting. A later duplicate inside the same section still names

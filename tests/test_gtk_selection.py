@@ -1,7 +1,7 @@
 """Tests for the selection workflow's offline helpers and file shapes.
 
 The installed-sheet lookup that must precede a selection is pinned here,
-so are the ``tools.gtk_selection.remove`` clearing shapes that only a
+so are the ``tools.gtk.selection.remove`` clearing shapes that only a
 directly driven unit test can build.
 """
 
@@ -15,13 +15,13 @@ from pathlib import Path
 
 from support import repo_root  # noqa: F401
 from support.theme_install import write_file
-from tools.gtk_selection import (
+from tools.gtk.selection import (
     GTK_ID,
     installed_sheet,
     installed_sheets,
     remove,
 )
-from tools.gtk_user_files import GTK4_CSS_MARKER, settings_path
+from tools.gtk.user_files import GTK4_CSS_MARKER, settings_path
 
 
 class TestInstalledSheets(unittest.TestCase):

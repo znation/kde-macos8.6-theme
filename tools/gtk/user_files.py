@@ -13,9 +13,9 @@ marker-led file is rewritten, and a foreign file is copied to an unused
 write below raises it, and so do the staging and workflow modules, so
 ``main`` can report one ``apply_gtk: error:`` line instead of letting a bare
 ``OSError`` or ``UnicodeDecodeError`` traceback escape. The text transforms
-live in ``tools/gtk_settings.py``, the staged publication in
-``tools/gtk_staging.py`` and the selection workflow in
-``tools/gtk_selection.py``.
+live in ``tools/gtk/settings.py``, the staged publication in
+``tools/gtk/staging.py`` and the selection workflow in
+``tools/gtk/selection.py``.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ import os
 import stat
 from pathlib import Path
 
-if __package__:
+if __package__ == "tools.gtk":
     from tools.text_lines import has_first_line_marker
 else:  # imported from a directly run tool
     from text_lines import has_first_line_marker
