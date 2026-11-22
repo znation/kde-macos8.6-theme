@@ -5,6 +5,73 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### GTK rule cases: move the shared control cases into their own support module (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup, desktop wallpaper and file-dialog gate parts) — done 2026-11-21 by the feature role
+
+**Goal.** `tests/support/gtk_rule_cases.py` is 880 lines holding three
+classes: `SheetRuleAssertions`, the parametrised `GtkSheetRuleCases`
+assertions, and `GtkSharedControlCases` (the shared `test_*` control cases
+the GTK 3 `TestGtkTheme` and the GTK 4 `Gtk4SheetRuleCases` inherit once
+each). Move `GtkSharedControlCases` whole into a new flat module
+`tests/support/gtk_shared_control_cases.py`, so each file holds one
+concern and is readable in one sitting. No test is added, removed or
+renamed and no stylesheet changes.
+
+**Approach.**
+
+- New `tests/support/gtk_shared_control_cases.py`: a module docstring
+  saying it holds the control test cases each inheriting GTK suite runs
+  once, and that the parametrised assertions they call live in
+  `tests/support/gtk_rule_cases.py`. Then `GtkSharedControlCases`
+  verbatim (its docstring, `assert_infobar_message_type_ban`,
+  `test_headerbar` … `test_tab_states`, `assert_separator_label_foreground`),
+  subclassing `GtkSheetRuleCases` imported from `support.gtk_rule_cases`.
+  Import only the names the class body uses: the spec constants from
+  `support.gtk_theme_spec` (for example `BUTTON_BEVEL`, `CHECK`,
+  `ENTRY_FIELD`, `TAB_STATES`, `TOOLTIP`) and the palette names from
+  `support.platinum_palette` (`BLACK`, `FACE`, `GREY`,
+  `INACTIVE_OUTLINE`). Keep it flat at `tests/support/`, like the other
+  cross-family gtk/gtk4 stays (its importers span `tests/test_gtk_theme.py`
+  and `tests/support/gtk4_sheet.py`).
+- `tests/support/gtk_rule_cases.py`: delete the class; drop each import
+  the remaining classes no longer use (`tests/test_no_unused_imports.py`
+  flags any left behind). Rewrite the module docstring's
+  `GtkSharedControlCases` sentence to point at the new module. The
+  `ROW_SELECTED_BUTTON_ARM_*` constants stay (`tests/test_gtk4_sidebar.py`
+  imports them).
+- Importers: `tests/test_gtk_theme.py` and `tests/support/gtk4_sheet.py`
+  import `GtkSharedControlCases` from `support.gtk_shared_control_cases`.
+- `docs/invariants.md`: retarget the ten
+  `tests/support/gtk_rule_cases.py::GtkSharedControlCases::…` anchors to
+  `tests/support/gtk_shared_control_cases.py::GtkSharedControlCases::…`.
+  The `GtkSheetRuleCases::assert_progressbar`, `assert_scale` and
+  `assert_tab_faces` anchors stay as they are. The `test_tab_states`
+  docstring's own `tests/support/gtk_rule_cases.py::GtkSharedControlCases::test_tab_states`
+  pointer moves with it and is retargeted the same way.
+
+**Files touched.** `tests/support/gtk_rule_cases.py`, new
+`tests/support/gtk_shared_control_cases.py`, `tests/test_gtk_theme.py`,
+`tests/support/gtk4_sheet.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+
+- `rg -n 'class GtkSharedControlCases' tests` finds only
+  `tests/support/gtk_shared_control_cases.py`; `rg -n
+  'gtk_rule_cases(\.py)?::GtkSharedControlCases|gtk_rule_cases import
+  GtkSharedControlCases' tests docs` finds nothing.
+- `make check CHECK_TESTS='test_gtk_theme test_gtk4_theme test_invariants
+  test_no_unused_imports'` passes.
+- The set of test ids `make check` runs is unchanged: listing every id
+  ending in one of `GtkSharedControlCases`' `test_*` names (for example
+  `test_headerbar`, `test_tab_states`) before and after the move gives the
+  same classes, starting with `test_gtk_theme.TestGtkTheme` and each GTK 4
+  class that inherits `Gtk4SheetRuleCases`.
+- `tests/support/gtk_rule_cases.py` is under 660 lines and the new module
+  under 280.
+- No behaviour change: `git diff` shows the moved class, import lines,
+  docstring pointers and anchor paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Makefile refusal tests: move the colour-scheme guards into their own module and the shared hostile values into support (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup, desktop wallpaper, file-dialog gate and GTK rule cases entries — it touches only the Makefile refusal test modules, one new support module and one `docs/invariants.md` row) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_make_refusals.py` (656 lines) holds seven guard

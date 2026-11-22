@@ -126,8 +126,8 @@ popover.background.magnifier button:disabled,
    `background-image`, `border-color` and `box-shadow` keys likewise
    lose to their last transparent values) and the `:backdrop` arm
    painting a transparent face — are restated with the existing plain
-   push-button recipe, the same tests/support/gtk_rule_cases.py
-   ::GtkSheetRuleCases::test_button dictionary the existing
+   push-button recipe, the same tests/support/gtk_shared_control_cases.py
+   ::GtkSharedControlCases::test_button dictionary the existing
    `.app-notification button, …, .osd button` block above declares: the
    raised #DDDDDD face with its 1px solid black border and square
    corners (zero radius), the `inset 1px 1px #FFFFFF, inset -1px -1px

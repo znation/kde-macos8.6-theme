@@ -27,7 +27,7 @@ from unittest import mock
 
 from support import gtk_css
 from support.gtk_css import HEX, assert_svg_root_first
-from support.gtk_rule_cases import GtkSharedControlCases
+from support.gtk_shared_control_cases import GtkSharedControlCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     BUTTON_BEVEL,

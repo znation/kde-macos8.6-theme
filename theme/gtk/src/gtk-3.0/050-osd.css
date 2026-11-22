@@ -424,7 +424,7 @@ progressbar.osd progress {
    `button.osd` family and the grouped `.app-notification button, …,
    .osd button` family painting translucent dark bubbles with near-white
    labels — are restated with the existing plain push-button recipe (pinned
-   by tests/support/gtk_rule_cases.py::GtkSheetRuleCases::test_button):
+   by tests/support/gtk_shared_control_cases.py::GtkSharedControlCases::test_button):
    the raised #DDDDDD face with its 1px black border and square corners
    (zero radius, overriding the stock 5px; the byte-equal dictionaries
    verbatim in tests/support/gtk_theme_spec.py), the inset

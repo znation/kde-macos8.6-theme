@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from support.gtk_rule_cases import GtkSharedControlCases
+from support.gtk_shared_control_cases import GtkSharedControlCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     BUTTON_BEVEL,

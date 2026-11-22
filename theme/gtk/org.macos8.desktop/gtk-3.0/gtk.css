@@ -2553,7 +2553,7 @@ progressbar.osd progress {
    `button.osd` family and the grouped `.app-notification button, …,
    .osd button` family painting translucent dark bubbles with near-white
    labels — are restated with the existing plain push-button recipe (pinned
-   by tests/support/gtk_rule_cases.py::GtkSheetRuleCases::test_button):
+   by tests/support/gtk_shared_control_cases.py::GtkSharedControlCases::test_button):
    the raised #DDDDDD face with its 1px black border and square corners
    (zero radius, overriding the stock 5px; the byte-equal dictionaries
    verbatim in tests/support/gtk_theme_spec.py), the inset
@@ -2750,8 +2750,8 @@ popover.background.magnifier button:disabled,
    `background-image`, `border-color` and `box-shadow` keys likewise
    lose to their last transparent values) and the `:backdrop` arm
    painting a transparent face — are restated with the existing plain
-   push-button recipe, the same tests/support/gtk_rule_cases.py
-   ::GtkSheetRuleCases::test_button dictionary the existing
+   push-button recipe, the same tests/support/gtk_shared_control_cases.py
+   ::GtkSharedControlCases::test_button dictionary the existing
    `.app-notification button, …, .osd button` block above declares: the
    raised #DDDDDD face with its 1px solid black border and square
    corners (zero radius), the `inset 1px 1px #FFFFFF, inset -1px -1px

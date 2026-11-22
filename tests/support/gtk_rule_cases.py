@@ -9,9 +9,8 @@ satisfy. The Platinum spec values they assert live in the sibling
 
 :class:`SheetRuleAssertions` holds the shared single-rule and grouped
 whole-rule checks. :class:`GtkSheetRuleCases` holds GTK sheet assertions,
-and :class:`GtkSharedControlCases` holds control test cases for the suites
-that inherit it (suite-level test classes use it so those cases do not
-repeat per split-out module).
+and the shared control test cases the suite-level classes inherit once
+live in the sibling ``tests/support/gtk_shared_control_cases.py``.
 GTK 3 and GTK 4 spell the same nodes differently, so the link, calendar,
 infobar, progress-bar, level-bar, scale, switch, spin-button field,
 menu-separator, menu-bar-title, frame, tree-header, expander-arrow,
@@ -24,10 +23,8 @@ alike in both, so their assertions take none.
 """
 
 from __future__ import annotations
-
 import re
 from pathlib import Path
-
 from support import gtk_css
 from support.colorscheme_fixtures import load_scheme
 from support.desktoptheme_paths import MENUBARITEM_SVG
@@ -37,9 +34,6 @@ from support.repo_root import ROOT
 from support.gtk_theme_spec import (
     BUTTON_BEVEL,
     CALENDAR_SELECTED_DAY,
-    CHECK,
-    CHECK_GLYPH,
-    COMBO_ARROW,
     DISABLED_TEXT,
     ENTRY_FIELD,
     EXPANDER_COLLAPSED,
@@ -52,16 +46,11 @@ from support.gtk_theme_spec import (
     LINK_BUTTON,
     LINK_TEXT,
     MENU_SEPARATOR,
-    MENU_CHECK,
-    MIXED_GLYPH,
     PANED_HANDLE_HORIZONTAL,
     PANED_HANDLE_VERTICAL,
     PROGRESSBAR_PROGRESS,
     PROGRESSBAR_TROUGH,
-    RADIO,
-    RADIO_GLYPH,
     RAISED_BEVEL,
-    ROW_HOVER,
     ROW_SELECTED,
     RUBBERBAND,
     SCALE_EMPTY_FILL,
@@ -80,8 +69,6 @@ from support.gtk_theme_spec import (
     TAB_STATES,
     TEXT_SELECTION,
     TITLE_BUTTON,
-    TOOLTIP,
-    TOOLTIP_BACKGROUND,
     TREE_HEADER,
     TREE_HEADER_ACTIVE,
     TREE_HEADER_HOVER,
@@ -94,11 +81,12 @@ from support.platinum_palette import (
     BLACK,
     FACE,
     GREY,
-    INACTIVE_OUTLINE,
     hex_colour,
 )
 from support.svg_case import parse_svg
 from svg_assertions import rect_geometry
+
+
 
 
 ROW_SELECTED_BUTTON_ARM_SIDEBAR = (
@@ -637,244 +625,3 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         top = geometry["normal-hint-top-margin"][3]
         left = geometry["normal-hint-left-margin"][2]
         self.assert_rule(selector, {"padding": f"{top}px {left}px"})
-
-
-class GtkSharedControlCases(GtkSheetRuleCases):
-    """Shared control test cases run against each inheriting GTK sheet.
-
-    Each suite-level class inherits these cases once, so a suite like the
-    GTK 3 theme's ``TestGtkTheme`` runs them exactly once however many
-    module-level split-out classes share its assertions; the other split
-    classes subclass :class:`GtkSheetRuleCases` directly.
-    """
-
-    def assert_infobar_message_type_ban(self, selectors=None):
-        """Assert no swept ``infobar`` selector names a message type.
-
-        *selectors* defaults to this sheet's full selector inventory so
-        both GTK sheets' ``test_infobar`` cases sweep everything; call
-        sites may pass a narrower family instead to restate the ban over
-        its own members. The ban covers infobar selectors alone because
-        the restated entry colour-class twins carry ``.warning``/
-        ``.error`` spellings, and only ``infobar``-containing selectors
-        name no message type.
-        """
-        if selectors is None:
-            selectors = self.selectors
-        for message_type in (".info", ".question", ".warning", ".error"):
-            for selector in selectors:
-                if "infobar" in selector:
-                    self.assertNotIn(message_type, selector, message_type)
-
-    def test_headerbar(self):
-        for selector in ("headerbar", ".titlebar"):
-            self.assert_rule(
-                selector,
-                {
-                    "background-color": FACE,
-                    "background-image": "none",
-                    "border": f"1px solid {BLACK}",
-                    "border-radius": "0",
-                    "box-shadow": "none",
-                    "min-height": "22px",
-                    "padding": "0 4px",
-                },
-            )
-        self.assert_rule("headerbar", {"border-width": "0 0 1px 0"})
-        for selector in ("headerbar:backdrop", ".titlebar:backdrop"):
-            self.assert_rule(
-                selector,
-                {
-                    "background-color": FACE,
-                    "background-image": "none",
-                    "border-color": INACTIVE_OUTLINE,
-                    "box-shadow": "none",
-                    "color": GREY,
-                },
-            )
-
-    def test_button(self):
-        self.assert_rule(
-            "button",
-            {
-                "background-color": FACE,
-                "background-image": "none",
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-                "box-shadow": BUTTON_BEVEL,
-            },
-        )
-        self.assert_rule("button:hover", {"background-color": FACE})
-        for selector in ("button:active", "button:checked"):
-            self.assert_rule(selector, {"box-shadow": INVERTED_BUTTON_BEVEL})
-
-    def test_entry(self):
-        self.assert_rule("entry", ENTRY_FIELD)
-
-    def test_check_and_radio(self):
-        self.assert_rule("check", CHECK)
-        self.assert_rule("radio", RADIO)
-        self.assert_rule("check:checked", CHECK_GLYPH)
-        self.assert_rule("radio:checked", RADIO_GLYPH)
-        self.assert_rule("check:indeterminate", MIXED_GLYPH)
-        self.assert_rule("radio:indeterminate", MIXED_GLYPH)
-
-        # The plain state-twin arms keep the existing face under
-        # every state: each suite's sheet restates the toolkit's plain
-        # element-level state arms (quoted verbatim in the sheet-tail
-        # comment and in docs/invariants.md) with the existing check and
-        # radio faces' fill, border colour and shadow pair -- no geometry,
-        # ink, glyph, radius or clip restatement (one transition reach:
-        # the no-fade rule erases the stock 200ms backdrop fade
-        # on the two bare :backdrop groups). The scanned
-        # parser merges each checked and indeterminate spelling's face
-        # blocks into the existing glyph spelling's dictionary, so the four
-        # merged keys pin the glyph union and the other spellings land in
-        # one block each. The suites carry the same plain dictionaries;
-        # the GTK 3 sheet adds the three plain :backdrop face arms its
-        # toolkit resource declares and the GTK 4 resource lacks.
-        check_face = {
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": CHECK["box-shadow"],
-        }
-        check_checked_face = {**check_face, "background-color": FACE}
-        radio_face = {
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": "none",
-        }
-        expected = {
-            "check:hover": check_face,
-            "radio:hover": radio_face,
-            "check:active": check_face,
-            "radio:active": radio_face,
-            "check:disabled": check_face,
-            "radio:disabled": radio_face,
-            "check:checked": {**CHECK_GLYPH, **check_checked_face},
-            "radio:checked": {**RADIO_GLYPH, **radio_face},
-            "check:checked:hover": check_checked_face,
-            "radio:checked:hover": radio_face,
-            "check:checked:active": check_checked_face,
-            "radio:checked:active": radio_face,
-            "check:checked:disabled": check_checked_face,
-            "radio:checked:disabled": radio_face,
-            "check:indeterminate": {**MIXED_GLYPH, **check_checked_face},
-            "radio:indeterminate": {**MIXED_GLYPH, **radio_face},
-            "check:indeterminate:hover": check_checked_face,
-            "radio:indeterminate:hover": radio_face,
-            "check:indeterminate:active": check_checked_face,
-            "radio:indeterminate:active": radio_face,
-            "check:indeterminate:disabled": check_checked_face,
-            "radio:indeterminate:disabled": radio_face,
-        }
-        merged = (
-            "check:checked",
-            "radio:checked",
-            "check:indeterminate",
-            "radio:indeterminate",
-        )
-        if "gtk-3.0" in str(self.CSS_PATH):
-            # The no-fade rule erases the stock 200ms
-            # backdrop fade on the two bare :backdrop groups only, so the
-            # checked and indeterminate :backdrop twins read unchanged.
-            expected.update(
-                {
-                    "check:backdrop": {**check_face, "transition": "none"},
-                    "radio:backdrop": {**radio_face, "transition": "none"},
-                    "check:checked:backdrop": check_checked_face,
-                    "radio:checked:backdrop": radio_face,
-                    "check:indeterminate:backdrop": check_checked_face,
-                    "radio:indeterminate:backdrop": radio_face,
-                }
-            )
-        for selector, declarations in expected.items():
-            with self.subTest(selector=selector):
-                self.assertEqual(
-                    self.selectors.count(selector),
-                    2 if selector in merged else 1,
-                )
-                self.assertEqual(self.rules[selector], declarations)
-
-        # The existing out-of-reach provenance stays: the suite's menu-check
-        # keys keep their existing bare-glyph dictionaries and the existing OSD
-        # pressed indicators keep the recipe properties their own record
-        # pins (the full dictionaries differ between the two sheets'
-        # stock-cleared shadow twins, so this pins the recipe surface per
-        # property).
-        if "gtk-3.0" in str(self.CSS_PATH):
-            menu_keys = (
-                "menu menuitem check",
-                "menu menuitem radio",
-                "popover modelbutton check",
-                "popover modelbutton radio",
-            )
-        else:
-            menu_keys = (
-                "popover modelbutton check",
-                "popover.background modelbutton check",
-                "popover modelbutton radio",
-                "popover.background modelbutton radio",
-            )
-        for selector in menu_keys:
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], MENU_CHECK)
-        osd_pins = (
-            (".osd check:active", CHECK),
-            (".osd radio:active", RADIO),
-        )
-        for selector, recipe in osd_pins:
-            with self.subTest(selector=selector):
-                for name in ("background-color", "box-shadow", "border-radius"):
-                    self.assertEqual(self.rules[selector][name], recipe[name])
-                self.assertEqual(self.rules[selector]["outline-color"], BLACK)
-
-    def test_combobox_arrow(self):
-        self.assert_rule("combobox arrow", COMBO_ARROW)
-
-    def test_tooltip(self):
-        self.assert_rule("tooltip", TOOLTIP)
-        self.assert_rule("tooltip.background", TOOLTIP_BACKGROUND)
-
-    def test_row_hover(self):
-        for selector in ("treeview.view:hover", "list row.activatable:hover"):
-            self.assert_rule(selector, ROW_HOVER)
-
-    def test_row_selection(self):
-        for selector in (
-            "treeview.view:selected",
-            "treeview.view:selected:hover",
-            "list row.activatable:selected",
-            "list row.activatable:selected:hover",
-        ):
-            self.assert_rule(selector, ROW_SELECTED)
-
-        self.assert_tab_faces()
-
-    def test_tab_states(self):
-        """Assert the plain tabs' TAB_STATES faces under their named pointer.
-
-        The suite's invariant rows cite the named share case
-        ``tests/support/gtk_rule_cases.py::GtkSharedControlCases::test_tab_states``;
-        the assertion body itself lives in :meth:`assert_tab_faces`, so the
-        named case and the stack-switcher/path-bar forms share one recipe and
-        stay byte-identical in assertion.
-        """
-        self.assert_tab_faces()
-
-    def assert_separator_label_foreground(self):
-        """Assert the separator label's opaque inactive grey, once per suite.
-
-        Both control suites carry the same ``label.separator`` pin (an
-        opaque ``DISABLED_TEXT`` grey with no text shadow, one spelling)
-        against their own sheets; the two wrappers live in the suites so
-        each keeps its named invariant pointer, and this is where the
-        assertion body itself lives.
-        """
-        selector = "label.separator"
-        self.assert_disabled_text((selector,))
-        self.assertEqual(
-            self.rules[selector],
-            {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"},
-        )
-        self.assertEqual(self.selectors.count(selector), 1)
