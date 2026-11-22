@@ -180,6 +180,175 @@ helper names; at planning time only the invariants row names them (the
   test_invariants test_no_unused_imports'` passes, and so does full
   `make check` after the final edit, apart from main's known-red tests.
 
+### Invariants checker extraction, part 1/2: move the cross-check register-shape tests into their own module (planned 2026-11-22 by the plan role; independent of the waiting parallel-check, terminal-palette, tests/support-regroup and shadowed-definition entries)
+
+**Goal.** `tests/test_invariants.py` is 751 lines, and one class,
+`TestHelpers`, drives both halves of `tests/support/invariants.py` against
+a synthetic repository: `parse_rows` (register text) and `cross_check`
+(register against repository). Move the `cross_check` tests into a new
+`tests/test_invariants_cross_check.py`, in two independently mergeable
+parts; this part lands the shared fixture base and the register-shape
+tests — what a valid register is and how `cross_check` rejects a malformed
+or unreadable one, from the data row through the blank provenance cell.
+No tool, register or check behaviour changes. No test is added, removed or
+renamed except by its class.
+
+**Approach.**
+
+- New `tests/support/invariants_register_case.py`: module docstring
+  saying it holds the base class for tests that drive `support.invariants`
+  against a synthetic repository (a temp root holding a `docs/invariants.md`
+  register plus test modules that discovery never collects). It defines
+  `InvariantsRegisterCase(unittest.TestCase)`, holding `TestHelpers`' current
+  `MODULE` and `NO_TESTS_MODULE` constants with the comment above them, its
+  `setUp` and its `_write`, moved verbatim. Import only what those use
+  (`unittest`, `make_tmp_dir`, `write_file`).
+- New `tests/test_invariants_cross_check.py`: module docstring saying it
+  pins `cross_check`'s register validation on a synthetic repository, that
+  the shipped-register drive stays in `tests/test_invariants.py`, and
+  pointing at the shared base. Add `class TestCrossCheck(InvariantsRegisterCase)`
+  holding verbatim, with their comments, in their current order:
+  `test_cross_check_rejects_a_data_row_without_a_test_reference`,
+  `test_cross_check_accepts_a_matching_register`,
+  `test_parsed_module_reuses_an_unchanged_files_parse`,
+  `test_parsed_module_rechecks_containment_on_a_cache_hit`,
+  `test_cross_check_reuses_an_unchanged_modules_parse`,
+  `test_cross_check_reparses_a_module_that_changed`,
+  `test_cross_check_rejects_an_unreadable_register`,
+  `test_cross_check_rejects_a_non_utf8_register`,
+  `test_cross_check_refuses_a_symlinked_register_that_escapes`,
+  `test_cross_check_rejects_a_bare_file_with_no_test_case`,
+  `test_cross_check_accepts_a_test_case_inherited_from_a_module_base`,
+  `test_cross_check_accepts_a_test_case_with_a_local_non_test_base`,
+  `test_cross_check_rejects_a_module_with_a_base_cycle`,
+  `test_cross_check_rejects_a_missing_subsystem_section`,
+  `test_cross_check_rejects_a_section_with_no_rows`,
+  `test_cross_check_rejects_a_missing_tooling_section`,
+  `test_cross_check_rejects_a_missing_theme_directory`,
+  `test_cross_check_reports_an_unreadable_theme_directory`,
+  `test_cross_check_rejects_a_section_for_a_missing_subsystem`,
+  `test_cross_check_rejects_a_blank_guarantee`,
+  `test_cross_check_rejects_a_blank_provenance` — plus the helpers only
+  these tests call: `_register`, `_table`, `_valid_register` and
+  `assert_cross_check_rejects` (12 moved tests call it; recount across both
+  modules before editing, per the helper-sharing lesson). Imports:
+  `unittest`, `mock`, `cross_check`, the base. Put the class above the
+  `if __name__ == "__main__":` block, which mirrors the one in
+  `tests/test_invariants.py`.
+- `tests/test_invariants.py`: `TestHelpers` subclasses
+  `InvariantsRegisterCase` and keeps the seven `test_parse_rows_*` tests
+  verbatim (including
+  `test_parse_rows_escapes_control_characters_in_a_malformed_row`);
+  `TestRepositoryRegister` stays as it is. Trim the module docstring's
+  drive description to `parse_rows` plus the shipped register. Drop every
+  import left unused (`tests/test_no_unused_imports.py` flags leftovers).
+- `tests/support/validation_gaps/no_fake.py`: retarget the
+  `invariants-symlinked-register` and `invariants-unreadable-register`
+  reproductions, whose named tests move in this part, to
+  `tests/test_invariants_cross_check.py::TestCrossCheck::<same method>`.
+  Leave the other invariants reproductions (`invariants-nul-row`,
+  `invariants-unreadable-test-file`) until part 2: their named tests stay
+  in `TestHelpers` for now.
+- Before editing, grep `tests docs README.md .github` for the moved test
+  names and for `TestHelpers`, to find any other anchor or prose pointer.
+
+**Files touched.** new `tests/test_invariants_cross_check.py`, new
+`tests/support/invariants_register_case.py`, `tests/test_invariants.py`,
+`tests/support/validation_gaps/no_fake.py`.
+
+**Acceptance criteria.**
+
+- `rg -n 'def test_cross_check|def test_parsed_module' tests/test_invariants.py`
+  finds nothing, and each of the 21 moved test names is defined only in
+  `tests/test_invariants_cross_check.py`.
+- `rg -n 'from test_invariants import|import test_invariants\b' tests tools`
+  finds nothing: the new module does not import the old one.
+- `rg -n 'invariants-(symlinked|unreadable)-register' tests/support/validation_gaps/no_fake.py`
+  shows both reproductions naming
+  `tests/test_invariants_cross_check.py::TestCrossCheck`.
+- `make check CHECK_TESTS='test_invariants test_invariants_cross_check
+  test_validation_gaps test_no_unused_imports'` passes, and its output
+  shows the moved tests running under
+  `test_invariants_cross_check.TestCrossCheck`.
+- `tests/test_invariants.py` is under 450 lines, and the new test module
+  is under 420 lines.
+- No behaviour change: `git diff` shows only moved code, import lines,
+  docstrings, and the no_fake retarget.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Invariants checker extraction, part 2/2: move the cross-check reference-resolution tests into their own module (planned 2026-11-22 by the plan role; "requires part 1/2 landed")
+
+**Goal.** Finish the split planned in part 1/2: move the remaining
+`cross_check` tests — how a row's test reference is resolved against the
+repository (missing files, classes and methods, test-case bases, unreadable
+and oversize modules, the repository boundary) and the control-character
+escapes — out of `tests/test_invariants.py`, so the module keeps only the
+`parse_rows` tests and the shipped-register drive.
+
+**Approach.**
+
+- `tests/test_invariants_cross_check.py`: append to `TestCrossCheck`, in
+  their current order, with their comments:
+  `test_cross_check_rejects_a_missing_test_file`,
+  `test_cross_check_rejects_a_reference_to_an_unparseable_file`,
+  `test_cross_check_rejects_a_reference_to_a_file_it_cannot_read`,
+  `test_cross_check_rejects_an_oversize_module_instead_of_loading_it_whole`,
+  `test_cross_check_rejects_a_reference_with_a_nul_byte`,
+  `test_cross_check_rejects_a_missing_class`,
+  `test_cross_check_rejects_an_empty_qualifier`,
+  `test_cross_check_rejects_a_reference_with_a_trailing_segment`,
+  `test_cross_check_rejects_a_missing_method`,
+  `test_cross_check_rejects_a_reference_to_a_non_test_method`,
+  `test_cross_check_rejects_a_class_with_no_tests`,
+  `test_cross_check_rejects_a_method_on_a_class_with_no_test_case`,
+  `test_cross_check_rejects_a_local_base_that_only_looks_like_a_test_case`,
+  `test_cross_check_rejects_a_reference_outside_the_repository`,
+  `test_cross_check_escapes_control_characters_in_a_section_heading`,
+  `test_cross_check_escapes_control_characters_in_a_reference`,
+  `test_cross_check_escapes_control_characters_in_a_syntax_error`,
+  `test_cross_check_escapes_control_characters_in_a_theme_subsystem`.
+  Add the imports they need that part 1 did not bring in
+  (`write_file`, `traceback`, `containment_impl`,
+  `assert_escapes_escape_character`); keep the module docstring's pointer
+  to the shared base.
+- `tests/test_invariants.py`: delete the moved tests; `TestHelpers` keeps
+  only the seven `test_parse_rows_*` tests and `TestRepositoryRegister`
+  stays as it is. Drop every import left unused.
+- `tests/support/validation_gaps/no_fake.py`: retarget the
+  `invariants-nul-row` reproduction, whose named test moves in this part,
+  to `tests/test_invariants_cross_check.py::TestCrossCheck::<same method>`.
+  `invariants-unreadable-test-file` names a `test_checker_mutations.py`
+  test and stays as it is.
+- `docs/invariants.md`: retarget the tooling row that anchors
+  `tests/test_invariants.py::TestHelpers::test_cross_check_rejects_an_oversize_module_instead_of_loading_it_whole`
+  to `tests/test_invariants_cross_check.py::TestCrossCheck::<same method>`;
+  keep the guarantee text. The register cross-check validates that anchor,
+  so the retarget must land in the same change.
+- Before editing, grep `tests docs README.md .github` for the moved test
+  names, to find any other anchor or prose pointer.
+
+**Files touched.** `tests/test_invariants_cross_check.py`,
+`tests/test_invariants.py`, `tests/support/validation_gaps/no_fake.py`,
+`docs/invariants.md` (one anchor cell).
+
+**Acceptance criteria.**
+
+- `rg -n 'def test_cross_check|def test_parsed_module' tests/test_invariants.py`
+  finds nothing, and each of the 18 moved test names is defined only in
+  `tests/test_invariants_cross_check.py`.
+- `rg -n 'TestHelpers::test_cross_check' tests docs` finds nothing.
+- `rg -n 'invariants-nul-row' tests/support/validation_gaps/no_fake.py`
+  names `tests/test_invariants_cross_check.py::TestCrossCheck`.
+- `make check CHECK_TESTS='test_invariants test_invariants_cross_check
+  test_validation_gaps test_no_unused_imports'` passes, with all
+  `test_cross_check_*` names running under `TestCrossCheck`.
+- `tests/test_invariants.py` is under 250 lines.
+- No behaviour change: `git diff` shows only moved code, import lines,
+  docstrings, and the anchor and no_fake retargets.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
