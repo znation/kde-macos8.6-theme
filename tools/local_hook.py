@@ -27,6 +27,7 @@ import stat
 import os
 import sys
 from pathlib import Path
+from typing import BinaryIO
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
@@ -73,6 +74,26 @@ exit 0
 """
 
 
+def _open_regular_hook(path: Path) -> BinaryIO:
+    """Open *path* for binary reading, refusing anything but a regular file.
+
+    The pathname can change after ``lstat``. ``O_NONBLOCK`` keeps a swapped
+    FIFO from stalling this command, and ``O_NOFOLLOW`` with ``fstat`` keeps
+    the open descriptor bound to a regular, non-symlink hook. The caller's
+    ``refusing_os_errors`` block turns any ``OSError`` into a
+    ``LocalHookError``.
+    """
+    flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(path, flags)
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise LocalHookError(f"refusing to touch a non-regular hook: {path}")
+        return os.fdopen(descriptor, "rb")
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
 def _existing_hook(path: Path) -> bytes | None:
     """Return *path*'s bytes, or None when nothing occupies that path.
 
@@ -94,29 +115,11 @@ def _existing_hook(path: Path) -> bytes | None:
         raise LocalHookError(f"refusing to touch a symlinked hook: {path}")
     if not stat.S_ISREG(mode):
         raise LocalHookError(f"refusing to touch a non-regular hook: {path}")
-    try:
-        with refusing_os_errors(LocalHookError, "read", path):
-            # Read at most one byte past the cap: enough to detect an oversize
-            # hook without loading the rest of it.
-            # The pathname can change after lstat. O_NONBLOCK prevents a swapped
-            # FIFO from stalling this command; O_NOFOLLOW and fstat keep the open
-            # descriptor bound to a regular, non-symlink hook.
-            flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
-            descriptor = os.open(path, flags)
-            try:
-                if not stat.S_ISREG(os.fstat(descriptor).st_mode):
-                    raise LocalHookError(
-                        f"refusing to touch a non-regular hook: {path}"
-                    )
-                handle = os.fdopen(descriptor, "rb")
-                descriptor = -1
-            finally:
-                if descriptor >= 0:
-                    os.close(descriptor)
-            with handle:
-                data = handle.read(_MAX_HOOK_BYTES + 1)
-    except LocalHookError:
-        raise
+    with refusing_os_errors(LocalHookError, "read", path):
+        # Read at most one byte past the cap: enough to detect an oversize
+        # hook without loading the rest of it.
+        with _open_regular_hook(path) as handle:
+            data = handle.read(_MAX_HOOK_BYTES + 1)
     if len(data) > _MAX_HOOK_BYTES:
         raise LocalHookError(
             f"refusing to touch a hook larger than {_MAX_HOOK_BYTES} bytes: "
