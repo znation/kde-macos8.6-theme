@@ -458,5 +458,36 @@ class TestScratchDirectory(unittest.TestCase):
         )
 
 
+class TestLogTailLines(unittest.TestCase):
+    """Direct contract of ``log_tail_lines``, the bounded log reader itself."""
+
+    def _log(self, content: bytes) -> Path:
+        log = make_tmp_dir(self) / "cmd.log"
+        log.write_bytes(content)
+        return log
+
+    def test_keeps_only_the_last_twelve_lines(self):
+        log = self._log(b"".join(f"L{i}\n".encode() for i in range(20)))
+        self.assertEqual(diagnostics.log_tail_lines(log),
+                         [f"L{i}" for i in range(8, 20)])
+
+    def test_a_trailing_break_adds_no_empty_final_line(self):
+        self.assertEqual(diagnostics.log_tail_lines(self._log(b"one\ntwo\n")),
+                         ["one", "two"])
+
+    def test_crlf_and_lone_cr_each_end_one_line(self):
+        self.assertEqual(diagnostics.log_tail_lines(self._log(b"one\r\ntwo\rthree\n")),
+                         ["one", "two", "three"])
+
+    def test_a_break_free_log_keeps_exactly_its_last_window_of_bytes(self):
+        # 2 * window + 10 bytes with no line break: the window is the final
+        # _LOG_TAIL_BYTES bytes, so the kept partial line is the last
+        # window-minus-10 Z bytes followed by the final 10 Q bytes.
+        window = diagnostics._LOG_TAIL_BYTES
+        log = self._log(b"A" * window + b"Z" * window + b"Q" * 10)
+        self.assertEqual(diagnostics.log_tail_lines(log),
+                         ["Z" * (window - 10) + "Q" * 10])
+
+
 if __name__ == "__main__":
     unittest.main()
