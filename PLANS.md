@@ -261,6 +261,99 @@ police the whole suite, not one family — as does `config_home_cases`
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
+### Wallpaper: ground the flat desktop field in the reference desktop's `#63639C` (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup parts — its only shared surface, the desktop render gate, rides this same change)
+
+**Goal.** The wallpaper package's images are a deliberate non-fidelity
+placeholder — a flat `#CCCCCC` tile the `docs/invariants.md` `## wallpapers`
+row records as "not a fidelity match" — while the reference retail desktop
+screenshot shows the desktop as a flat blue-purple field. Ship the
+reference-grounded desktop field so a Plasma session's desktop matches the
+reference set, exactly as the splash's field colour already does.
+
+**Grounding (measured fresh 2026-11-21 by the plan role).** Decoding
+`macos8.6-screenshots/desktop_betawiki.png` (1024x768, retail Mac OS 8.6
+desktop, lossless PNG) with `tools/png/read.py::decode_png`, the left-edge
+desktop strip x=2..29 is pure flat `#63639C` — 840/840 pixels identical in
+each clean band y=192..221, y=384..413 and y=576..605, no dither, no
+gradient. That is the same value the shipped splash pins:
+`theme/look-and-feel/org.macos8.desktop/contents/splash/Splash.qml`'s
+`fieldColor` is `"#63639C"` and `tests/test_splash_reference.py` and
+`tests/test_render_splash_gate.py::TestSplashRender.FIELD_COLOUR` pin it.
+The second retail capture `desktop_archiveorg8.6hd.png` shows the same
+field a shade off (`#6462A0` with `#6664A2` neighbours — an emulator
+gamma difference) — record it as the observed variant in the provenance
+wording; it does not displace the pinned value. What ships is a solid
+colour measured from the reference, like every other sampled palette
+value — no screenshot asset, no Apple artwork, and no engine resampling
+is involved (each PNG is generated flat at its own resolution).
+
+**Approach and files.**
+
+1. `tools/make_wallpaper.py`: change `TILE_RGB` to
+   `bytes((0x63, 0x63, 0x9C)) * (TILE_SIZE * TILE_SIZE)`; reword the
+   module docstring and the `EscapingArgumentParser` description from
+   "original neutral placeholder" to the Platinum desktop field sampled
+   from `desktop_betawiki.png` (`REFERENCE` already names that file);
+   regenerate by running `python3 tools/make_wallpaper.py` so all twelve
+   `RESOLUTIONS` images become flat `#63639C`.
+2. `tests/test_wallpaper.py`: re-anchor `TestPlaceholderPalette` to the
+   desktop reference — decode `desktop_betawiki.png` (keeping the
+   existing `skip_unless_materialized` guard), assert a clean desktop
+   band's pixels are all `(99, 99, 156)` and that
+   `tuple(make_wallpaper.TILE_RGB[:3])` equals that sampled value, and
+   rename the test from the neutral-placeholder wording to the desktop
+   field. Update `TestImages::test_each_image_uses_the_reference_anchored_neutral_palette`
+   (rename to the desktop-field wording; bytes `(204, 204, 204)` →
+   `(99, 99, 156)`).
+3. `tests/test_make_wallpaper.py`: update its flat-tile byte pin
+   (currently `(204, 204, 204)`) to `(99, 99, 156)` and its wording.
+4. `docs/invariants.md`: rewrite the `## wallpapers` row to state the
+   flat `#63639C` field sampled from the lossless `desktop_betawiki.png`
+   desktop strip, with the `desktop_archiveorg8.6hd.png` shade variant
+   recorded as provenance; the row's tests name the re-anchored tests
+   from (2). In the `## tooling` `--desktop` row, update the
+   "rows 20..399 flat `#CCCCCC`" wording to the re-derived desktop-field
+   value.
+5. `tests/test_render_surface.py::TestDesktopRender::test_bar_rows_pin_the_platinum_structure`:
+   the render session selects the shipped wallpaper (the look-and-feel
+   `contents/defaults` carries `[Wallpaper] Image=org.macos8.desktop`
+   and `tools/render_setup.py` writes
+   `[KDE] LookAndFeelPackage=org.macos8.desktop`), so the capture's
+   desktop area shows the new field. Take a fresh consecutive pair of
+   full `tools/render_surface.py <scratch>/desktop.png --desktop` runs,
+   pin rows 20..399 to the flat value that pair shows (expected
+   `#63639C`; if the session paints something else, stop and record a
+   plan-defect note instead of pinning an unexplained value), and update
+   the test's docstring and comment wording (the "wallpaper staying out
+   of the series" phrasing becomes the wallpaper field pin).
+6. Prose: `README.md`'s "Generating the wallpaper" paragraph;
+   `docs/installing.md`'s install-details sentence calling the wallpaper
+   "the original neutral `#CCCCCC` wallpaper placeholder";
+   `PLACEHOLDERS.md`'s wallpaper row (the images are no longer a
+   neutral stand-in; reword the row so it tracks the `metadata.json`
+   placeholder only).
+
+**Acceptance criteria.**
+
+- Running `python3 tools/make_wallpaper.py` rewrites every image under
+  `theme/wallpapers/org.macos8.desktop/contents/images/` as a flat
+  `#63639C` PNG at its named resolution, and a second run rewrites
+  identical bytes.
+- `tests/test_wallpaper.py`'s palette test derives its expected tile
+  from `desktop_betawiki.png` itself (it decodes the materialized
+  reference and samples the desktop strip), so a changed tile or a
+  changed reference fails it; the pinned value is
+  `(99, 99, 156)`.
+- Two consecutive full `--desktop` render runs exit 0 and
+  `TestDesktopRender` passes after the final edit with rows 20..399
+  pinned to the flat value those captures show.
+- No prose in `README.md`, `docs/`, or `PLACEHOLDERS.md` still calls the
+  wallpaper a neutral placeholder or "not a fidelity match"; the
+  invariants wallpapers row names `desktop_betawiki.png` and the shade
+  variant.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Konsole colorscheme, part 1/2: ship and install a Platinum Konsole color scheme (planned 2026-11-21 by the plan role)
 
 **Goal.** The theme selects JetBrains Mono as the fixed-width face and
