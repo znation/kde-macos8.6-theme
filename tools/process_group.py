@@ -9,7 +9,7 @@ streams merged. Both defer catchable signals around the child's start through
 external commands they run, lives there too.
 ``tools/required_command.py`` wraps :func:`run_logged` with the shared
 required-command diagnostic for ``tools/apply_theme.py``,
-``tools/cursor_selection.py`` (the selector used by ``tools/apply_cursor.py``).
+``tools/cursor/selection.py`` (the selector used by ``tools/apply_cursor.py``).
 
 A Ctrl-C (SIGINT) is not one of ``exit_on_termination``'s signals, but its
 default handler raises ``KeyboardInterrupt`` at the next bytecode just the

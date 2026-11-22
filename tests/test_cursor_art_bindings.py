@@ -1,9 +1,9 @@
 """Tests for the cursor-art data modules' binding contract.
 
-``tools/cursor_art_pointers.py``, ``tools/cursor_art_resize.py`` and
-``tools/cursor_art_drag.py`` are pure data modules: each exports 16x16 ASCII
+``tools/cursor/art_pointers.py``, ``tools/cursor/art_resize.py`` and
+``tools/cursor/art_drag.py`` are pure data modules: each exports 16x16 ASCII
 ``*_GRID`` tuples, each paired with a hotspot constant, and each docstring
-promises that ``tools/cursor_art.py`` binds the module's grids "to their
+promises that ``tools/cursor/art.py`` binds the module's grids "to their
 canonical X names". No existing test reads the data modules directly -- every
 cursor test reaches the art through ``cursor_art.CURSORS`` plus the committed
 artifacts, so the binding promise itself is unpinned: a grid added to a data
@@ -28,8 +28,8 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import cursor_art, cursor_art_drag, cursor_art_pointers, cursor_art_resize  # noqa: F401
-from tools.cursor_vector import VectorCursor
+from tools.cursor import art as cursor_art, art_drag as cursor_art_drag, art_pointers as cursor_art_pointers, art_resize as cursor_art_resize  # noqa: F401
+from tools.cursor.vector import VectorCursor
 
 # Each data module, in the order cursor_art imports them, and the exported
 # art each contributes: a ``*_GRID`` pixel grid or a ``*_ART`` VectorCursor.

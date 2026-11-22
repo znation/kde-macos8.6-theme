@@ -5,6 +5,39 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Group the flat cursor_* tools modules into tools/cursor/ (part 4/8 of the tools regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Land the cursor-family slice of the flat-`tools/` regroup (see
+part 1/8 for the split's shared rules; the parts are independent).
+
+**Modules to move (import lines per module; importer files counted on
+main).** `cursor_art` (11), `cursor_art_drag` (2), `cursor_art_pointers`
+(6), `cursor_art_resize` (2), `cursor_checks` (6), `cursor_config` (6),
+`cursor_link` (8), `cursor_selection` (9), `cursor_vector` (12),
+`cursor_workflow` (5) → `tools/cursor/` with `__init__.py`: `art.py`,
+`art_drag.py`, `art_pointers.py`, `art_resize.py`, `checks.py`,
+`config.py`, `link.py`, `selection.py`, `vector.py`, `workflow.py`. 19
+files import a `cursor_*` member. The family has no CLI driver of its own;
+`tools/make_cursors.py` and `tools/apply_cursor.py` (make_/apply_-prefixed
+drivers that stay) rewrite their import lines in this change.
+
+**Files touched.** The ten moved modules, their 19 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tools/cursor/` lists `__init__.py` and the ten moved modules, and
+  `rg -n 'tools[./]cursor_(art|art_drag|art_pointers|art_resize|checks|config|link|selection|vector|workflow)\b|import (cursor_art|cursor_art_drag|cursor_art_pointers|cursor_art_resize|cursor_checks|cursor_config|cursor_link|cursor_selection|cursor_vector|cursor_workflow)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Group the flat render_* tools modules into tools/render/ (part 1/8 of the tools regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** Land the render-family slice of the flat-`tools/` regroup, split

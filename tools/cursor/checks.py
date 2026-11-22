@@ -9,15 +9,15 @@ every request before it builds or caches anything.
 
 from __future__ import annotations
 
-if __package__:
-    from tools.cursor_art import GRID_SIZE, PIXELS
-    from tools.cursor_vector import VectorCursor
-    from tools.cursor_vector import checked_size as _checked_size
+if __package__ == "tools.cursor":
+    from tools.cursor.art import GRID_SIZE, PIXELS
+    from tools.cursor.vector import VectorCursor
+    from tools.cursor.vector import checked_size as _checked_size
     from tools.ints import is_plain_int
 else:  # run from tools/ on sys.path, as make_cursors.py is run
-    from cursor_art import GRID_SIZE, PIXELS
-    from cursor_vector import VectorCursor
-    from cursor_vector import checked_size as _checked_size
+    from cursor.art import GRID_SIZE, PIXELS
+    from cursor.vector import VectorCursor
+    from cursor.vector import checked_size as _checked_size
     from ints import is_plain_int
 
 

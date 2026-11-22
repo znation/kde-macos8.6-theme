@@ -19,7 +19,8 @@ from support.cursor_theme_fixtures import write_cursor_theme
 from support.executable_stubs import write_executable
 from support.recorded_lines import recorded_lines
 from support.tmp_dir import make_session_home
-from tools import apply_cursor, cursor_link, cursor_selection
+from tools.cursor import link as cursor_link, selection as cursor_selection
+from tools import apply_cursor
 
 
 class CursorTestCase(unittest.TestCase):

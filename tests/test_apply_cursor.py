@@ -2,8 +2,8 @@
 
 The tool runs in-process with ``HOME``, ``XDG_DATA_HOME`` and
 ``XDG_CONFIG_HOME`` pointed at a temp root, and the selector is a shell stub on
-``PATH`` that records its argv. Cursor link policy in ``tools/cursor_link.py``
-and the ``kcminputrc`` reader in ``tools/cursor_config.py`` are pinned alongside
+``PATH`` that records its argv. Cursor link policy in ``tools/cursor/link.py``
+and the ``kcminputrc`` reader in ``tools/cursor/config.py`` are pinned alongside
 the home and install workflow without touching a real ``~/.icons`` or Plasma
 configuration. The selector step (``plasma-apply-cursortheme``, including
 SIGTERM) lives in ``tests/test_apply_cursor_selection.py``, and the
@@ -27,7 +27,8 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.tmp_dir import make_tmp_dir
-from tools import apply_cursor, cursor_config, cursor_link, cursor_selection
+from tools.cursor import config as cursor_config, link as cursor_link, selection as cursor_selection
+from tools import apply_cursor
 
 
 class TestHomes(CursorTestCase):

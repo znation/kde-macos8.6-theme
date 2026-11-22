@@ -3,7 +3,7 @@
 The 16x16 ASCII grids and hotspots for the move cross, the four resize arrows
 and the crosshair. ``#`` is the black face, ``.`` the white outline and a space
 is transparent. The grids in this module are bound to their canonical X names
-by ``tools/cursor_art.py``; ``tools/make_cursors.py`` scales and writes them.
+by ``tools/cursor/art.py``; ``tools/make_cursors.py`` scales and writes them.
 """
 
 # The move cross points up, down, left and right; its hotspot is the centre.

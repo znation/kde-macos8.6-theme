@@ -3,7 +3,7 @@
 The 16x16 ASCII grids and hotspots for the circle-slash, drag-and-drop copy
 plus, and the open and closed hands. ``#`` is the black face, ``.`` the white
 outline and a space is transparent. The grids in this module are bound to their
-canonical X names by ``tools/cursor_art.py``; ``tools/make_cursors.py`` scales
+canonical X names by ``tools/cursor/art.py``; ``tools/make_cursors.py`` scales
 and writes them.
 """
 

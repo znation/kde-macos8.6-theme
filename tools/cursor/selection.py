@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import shutil
 
-if __package__:
-    from tools import cursor_link
+if __package__ == "tools.cursor":
+    from tools.cursor import link as cursor_link
     from tools.diagnostics import report_missing_tool, report_note, scratch_directory
     from tools.repo_root import ROOT
     from tools.required_command import run_required
 else:  # run directly through apply_cursor.py
-    import cursor_link
+    from cursor import link as cursor_link
     from diagnostics import report_missing_tool, report_note, scratch_directory
     from repo_root import ROOT
     from required_command import run_required

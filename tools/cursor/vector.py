@@ -10,7 +10,7 @@ of its samples and its grey level is the white share of the covered ones, so
 an edge pixel is antialiased instead of stepping between two colours.
 
 The colours are the set's pinned palette: the face is ``#000000`` and the
-outline is ``#FFFFFF``, as in ``tools/cursor_art.py``. No reference screenshot
+outline is ``#FFFFFF``, as in ``tools/cursor/art.py``. No reference screenshot
 in ``macos8.6-screenshots/`` shows a pointer, so the shapes are our own; the
 antialiased style follows the user's 2026-11-12 answer to the cursor-direction
 question in QUESTIONS.md. Each nominal size is rasterized from the vectors, so
@@ -26,7 +26,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-if __package__:
+if __package__ == "tools.cursor":
     from tools.ints import is_plain_int
     from tools.xcursor import MAX_IMAGE_SIZE
 else:

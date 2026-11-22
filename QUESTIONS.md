@@ -48,7 +48,7 @@ is rewriting the empty-result fixtures in roughly six test modules. (Improve rol
 **Context.** The user reports that the mouse cursors “still look incredibly ugly”; BUGS.md
 tracks the complaint. The current set uses black faces with white outlines drawn on 16×16
 grids, enlarged by `tools/make_cursors.py::render_rgba` to 24 and 32 pixels. The cursor
-provenance in `tools/cursor_art.py` records that the reference screenshots do not show a
+provenance in `tools/cursor/art.py` records that the reference screenshots do not show a
 pointer. The complaint rejects the current result but does not choose a replacement style.
 
 **Options.**

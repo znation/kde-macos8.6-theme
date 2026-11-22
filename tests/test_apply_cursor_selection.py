@@ -31,7 +31,8 @@ from support.process_assertions import (
     assert_failed,
     assert_succeeded,
 )
-from tools import apply_cursor, cursor_selection, diagnostics, required_command
+from tools.cursor import selection as cursor_selection
+from tools import apply_cursor, diagnostics, required_command
 
 
 class TestSelection(CursorTestCase):

@@ -30,17 +30,17 @@ import sys
 from pathlib import Path
 
 if __package__:
-    from tools import cursor_link
-    from tools import cursor_selection
-    from tools import cursor_workflow
+    from tools.cursor import link as cursor_link
+    from tools.cursor import selection as cursor_selection
+    from tools.cursor import workflow as cursor_workflow
     from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import report_error
     from tools.process_signals import exit_on_termination
 else:  # run directly: python3 tools/apply_cursor.py
-    import cursor_link
-    import cursor_selection
-    import cursor_workflow
+    from cursor import link as cursor_link
+    from cursor import selection as cursor_selection
+    from cursor import workflow as cursor_workflow
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from diagnostics import report_error

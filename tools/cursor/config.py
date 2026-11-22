@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-if __package__:
+if __package__ == "tools.cursor":
     from tools.containment import read_text
     from tools.repo_root import ROOT
     from tools.text_lines import split_lines

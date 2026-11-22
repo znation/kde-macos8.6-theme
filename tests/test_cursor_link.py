@@ -1,6 +1,6 @@
 """Unit tests for the cursor link's path and symlink-reading helpers.
 
-``tools/cursor_link.py`` decides whether ``~/.icons/<theme>`` is ours by reading
+``tools/cursor/link.py`` decides whether ``~/.icons/<theme>`` is ours by reading
 the literal text of the symlink there. The CLI tests in ``test_apply_cursor.py``
 only ever create absolute links, so these tests pin the helper's own contract:
 it returns the link text exactly as written, without resolving it, including
@@ -17,7 +17,7 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import cursor_link
+from tools.cursor import link as cursor_link
 
 
 class TestLinkTarget(unittest.TestCase):

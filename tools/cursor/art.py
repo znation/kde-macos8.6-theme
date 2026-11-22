@@ -30,10 +30,10 @@ not traced from Apple's artwork; the nominal sizes, the Xcursor container and
 the X names are KDE/X-required values. The arrow (``left_ptr`` and its
 aliases), the text I-beam (``xterm``) and the pointing hand (``hand2``) are
 antialiased vector art, ``ARROW_ART``, ``XTERM_ART`` and ``HAND2_ART`` with
-their hotspots in ``tools/cursor_art_pointers.py``, rasterized natively at each
+their hotspots in ``tools/cursor/art_pointers.py``, rasterized natively at each
 size; every other cursor is still a pixel grid. The pixel grids and hotspots live
-in ``tools/cursor_art_pointers.py``, ``tools/cursor_art_resize.py`` and
-``tools/cursor_art_drag.py``; this module
+in ``tools/cursor/art_pointers.py``, ``tools/cursor/art_resize.py`` and
+``tools/cursor/art_drag.py``; this module
 binds each canonical name to its grid and hotspot and lists the aliases that
 must carry byte-identical copies. ``tools/make_cursors.py`` scales the grids
 and writes the files.
@@ -43,9 +43,9 @@ from __future__ import annotations
 
 # The arrow grid and its hotspot stay exported: the tests and the grid-cell
 # checks compare against them, though CURSORS binds the vector art.
-if __package__:
-    from tools.cursor_art_pointers import ARROW_GRID, HOTSPOT  # noqa: F401 (re-exported)
-    from tools.cursor_art_drag import (
+if __package__ == "tools.cursor":
+    from tools.cursor.art_pointers import ARROW_GRID, HOTSPOT  # noqa: F401 (re-exported)
+    from tools.cursor.art_drag import (
         DND_COPY_GRID,
         DND_COPY_HOTSPOT,
         GRAB_GRID,
@@ -55,7 +55,7 @@ if __package__:
         NOT_ALLOWED_GRID,
         NOT_ALLOWED_HOTSPOT,
     )
-    from tools.cursor_art_pointers import (
+    from tools.cursor.art_pointers import (
         ARROW_ART,
         CONTEXT_MENU_GRID,
         CONTEXT_MENU_HOTSPOT,
@@ -77,7 +77,7 @@ if __package__:
         ZOOM_OUT_GRID,
         ZOOM_OUT_HOTSPOT,
     )
-    from tools.cursor_art_resize import (
+    from tools.cursor.art_resize import (
         CROSSHAIR_GRID,
         CROSSHAIR_HOTSPOT,
         FLEUR_GRID,
@@ -92,8 +92,8 @@ if __package__:
         SIZE_VER_HOTSPOT,
     )
 else:  # imported from a directly run tool
-    from cursor_art_pointers import ARROW_GRID, HOTSPOT  # noqa: F401 (re-exported)
-    from cursor_art_drag import (
+    from cursor.art_pointers import ARROW_GRID, HOTSPOT  # noqa: F401 (re-exported)
+    from cursor.art_drag import (
         DND_COPY_GRID,
         DND_COPY_HOTSPOT,
         GRAB_GRID,
@@ -103,7 +103,7 @@ else:  # imported from a directly run tool
         NOT_ALLOWED_GRID,
         NOT_ALLOWED_HOTSPOT,
     )
-    from cursor_art_pointers import (
+    from cursor.art_pointers import (
         ARROW_ART,
         CONTEXT_MENU_GRID,
         CONTEXT_MENU_HOTSPOT,
@@ -125,7 +125,7 @@ else:  # imported from a directly run tool
         ZOOM_OUT_GRID,
         ZOOM_OUT_HOTSPOT,
     )
-    from cursor_art_resize import (
+    from cursor.art_resize import (
         CROSSHAIR_GRID,
         CROSSHAIR_HOTSPOT,
         FLEUR_GRID,

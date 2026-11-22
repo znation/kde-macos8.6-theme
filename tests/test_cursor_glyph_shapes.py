@@ -20,7 +20,8 @@ from support.cursor_artifact_cases import (  # noqa: E402
     _pixel,
     _read_cursor,
 )
-from tools import cursor_art, make_cursors  # noqa: E402
+from tools.cursor import art as cursor_art  # noqa: E402
+from tools import make_cursors
 from tools.png import decode_rgba  # noqa: E402
 
 

@@ -1,4 +1,4 @@
-"""Tests for ``tools/cursor_vector.py``: the antialiased polygon rasterizer.
+"""Tests for ``tools/cursor/vector.py``: the antialiased polygon rasterizer.
 
 Every expected pixel below is worked out from the face geometry by hand (the
 sample centres, the even-odd rule and the edge distances), never by running the
@@ -12,8 +12,8 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import cursor_vector  # noqa: E402
-from tools.cursor_vector import VectorCursor  # noqa: E402
+from tools.cursor import vector as cursor_vector  # noqa: E402
+from tools.cursor.vector import VectorCursor  # noqa: E402
 from tools.xcursor import MAX_IMAGE_SIZE  # noqa: E402
 
 SQUARE = ((8, 8), (24, 8), (24, 24), (8, 24))

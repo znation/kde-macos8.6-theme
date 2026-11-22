@@ -28,7 +28,8 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.tmp_dir import make_session_home
-from tools import apply_cursor, cursor_link, cursor_workflow
+from tools.cursor import link as cursor_link, workflow as cursor_workflow
+from tools import apply_cursor
 
 
 class CursorLockCase(unittest.TestCase):

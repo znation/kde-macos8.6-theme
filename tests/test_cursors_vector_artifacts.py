@@ -20,7 +20,7 @@ class TestVectorPointerArtifacts(unittest.TestCase):
 
     Each design point maps to the pixel that contains it at a nominal size:
     ``floor(coordinate * size / 32)``. The expectations below come from the
-    design coordinates in ``tools/cursor_art_pointers.py``, not from the
+    design coordinates in ``tools/cursor/art_pointers.py``, not from the
     rendered output.
     """
 

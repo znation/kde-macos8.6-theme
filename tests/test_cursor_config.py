@@ -22,7 +22,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from tools import cursor_config
+from tools.cursor import config as cursor_config
 
 
 class TestCursorThemeSetting(unittest.TestCase):

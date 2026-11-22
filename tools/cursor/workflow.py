@@ -5,14 +5,14 @@ from __future__ import annotations
 import stat
 from pathlib import Path
 
-if __package__:
-    from tools import cursor_config, cursor_link, cursor_selection
+if __package__ == "tools.cursor":
+    from tools.cursor import config as cursor_config, link as cursor_link, selection as cursor_selection
     from tools.diagnostics import report_note
     from tools.file_lock import installed_data_lock
 else:  # run directly through apply_cursor.py
-    import cursor_config
-    import cursor_link
-    import cursor_selection
+    from cursor import config as cursor_config
+    from cursor import link as cursor_link
+    from cursor import selection as cursor_selection
     from diagnostics import report_note
     from file_lock import installed_data_lock
 

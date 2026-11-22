@@ -1,6 +1,6 @@
 """The minimal installed cursor theme that the apply-cursor suites stage.
 
-``tools.cursor_link.require_installed`` accepts a theme only when both
+``tools.cursor.link.require_installed`` accepts a theme only when both
 ``index.theme`` and ``cursors/left_ptr`` exist, so every suite that needs a
 working installed theme writes exactly these two files::
 

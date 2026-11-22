@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-if __package__:
+if __package__ == "tools.cursor":
     from tools.os_error_refusal import refusing_os_errors
 else:  # imported from a directly run tool
     from os_error_refusal import refusing_os_errors

@@ -13,7 +13,7 @@ cannot drift between ``tools/fidelity.py``, ``tools/sample.py``,
 ``tools/local_hook.py``, ``tools/make_wallpaper.py``,
 ``tools/render_surface.py``,
 ``tools/make_cursors.py``, ``tools/install_firefox.py``,
-``tools/cursor_selection.py``, ``tools/cursor_workflow.py``,
+``tools/cursor/selection.py``, ``tools/cursor/workflow.py``,
 ``tools/apply_cursor.py`` and ``tools/check_references.py``.
 
 Argument parsing lives in the sibling ``tools/argument_parsing.py``; the

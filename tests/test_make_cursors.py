@@ -1,6 +1,6 @@
 """Tests for ``tools/make_cursors.py``'s generator and command entry point.
 
-These pin the grid and size refusals ``tools/cursor_checks.py`` supplies to
+These pin the grid and size refusals ``tools/cursor/checks.py`` supplies to
 ``cursor_bytes`` and ``main``'s failure reporting. The build cache and the
 vector arrow's rendered frames live in ``tests/test_make_cursors_bytes.py``.
 ``tests/test_cursors_theme.py`` validates the
@@ -22,8 +22,9 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import xcursor as xcursor_reader  # noqa: E402
 from support.error_assertions import assert_error_names  # noqa: E402
 from support.tmp_dir import make_tmp_dir  # noqa: E402
-from tools import cursor_art, cursor_checks, make_cursors  # noqa: E402
-from tools.cursor_vector import VectorCursor  # noqa: E402
+from tools.cursor import art as cursor_art, checks as cursor_checks  # noqa: E402
+from tools import make_cursors
+from tools.cursor.vector import VectorCursor  # noqa: E402
 
 
 def _grid_cursors():

@@ -8,7 +8,7 @@ Per-glyph drawn-shape pins live in ``tests/test_cursor_glyph_shapes.py``.
 The ``tools/make_cursors.py`` generator's own grid checks and its ``main``
 failures live in ``tests/test_make_cursors.py``; its build cache and vector
 arrow live in ``tests/test_make_cursors_bytes.py``; its size rule is the one
-``tools/cursor_vector.py`` defines. The test-side reader is
+``tools/cursor/vector.py`` defines. The test-side reader is
 independent of ``tools/xcursor.py``; see ``tests/support/xcursor.py``.
 """
 
@@ -30,8 +30,9 @@ from support.cursor_artifact_cases import (  # noqa: E402
     _read_cursor,
 )
 from support.tmp_dir import make_tmp_dir  # noqa: E402
-from tools import cursor_art, cursor_art_pointers, make_cursors  # noqa: E402
-from tools.cursor_vector import VectorCursor  # noqa: E402
+from tools.cursor import art as cursor_art, art_pointers as cursor_art_pointers  # noqa: E402
+from tools import make_cursors  # noqa: E402
+from tools.cursor.vector import VectorCursor  # noqa: E402
 from tools.png import decode_rgba  # noqa: E402
 
 LEFT_PTR = CURSORS / "left_ptr"

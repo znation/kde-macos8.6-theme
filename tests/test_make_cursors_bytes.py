@@ -16,7 +16,8 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import xcursor as xcursor_reader  # noqa: E402
 from support.error_assertions import assert_error_names  # noqa: E402
 from support.tmp_dir import make_tmp_dir  # noqa: E402
-from tools import cursor_art, cursor_art_pointers, make_cursors  # noqa: E402
+from tools.cursor import art as cursor_art, art_pointers as cursor_art_pointers  # noqa: E402
+from tools import make_cursors
 from tools.png import decode_rgba  # noqa: E402
 
 SIZES = (16, 24, 32)

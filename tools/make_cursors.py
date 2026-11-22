@@ -1,8 +1,8 @@
 """Generate the Mac OS 8.6 Platinum Xcursor pointer set from pixel grids.
 
-The grids and hotspots live in ``tools/cursor_art_pointers.py``,
-``tools/cursor_art_resize.py`` and ``tools/cursor_art_drag.py``; the X-name
-manifest and palette live in ``tools/cursor_art.py``. This module validates a
+The grids and hotspots live in ``tools/cursor/art_pointers.py``,
+``tools/cursor/art_resize.py`` and ``tools/cursor/art_drag.py``; the X-name
+manifest and palette live in ``tools/cursor/art.py``. This module validates a
 grid, scales it nearest-neighbour to the nominal sizes 16, 24 and 32, or
 rasterizes a ``VectorCursor`` natively at each size, encodes each frame as an
 Xcursor image chunk, and writes every canonical cursor and alias into the
@@ -27,50 +27,50 @@ from pathlib import Path
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.atomic_write import write_bytes_atomically
-    from tools.cursor_art import (
+    from tools.cursor.art import (
         ARROW_ART,
         ARROW_HOTSPOT,
         CURSORS,
         GRID_SIZE,
         PIXELS,
     )
-    from tools.cursor_checks import (
+    from tools.cursor.checks import (
         checked_art,
         checked_hotspot,
         checked_rows,
         checked_sizes,
     )
-    from tools.cursor_vector import (
+    from tools.cursor.vector import (
         VectorCursor,
         render_vector_rgba,
         vector_hotspot,
     )
-    from tools.cursor_vector import checked_size as _checked_size
+    from tools.cursor.vector import checked_size as _checked_size
     from tools.generated_files import write_generated_files
     from tools.repo_root import ROOT
     from tools.xcursor import write_rgba_cursor
 else:  # run directly: python3 tools/make_cursors.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_bytes_atomically
-    from cursor_art import (
+    from cursor.art import (
         ARROW_ART,
         ARROW_HOTSPOT,
         CURSORS,
         GRID_SIZE,
         PIXELS,
     )
-    from cursor_checks import (
+    from cursor.checks import (
         checked_art,
         checked_hotspot,
         checked_rows,
         checked_sizes,
     )
-    from cursor_vector import (
+    from cursor.vector import (
         VectorCursor,
         render_vector_rgba,
         vector_hotspot,
     )
-    from cursor_vector import checked_size as _checked_size
+    from cursor.vector import checked_size as _checked_size
     from generated_files import write_generated_files
     from repo_root import ROOT
     from xcursor import write_rgba_cursor
