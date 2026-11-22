@@ -114,14 +114,23 @@ def scratch_directory(
     Yields ``None`` (after the shared exit-2 diagnostic from
     :func:`create_scratch_directory`) when the directory cannot be created, so
     the caller returns 2 before doing any work. The removal runs whether the
-    block returns, raises, or is interrupted by an exception.
+    block returns, raises, or is interrupted by an exception. A removal that
+    fails is reported by name on stderr and never replaces the block's own
+    outcome: the block's exception or the tool's exit status stands.
     """
     scratch = create_scratch_directory(tool, prefix, label=label)
     try:
         yield scratch
     finally:
         if scratch is not None:
-            shutil.rmtree(scratch, ignore_errors=True)
+            try:
+                shutil.rmtree(scratch)
+            except OSError as exc:
+                report_note(
+                    tool,
+                    f"could not remove scratch directory {scratch}: {exc}",
+                    err=True,
+                )
 
 
 # Only CR, LF and CRLF end a log line. ``str.splitlines`` also breaks on

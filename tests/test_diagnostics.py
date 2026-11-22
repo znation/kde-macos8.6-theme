@@ -444,6 +444,44 @@ class TestScratchDirectory(unittest.TestCase):
                 raise RuntimeError("boom")
         self.assertFalse(scratch.exists())
 
+    def test_a_removal_failure_names_the_leftover_path_and_keeps_the_block_error(self):
+        """The block's own exception survives a failed removal, which is named on stderr."""
+        stderr = io.StringIO()
+        leftover = []
+        with mock.patch(
+            "tools.diagnostics.shutil.rmtree",
+            side_effect=OSError("Directory not empty"),
+        ):
+            with contextlib.redirect_stderr(stderr):
+                with self.assertRaisesRegex(RuntimeError, "boom"):
+                    with diagnostics.scratch_directory("sample", "scratch-test-") as scratch:
+                        leftover.append(scratch)
+                        raise RuntimeError("boom")
+        self.addCleanup(shutil.rmtree, leftover[0], True)
+        self.assertTrue(leftover[0].is_dir())
+        self.assertEqual(
+            stderr.getvalue(),
+            f"sample: note: could not remove scratch directory {leftover[0]}: "
+            "Directory not empty\n",
+        )
+
+    def test_a_removal_failure_after_a_clean_block_is_reported_without_raising(self):
+        stderr = io.StringIO()
+        leftover = []
+        with mock.patch(
+            "tools.diagnostics.shutil.rmtree",
+            side_effect=OSError("Permission denied"),
+        ):
+            with contextlib.redirect_stderr(stderr):
+                with diagnostics.scratch_directory("sample", "scratch-test-") as scratch:
+                    leftover.append(scratch)
+        self.addCleanup(shutil.rmtree, leftover[0], True)
+        self.assertEqual(
+            stderr.getvalue(),
+            f"sample: note: could not remove scratch directory {leftover[0]}: "
+            "Permission denied\n",
+        )
+
     def test_yields_none_and_reports_exit_two_when_creation_fails(self):
         stderr = io.StringIO()
         with mock.patch(
