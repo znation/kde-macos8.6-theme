@@ -239,11 +239,13 @@ def render(args: argparse.Namespace) -> int:
             if mode is not None and mode.focus_settle else None
         )
         # The splash's first mapped frame is an intermediate animation stage,
-        # and the inactive-dialog mode needs both windows before capture. Keep
-        # their measured ceilings instead of ending on the first windowAdded.
+        # and the inactive-dialog mode needs both windows before capture. The
+        # desktop's plasmashell window maps before its wallpaper paints, so a
+        # readiness end would capture the bar over a black field. Keep these
+        # measured ceilings instead of ending on the first windowAdded.
         readiness_script = (
             None
-            if args.splash or (mode is not None and mode.focus_settle)
+            if args.splash or args.desktop or (mode is not None and mode.focus_settle)
             else str(write_readiness_settle_script(session))
         )
         command = session_command(

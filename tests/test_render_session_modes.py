@@ -95,6 +95,7 @@ class TestSessionModes(StubTools, unittest.TestCase):
         selection.assert_called_once_with(configs.call_args.args[0])
         argv = run.call_args.args[0]
         self.assertIn("plasmashell", argv[-1])
+        self.assertIn('readiness=""', shlex.split(argv[-1])[2])
         self.assertNotIn("org.kde.plasma.calculator", argv[-1])
         self.assertNotIn("plasmawindowed", argv[-1])
         self.assertNotIn("kdialog", argv[-1])
