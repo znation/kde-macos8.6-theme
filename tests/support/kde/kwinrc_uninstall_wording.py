@@ -1,6 +1,6 @@
 """Wordings and key ids the kwinrc uninstall-diagnostic suites share.
 
-`make _uninstall` (tools/uninstall_live_diagnostics.py) prints the existing
+`make _uninstall` (tools/uninstall/live_diagnostics.py) prints the existing
 diagnostics whose wordings are each suite's assertion contract. The three
 kwinrc suites cover the button-layout, theme-key and library/theme-pair
 diagnostics under `kwinrc`'s `[org.kde.kdecoration2]` group, and each

@@ -12,7 +12,7 @@ those duplicate-key spellings too. The ini lookup rule the module's other
 diagnostics share is last-value-wins (``tests/support/kde/ini_corpus.py``
 pins it); the latch is the GTK diagnostic's own contract, pinned here
 through ``tools/uninstall_diagnostics.py``'s ``diagnostics``, through
-``tools/uninstall_config.py``'s ``latched_match`` and through ``_uninstall``
+``tools/uninstall/config.py``'s ``latched_match`` and through ``_uninstall``
 itself, without editing any file.
 """
 
@@ -23,7 +23,8 @@ from support import theme_install
 from support.theme_install import read_bytes, write_config_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_config_home, make_tmp_dir
-from tools import uninstall_config, uninstall_diagnostics
+from tools import uninstall_diagnostics
+from tools.uninstall import config as uninstall_config
 from tools.gtk_user_files import GTK4_CSS_MARKER
 
 # The published sheet's first line, spelled by the publisher: a fixture

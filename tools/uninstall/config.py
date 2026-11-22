@@ -34,7 +34,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.containment import read_capped_bytes
     from tools.text_lines import strip_bom
     from tools.xdg_homes import config_home as resolve_config_home

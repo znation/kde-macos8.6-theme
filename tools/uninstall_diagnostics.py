@@ -11,11 +11,11 @@ selection stays silent.
 
 The parse state every diagnostic builds on -- the config-home resolution, the
 bounded read and the INI scanning -- lives in
-:mod:`uninstall_config` and keeps the semantics
+:mod:`uninstall.config` and keeps the semantics
 ``tests/support/kde/ini_corpus.py`` pins through ``tests/test_kde_ini_parity.py``.
 The handlers for the live config files live in
-:mod:`uninstall_live_diagnostics`, the handlers for the
-``kdedefaults`` layer in :mod:`uninstall_defaults_diagnostics`; this module is
+:mod:`uninstall.live_diagnostics`, the handlers for the
+``kdedefaults`` layer in :mod:`uninstall.defaults_diagnostics`; this module is
 the command line and the ordered coordinator.
 
 ``tests/test_*_uninstall_diagnostic.py`` pin every message's exact wording;
@@ -30,15 +30,15 @@ import sys
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.terminal import escape_controls
-    from tools.uninstall_config import config_home
-    from tools.uninstall_defaults_diagnostics import (
+    from tools.uninstall.config import config_home
+    from tools.uninstall.defaults_diagnostics import (
         kdedefaults_kdeglobals_messages,
         kdedefaults_kwinrc_messages,
         kdedefaults_plasmarc_messages,
         ksplashrc_messages,
         package_messages,
     )
-    from tools.uninstall_live_diagnostics import (
+    from tools.uninstall.live_diagnostics import (
         gtk_messages,
         kdeglobals_messages,
         kcminputrc_messages,
@@ -49,15 +49,15 @@ if __package__:
 else:  # imported from a directly run tool
     from argument_parsing import EscapingArgumentParser
     from terminal import escape_controls
-    from uninstall_config import config_home
-    from uninstall_defaults_diagnostics import (
+    from uninstall.config import config_home
+    from uninstall.defaults_diagnostics import (
         kdedefaults_kdeglobals_messages,
         kdedefaults_kwinrc_messages,
         kdedefaults_plasmarc_messages,
         ksplashrc_messages,
         package_messages,
     )
-    from uninstall_live_diagnostics import (
+    from uninstall.live_diagnostics import (
         gtk_messages,
         kdeglobals_messages,
         kcminputrc_messages,

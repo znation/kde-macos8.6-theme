@@ -11,7 +11,8 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import uninstall_config, xdg_homes
+from tools import xdg_homes
+from tools.uninstall import config as uninstall_config
 
 
 class TestDefaultDataHome(unittest.TestCase):

@@ -1,6 +1,6 @@
 """Unit tests for the live Kvantum uninstall diagnostic.
 
-`kvantum_messages` in `tools/uninstall_live_diagnostics.py` names the Kvantum reset
+`kvantum_messages` in `tools/uninstall/live_diagnostics.py` names the Kvantum reset
 (`make remove-kvantum`) when the live `Kvantum/kvantum.kvconfig` still selects
 our theme under `[General] theme=`. It reads through the shared scanner, so a
 selection only counts inside the `[General]` group, the last `theme=` line in
@@ -15,7 +15,7 @@ import unittest
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.tmp_dir import make_tmp_dir
 from support.theme_install import write_file
-from tools import uninstall_live_diagnostics
+from tools.uninstall import live_diagnostics as uninstall_live_diagnostics
 
 KVANTUM_ID = "org.macos8.desktop"
 

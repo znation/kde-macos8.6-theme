@@ -906,18 +906,18 @@ _uninstall:
 # (`ksplashrc`, `package`, `kdeglobals`, `kwinrc`, `plasmarc`). The
 # diagnostics are warnings only -- none may edit the user's config files,
 # which the recipes above own; the readers share one scanner in
-# tools/uninstall_config.py, which resolves the config home the way this
+# tools/uninstall/config.py, which resolves the config home the way this
 # recipe did (`XDG_CONFIG_HOME` absolute, else `$HOME/.config`) and keeps the
 # read rules the corpus in tests/support/kde/ini_corpus.py pins; the handlers
-# for one config surface each live in tools/uninstall_live_diagnostics.py and
-# tools/uninstall_defaults_diagnostics.py, so tools/uninstall_diagnostics.py
+# for one config surface each live in tools/uninstall/live_diagnostics.py and
+# tools/uninstall/defaults_diagnostics.py, so tools/uninstall_diagnostics.py
 # only owns the CLI and the ordered calls. The scan of
 # one shell spawned one extra child per diagnostic before; the module is at
 # most one child and a diagnostic failure is still never uninstall's failure.
 # The handlers read exactly the thirteen paths the guard loop below stats, so
 # the recipe lists them before it spawns the child: when none exists the scan
 # cannot name any selection and is skipped. The shell resolves the config
-# home exactly the way tools/uninstall_config.py's `config_home` does (an
+# home exactly the way tools/uninstall/config.py's `config_home` does (an
 # absolute `XDG_CONFIG_HOME` wins; an unset, empty or relative one falls back
 # to `$HOME/.config`; with neither the scan runs nowhere) -- the config-home
 # resolution and these paths are platform-required surfaces the reference

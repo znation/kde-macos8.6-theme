@@ -13,7 +13,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.tmp_dir import make_tmp_dir
-from tools import uninstall_config
+from tools.uninstall import config as uninstall_config
 
 WANTED = {"General": ("theme",)}
 

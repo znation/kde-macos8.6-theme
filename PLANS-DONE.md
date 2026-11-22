@@ -5,6 +5,34 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Group the flat uninstall_* tools modules into tools/uninstall/ (part 7/8 of the tools regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Land the uninstall-family slice of the flat-`tools/` regroup
+(see part 1/8 for the split's shared rules; the parts are independent).
+
+**Modules to move (import lines per module; importer files counted on
+main).** `uninstall_config` (10), `uninstall_defaults_diagnostics` (3),
+`uninstall_live_diagnostics` (4) → `tools/uninstall/` with `__init__.py`:
+`config.py`, `defaults_diagnostics.py`, `live_diagnostics.py`. 11 files
+import a mover. `uninstall_diagnostics.py` stays (CLI).
+
+**Files touched.** The three moved modules, their 11 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tools/uninstall/` lists `__init__.py` and the three moved modules,
+  and `rg -n 'tools[./]uninstall_(config|defaults_diagnostics|live_diagnostics)\b|import (uninstall_config|uninstall_defaults_diagnostics|uninstall_live_diagnostics)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Group the flat check_* tools modules into tools/check/ (part 5/8 of the tools regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** Land the check-family slice of the flat-`tools/` regroup (see

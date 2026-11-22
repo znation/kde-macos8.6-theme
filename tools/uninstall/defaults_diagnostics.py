@@ -4,7 +4,7 @@ One handler per defaults-file surface ``make apply`` wrote under
 ``kdedefaults``: ``ksplashrc``, the flat ``package`` name and the
 ``kdeglobals``, ``kwinrc`` and ``plasmarc`` mirrors. Each handler takes the
 config root and the ids it needs, reads through the shared scanner in
-:mod:`uninstall_config` and returns only its own warnings; the coordinator in
+:mod:`uninstall.config` and returns only its own warnings; the coordinator in
 :mod:`uninstall_diagnostics` calls them in the recipe's order, after every
 live-config handler.
 """
@@ -13,14 +13,14 @@ from __future__ import annotations
 
 import os
 
-if __package__:
-    from tools.uninstall_config import (
+if __package__.startswith("tools"):
+    from tools.uninstall.config import (
         flat_text,
         read_selected_values_at,
         read_text,
     )
 else:  # imported from a directly run tool
-    from uninstall_config import flat_text, read_selected_values_at, read_text
+    from uninstall.config import flat_text, read_selected_values_at, read_text
 
 
 def ksplashrc_messages(config_home: str, lnf_id: str) -> list[str]:

@@ -6,7 +6,7 @@ pin). The scan reads only a fixed set of paths under the resolved config
 home, so the recipe first stats those paths and skips the child when none
 exists: a skip saves the scan child's interpreter startup from every config
 home without a surface file. The shell resolves the config home exactly the
-way ``tools/uninstall_config.py``'s ``config_home`` does -- an absolute
+way ``tools/uninstall/config.py``'s ``config_home`` does -- an absolute
 ``XDG_CONFIG_HOME`` wins, an unset, empty or relative one falls back to
 ``$HOME/.config``, and with neither the scan runs nowhere -- so these tests
 pin those boundaries the diagnostics suites (which always supply a config
@@ -27,7 +27,7 @@ import unittest
 
 from support import repo_root
 from support import theme_install
-from tools import uninstall_defaults_diagnostics
+from tools.uninstall import defaults_diagnostics as uninstall_defaults_diagnostics
 from support.theme_install import write_file
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
@@ -185,9 +185,9 @@ def handler_surface_paths():
         r"os\.path\.join\(config_home, ((?:\"[^\"]+\"(?:, )?)+)\)"
     )
     for source_path in (
-        os.path.join(repo_root.ROOT, "tools", "uninstall_live_diagnostics.py"),
+        os.path.join(repo_root.ROOT, "tools", "uninstall", "live_diagnostics.py"),
         os.path.join(
-            repo_root.ROOT, "tools", "uninstall_defaults_diagnostics.py"
+            repo_root.ROOT, "tools", "uninstall", "defaults_diagnostics.py"
         ),
     ):
         with open(source_path) as handle:

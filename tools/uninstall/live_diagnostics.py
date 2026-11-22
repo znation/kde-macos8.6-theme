@@ -4,7 +4,7 @@ One handler per config surface ``make apply`` writes to the live config home:
 ``kdeglobals``, the GTK settings files and user CSS,
 ``Kvantum/kvantum.kvconfig``, ``plasmarc``, ``kcminputrc`` and ``kwinrc``.
 Each handler takes the config root and the ids it needs, reads through the
-shared scanner in :mod:`uninstall_config` and returns only its own warnings;
+shared scanner in :mod:`uninstall.config` and returns only its own warnings;
 the coordinator in :mod:`uninstall_diagnostics` calls them in the recipe's
 order, so these handlers cannot change the order ``make uninstall`` prints.
 """
@@ -13,16 +13,16 @@ from __future__ import annotations
 
 import os
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.text_lines import BOM
-    from tools.uninstall_config import (
+    from tools.uninstall.config import (
         latched_match,
         read_selected_values_at,
         read_text,
     )
 else:  # imported from a directly run tool
     from text_lines import BOM
-    from uninstall_config import (
+    from uninstall.config import (
         latched_match,
         read_selected_values_at,
         read_text,
