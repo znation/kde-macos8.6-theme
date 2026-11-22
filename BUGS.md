@@ -641,96 +641,6 @@ check: 549 modules, 2 modules failed
 make: *** [Makefile:497: check] Error 1
 ~~~~
 
-### `test_combo_field_keeps_its_engine_drawn_raised_frame (test_render_combobox_dialog.TestComboboxDialogRender.test_combo_field_keeps_its_engine_drawn_raised_frame)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
-
-The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
-
-~~~~
-AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
-test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
-test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
-test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
-test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
-test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
-----------------------------------------------------------------------
-Ran 16 tests in 0.002s
-OK
-check: 551 modules, 1 module failed
-make: *** [Makefile:504: check] Error 1
-~~~~
-
-### `test_draws_the_combo_field_raised_bevel (test_render_combobox_dialog.TestComboboxDialogRender.test_draws_the_combo_field_raised_bevel)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
-
-The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
-
-~~~~
-AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
-test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
-test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
-test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
-test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
-test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
-----------------------------------------------------------------------
-Ran 16 tests in 0.002s
-OK
-check: 551 modules, 1 module failed
-make: *** [Makefile:504: check] Error 1
-~~~~
-
-### `test_ok_and_cancel_buttons_keep_their_engine_drawn_frames (test_render_combobox_dialog.TestComboboxDialogRender.test_ok_and_cancel_buttons_keep_their_engine_drawn_frames)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
-
-The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
-
-~~~~
-AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
-test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
-test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
-test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
-test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
-test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
-----------------------------------------------------------------------
-Ran 16 tests in 0.002s
-OK
-check: 551 modules, 1 module failed
-make: *** [Makefile:504: check] Error 1
-~~~~
-
-### `test_writes_a_480x360_png (test_render_combobox_dialog.TestComboboxDialogRender.test_writes_a_480x360_png)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
-
-The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
-
-~~~~
-AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
-test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
-test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
-test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
-test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
-test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
-----------------------------------------------------------------------
-Ran 16 tests in 0.002s
-OK
-check: 551 modules, 1 module failed
-make: *** [Makefile:504: check] Error 1
-~~~~
-
-### `test_exits_zero (test_render_combobox_dialog.TestComboboxDialogRender.test_exits_zero)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
-
-The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
-
-~~~~
-AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
-test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
-test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
-test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
-test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
-test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
-----------------------------------------------------------------------
-Ran 16 tests in 0.002s
-OK
-check: 551 modules, 1 module failed
-make: *** [Makefile:504: check] Error 1
-~~~~
-
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
@@ -755,3 +665,113 @@ in-process exception rollback cannot run after `SIGKILL`, and automatic recovery
 user edits made after the interrupted commit.
 
 ## Fixed
+
+### `test_combo_field_keeps_its_engine_drawn_raised_frame (test_render_combobox_dialog.TestComboboxDialogRender.test_combo_field_keeps_its_engine_drawn_raised_frame)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21) — fixed 2026-11-21 by the bugfix role
+
+Fixed: the combobox gate now renders with `--settle 20` (tests/support/render/gates.py), the same budget as the GTK, icon and inactive gates; pinned by `test_the_combobox_gate_settles_for_twenty_seconds`. Every `TestComboboxDialogRender` test reads the one shared combobox render, so this is the same black-capture cause as the `test_draws_the_combo_arrow_cell_1_to_1` entry closed with it.
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 551 modules, 1 module failed
+make: *** [Makefile:504: check] Error 1
+~~~~
+
+**Validation gap:** none — closest fit: the load-only black capture was never reproduced, but the offline budget pin fails on the old flags and passes on the new.
+
+### `test_draws_the_combo_field_raised_bevel (test_render_combobox_dialog.TestComboboxDialogRender.test_draws_the_combo_field_raised_bevel)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21) — fixed 2026-11-21 by the bugfix role
+
+Fixed: the combobox gate now renders with `--settle 20` (tests/support/render/gates.py), the same budget as the GTK, icon and inactive gates; pinned by `test_the_combobox_gate_settles_for_twenty_seconds`. Every `TestComboboxDialogRender` test reads the one shared combobox render, so this is the same black-capture cause as the `test_draws_the_combo_arrow_cell_1_to_1` entry closed with it.
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 551 modules, 1 module failed
+make: *** [Makefile:504: check] Error 1
+~~~~
+
+**Validation gap:** none — closest fit: the load-only black capture was never reproduced, but the offline budget pin fails on the old flags and passes on the new.
+
+### `test_ok_and_cancel_buttons_keep_their_engine_drawn_frames (test_render_combobox_dialog.TestComboboxDialogRender.test_ok_and_cancel_buttons_keep_their_engine_drawn_frames)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21) — fixed 2026-11-21 by the bugfix role
+
+Fixed: the combobox gate now renders with `--settle 20` (tests/support/render/gates.py), the same budget as the GTK, icon and inactive gates; pinned by `test_the_combobox_gate_settles_for_twenty_seconds`. Every `TestComboboxDialogRender` test reads the one shared combobox render, so this is the same black-capture cause as the `test_draws_the_combo_arrow_cell_1_to_1` entry closed with it.
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 551 modules, 1 module failed
+make: *** [Makefile:504: check] Error 1
+~~~~
+
+**Validation gap:** none — closest fit: the load-only black capture was never reproduced, but the offline budget pin fails on the old flags and passes on the new.
+
+### `test_writes_a_480x360_png (test_render_combobox_dialog.TestComboboxDialogRender.test_writes_a_480x360_png)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21) — fixed 2026-11-21 by the bugfix role
+
+Fixed: the combobox gate now renders with `--settle 20` (tests/support/render/gates.py), the same budget as the GTK, icon and inactive gates; pinned by `test_the_combobox_gate_settles_for_twenty_seconds`. Every `TestComboboxDialogRender` test reads the one shared combobox render, so this is the same black-capture cause as the `test_draws_the_combo_arrow_cell_1_to_1` entry closed with it.
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 551 modules, 1 module failed
+make: *** [Makefile:504: check] Error 1
+~~~~
+
+**Validation gap:** none — closest fit: the load-only black capture was never reproduced, but the offline budget pin fails on the old flags and passes on the new.
+
+### `test_exits_zero (test_render_combobox_dialog.TestComboboxDialogRender.test_exits_zero)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21) — fixed 2026-11-21 by the bugfix role
+
+Fixed: the combobox gate now renders with `--settle 20` (tests/support/render/gates.py), the same budget as the GTK, icon and inactive gates; pinned by `test_the_combobox_gate_settles_for_twenty_seconds`. Every `TestComboboxDialogRender` test reads the one shared combobox render, so this is the same black-capture cause as the `test_draws_the_combo_arrow_cell_1_to_1` entry closed with it.
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+OK
+check: 551 modules, 1 module failed
+make: *** [Makefile:504: check] Error 1
+~~~~
+
+**Validation gap:** none — closest fit: the load-only black capture was never reproduced, but the offline budget pin fails on the old flags and passes on the new.
