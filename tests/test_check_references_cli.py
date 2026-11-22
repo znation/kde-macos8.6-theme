@@ -23,7 +23,7 @@ from support.check_references_fixtures import (
 from support.error_assertions import assert_escapes_escape_character
 from support.process_assertions import assert_succeeded
 from support.theme_install import run_captured
-from tools.check_references_selftest import problems_match
+from tools.check.references_selftest import problems_match
 from tools.image_format import PNG_MAGIC
 
 

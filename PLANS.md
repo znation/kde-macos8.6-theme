@@ -79,39 +79,6 @@ paths.
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
-### Group the flat check_* tools modules into tools/check/ (part 5/8 of the tools regroup) (planned 2026-11-21 by the plan role)
-
-**Goal.** Land the check-family slice of the flat-`tools/` regroup (see
-part 1/8 for the split's shared rules; the parts are independent).
-
-**Modules to move (import lines per module; importer files counted on
-main).** `check_parallel_discovery` (2), `check_parallel_order` (4),
-`check_parallel_results` (7), `check_parallel_workers` (8),
-`check_references_selftest` (3) → `tools/check/` with `__init__.py`:
-`parallel_discovery.py`, `parallel_order.py`, `parallel_results.py`,
-`parallel_workers.py`, `references_selftest.py`. 12 files import a
-`check_*` mover. `check_parallel.py` and `check_references.py` stay (CLI).
-
-**Files touched.** The five moved modules, their 12 importer files under
-`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
-paths.
-
-**Acceptance criteria.**
-
-- `ls tools/check/` lists `__init__.py` and the five moved modules, and
-  `rg -n 'tools[./]check_(parallel_discovery|parallel_order|parallel_results|parallel_workers|references_selftest)\b|import (check_parallel_discovery|check_parallel_order|check_parallel_results|check_parallel_workers|check_references_selftest)\b'
-  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
-  reference.
-- Every `mock.patch` string or object target naming a moved module
-  resolves, and the tests that patch them pass.
-- `python3 tools/check_parallel.py --help` and
-  `python3 tools/check_references.py --help` exit 0 with the usage text
-  they printed before this change.
-- No behavior change: `git diff` shows moves, import lines, patch targets
-  and doc paths only.
-- `make check` passes after the final edit, apart from main's known-red
-  tests.
-
 ### Group the flat firefox_* tools modules into tools/firefox/ (part 6/8 of the tools regroup) (planned 2026-11-21 by the plan role)
 
 **Goal.** Land the firefox-family slice of the flat-`tools/` regroup (see

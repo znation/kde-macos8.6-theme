@@ -1,4 +1,4 @@
-"""Tests for tools/check_parallel_order.py and the coordinator's use of it.
+"""Tests for tools/check/parallel_order.py and the coordinator's use of it.
 
 `make check` runs 175 modules over a bounded worker budget, and one suite
 (the real render surface) alone runs for seconds while most modules finish
@@ -27,7 +27,8 @@ from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 from support.fifo_fixtures import make_fifo
 
-from tools import check_parallel, check_parallel_order, check_parallel_workers
+from tools import check_parallel
+from tools.check import parallel_order, parallel_workers
 
 OK_MODULE = (
     "import unittest\n"
@@ -55,7 +56,7 @@ class TestOrder(unittest.TestCase):
         modules = ["test_ok", "test_render", "test_other"]
         self.assertEqual(
             ["test_render", "test_ok", "test_other"],
-            check_parallel_order.order_modules(
+            parallel_order.order_modules(
                 modules, {"test_render": 10.8, "test_ok": 0.1},
             ),
         )
@@ -66,12 +67,12 @@ class TestOrder(unittest.TestCase):
         # relative to each other.
         modules = ["test_a", "test_b", "test_c"]
         self.assertEqual(
-            modules, check_parallel_order.order_modules(modules, {}),
+            modules, parallel_order.order_modules(modules, {}),
         )
         self.assertEqual(
             # Equal durations stay in discovery order too.
             ["test_z", "test_render"],
-            check_parallel_order.order_modules(
+            parallel_order.order_modules(
                 ["test_z", "test_render"],
                 {"test_render": 0.5, "test_z": 0.5},
             ),
@@ -83,12 +84,12 @@ class TestCache(unittest.TestCase):
 
     def test_a_cache_round_trips_through_save_and_load(self):
         path = str(make_tmp_dir(self) / "nested" / "cache.json")
-        check_parallel_order.save_durations(
+        parallel_order.save_durations(
             path, {"test_render": 10.75, "test_ok": 0.1},
         )
         self.assertEqual(
             {"test_render": 10.75, "test_ok": 0.1},
-            check_parallel_order.load_durations(path),
+            parallel_order.load_durations(path),
         )
 
     def test_a_missing_or_malformed_cache_loads_nothing(self):
@@ -100,8 +101,8 @@ class TestCache(unittest.TestCase):
             path = str(make_tmp_dir(self) / "cache.json")
             with open(path, "wb") as sink:
                 sink.write(contents.encode("utf-8"))
-            self.assertEqual({}, check_parallel_order.load_durations(path))
-        self.assertEqual({}, check_parallel_order.load_durations("/missing/cache.json"))
+            self.assertEqual({}, parallel_order.load_durations(path))
+        self.assertEqual({}, parallel_order.load_durations("/missing/cache.json"))
 
     def test_a_cache_of_another_format_version_loads_nothing(self):
         # The cache's version field is the only guard against reading a file
@@ -118,12 +119,12 @@ class TestCache(unittest.TestCase):
                 path = str(make_tmp_dir(self) / "cache.json")
                 with open(path, "w", encoding="utf-8") as sink:
                     json.dump(record, sink)
-                self.assertEqual({}, check_parallel_order.load_durations(path))
+                self.assertEqual({}, parallel_order.load_durations(path))
 
     def test_deeply_nested_json_cache_loads_nothing(self):
         path = make_tmp_dir(self) / "cache.json"
         path.write_text("[" * 10000 + "0" + "]" * 10000, encoding="utf-8")
-        self.assertEqual({}, check_parallel_order.load_durations(str(path)))
+        self.assertEqual({}, parallel_order.load_durations(str(path)))
 
     def test_a_fifo_cache_does_not_block_the_coordinator(self):
         path = make_tmp_dir(self) / "cache.json"
@@ -132,7 +133,7 @@ class TestCache(unittest.TestCase):
         # blocks forever in the coordinator before any worker can start.
         result = subprocess.run(
             [sys.executable, "-c",
-             "from tools.check_parallel_order import load_durations; "
+             "from tools.check.parallel_order import load_durations; "
              "assert load_durations(__import__('sys').argv[1]) == {}",
              str(path)],
             cwd=str(Path(__file__).resolve().parents[1]),
@@ -151,16 +152,16 @@ class TestCache(unittest.TestCase):
             {"version": 1, "durations": {"test_ok": 0.5}},
             sort_keys=True, separators=(",", ":"),
         ).encode("ascii")
-        limit = check_parallel_order._MAX_CACHE_BYTES
+        limit = parallel_order._MAX_CACHE_BYTES
         at_limit = make_tmp_dir(self) / "cache.json"
         at_limit.write_bytes(record.ljust(limit))
         self.assertEqual(
             {"test_ok": 0.5},
-            check_parallel_order.load_durations(str(at_limit)))
+            parallel_order.load_durations(str(at_limit)))
         one_byte_over = make_tmp_dir(self) / "cache.json"
         one_byte_over.write_bytes(record.ljust(limit + 1))
         self.assertEqual(
-            {}, check_parallel_order.load_durations(str(one_byte_over)))
+            {}, parallel_order.load_durations(str(one_byte_over)))
 
     def test_non_numeric_or_invalid_entries_are_ignored(self):
         path = str(make_tmp_dir(self) / "cache.json")
@@ -181,7 +182,7 @@ class TestCache(unittest.TestCase):
                 sink,
             )
         self.assertEqual(
-            {"test_ok": 0.5}, check_parallel_order.load_durations(path),
+            {"test_ok": 0.5}, parallel_order.load_durations(path),
         )
 
     def test_an_integer_too_large_for_float_conversion_is_ignored(self):
@@ -194,7 +195,7 @@ class TestCache(unittest.TestCase):
         )
         self.assertEqual(
             {"test_ok": 0.5},
-            check_parallel_order.load_durations(str(path)),
+            parallel_order.load_durations(str(path)),
         )
 
     def test_a_merge_keeps_the_entries_the_run_did_not_touch(self):
@@ -202,24 +203,24 @@ class TestCache(unittest.TestCase):
         # the modules it skipped: they are what keeps the next full run's
         # slowest-first queue from falling back to alphabetical order.
         path = str(make_tmp_dir(self) / "cache.json")
-        check_parallel_order.save_durations(
+        parallel_order.save_durations(
             path, {"test_ok": 0.1, "test_render": 24.0},
         )
         self.assertEqual(
             {"test_ok": 0.2, "test_render": 24.0},
-            check_parallel_order.merge_durations(
+            parallel_order.merge_durations(
                 path, {"test_ok": 0.2}, {"test_ok", "test_render"},
             ),
         )
 
     def test_a_merge_drops_entries_for_modules_absent_from_the_tree(self):
         path = str(make_tmp_dir(self) / "cache.json")
-        check_parallel_order.save_durations(
+        parallel_order.save_durations(
             path, {"test_ok": 0.1, "test_gone": 4.0},
         )
         self.assertEqual(
             {"test_ok": 0.2},
-            check_parallel_order.merge_durations(
+            parallel_order.merge_durations(
                 path, {"test_ok": 0.2}, {"test_ok"},
             ),
         )
@@ -231,13 +232,13 @@ class TestCache(unittest.TestCase):
                 sink.write(contents.encode("utf-8"))
             self.assertEqual(
                 {"test_ok": 0.5},
-                check_parallel_order.merge_durations(
+                parallel_order.merge_durations(
                     path, {"test_ok": 0.5}, {"test_ok", "test_other"},
                 ),
             )
         self.assertEqual(
             {"test_ok": 0.5},
-            check_parallel_order.merge_durations(
+            parallel_order.merge_durations(
                 "/missing/cache.json", {"test_ok": 0.5}, {"test_ok"},
             ),
         )
@@ -246,7 +247,7 @@ class TestCache(unittest.TestCase):
         with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": "/abs/cache"}):
             self.assertEqual(
                 "/abs/cache/kde-macos8.6-theme/check-durations.json",
-                check_parallel_order.cache_path(),
+                parallel_order.cache_path(),
             )
         # An unset, empty or relative XDG_CACHE_HOME falls back to ~/.cache,
         # as the XDG base directory spec requires.
@@ -258,7 +259,7 @@ class TestCache(unittest.TestCase):
                         os.path.expanduser("~"), ".cache",
                         "kde-macos8.6-theme", "check-durations.json",
                     ),
-                    check_parallel_order.cache_path(),
+                    parallel_order.cache_path(),
                 )
 
 
@@ -267,7 +268,7 @@ class TestDurationsRecorded(unittest.TestCase):
 
     def supervise(self, tests_dir, modules, log_paths, timeout, workers):
         durations: dict[str, float] = {}
-        statuses = check_parallel_workers.supervise(
+        statuses = parallel_workers.supervise(
             modules, [sys.executable, "-m", "unittest", "-v"],
             tests_dir, log_paths, timeout, workers, durations=durations,
         )
@@ -276,11 +277,11 @@ class TestDurationsRecorded(unittest.TestCase):
     def test_spawn_time_is_recorded_without_shortening_the_timeout(self):
         log = str(make_tmp_dir(self) / "worker.log")
         with (
-            mock.patch.object(check_parallel_workers.time, "monotonic",
+            mock.patch.object(parallel_workers.time, "monotonic",
                               side_effect=[100.0, 105.0]),
-            mock.patch.object(check_parallel_workers.subprocess, "Popen"),
+            mock.patch.object(parallel_workers.subprocess, "Popen"),
         ):
-            worker = check_parallel_workers._spawn(
+            worker = parallel_workers._spawn(
                 "test_ok", [sys.executable], ".", log, 30,
             )
         self.assertEqual(100.0, worker.started)
@@ -340,7 +341,7 @@ class TestDurationsRecorded(unittest.TestCase):
         tests_dir = str(make_tmp_dir(self))
         log = os.path.join(tests_dir, "slow.log")
         durations = {}
-        statuses = check_parallel_workers.supervise(
+        statuses = parallel_workers.supervise(
             ["0.3"], [sys.executable, "-c", "import time, sys; time.sleep(float(sys.argv[1]))"],
             tests_dir, {"0.3": log}, 0.05, 1, durations=durations,
         )

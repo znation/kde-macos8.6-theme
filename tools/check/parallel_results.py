@@ -5,12 +5,12 @@ from __future__ import annotations
 import os
 import sys
 
-if __package__:
+try:
     from tools.containment import open_regular_binary
     from tools.diagnostics import plural
     from tools.terminal import escape_controls
     from tools.text_lines import split_lines
-else:
+except ImportError:  # imported from a directly run tool, which puts tools/ on the path
     from containment import open_regular_binary
     from diagnostics import plural
     from terminal import escape_controls

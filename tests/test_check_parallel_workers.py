@@ -1,4 +1,4 @@
-"""Tests for tools/check_parallel_workers.py's spawn and clean-up defenses.
+"""Tests for tools/check/parallel_workers.py's spawn and clean-up defenses.
 
 The coordinator's worker supervision -- Popen deferral against SIGTERM, HUP
 and Ctrl-C races before a worker can be signaled, group-kill and bounded
@@ -28,22 +28,23 @@ from support.popen_signal import kill_tracked
 from support.popen_signal import signal_into_popen
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
-from tools import check_parallel_workers, process_group, process_signals
+from tools import process_group, process_signals
+from tools.check import parallel_workers
 
 
 
 
 class TestWorkerDurations(unittest.TestCase):
     def test_completed_worker_records_elapsed_time_and_exit_status(self):
-        worker = check_parallel_workers._Worker(
+        worker = parallel_workers._Worker(
             "test_example", "worker.log", mock.Mock(poll=mock.Mock(return_value=0)),
             deadline=20.0, started=10.0,
         )
         durations = {}
         results = {}
 
-        with mock.patch.object(check_parallel_workers.time, "monotonic", return_value=12.5):
-            remaining = check_parallel_workers._poll_running(
+        with mock.patch.object(parallel_workers.time, "monotonic", return_value=12.5):
+            remaining = parallel_workers._poll_running(
                 [worker], durations, results,
             )
 
@@ -63,10 +64,10 @@ class TestSpawnDefenses(unittest.TestCase):
     def test_a_worker_start_error_is_recorded_in_its_log(self):
         log_path = str(make_tmp_dir(self) / "spawn.log")
         with mock.patch.object(
-            check_parallel_workers.subprocess, "Popen",
+            parallel_workers.subprocess, "Popen",
             side_effect=OSError("executable unavailable"),
         ):
-            worker = check_parallel_workers._spawn(
+            worker = parallel_workers._spawn(
                 "test_missing", ["missing-python"], str(ROOT), log_path, 30
             )
 
@@ -92,7 +93,7 @@ class TestSpawnDefenses(unittest.TestCase):
         with self.assertRaisesRegex(
             OSError, r"/dev/zero is not a regular file"
         ):
-            check_parallel_workers._open_log("/dev/zero")
+            parallel_workers._open_log("/dev/zero")
 
     def test_a_non_regular_log_closes_the_descriptor_it_opened(self):
         # Refusing must not leak the descriptor _open_log opened, or a
@@ -106,7 +107,7 @@ class TestSpawnDefenses(unittest.TestCase):
             self.skipTest("/proc/self/fd is Linux-specific")
         open_before = len(os.listdir("/proc/self/fd"))
         with self.assertRaises(OSError):
-            check_parallel_workers._open_log("/dev/zero")
+            parallel_workers._open_log("/dev/zero")
         self.assertEqual(len(os.listdir("/proc/self/fd")), open_before)
 
     def test_a_non_regular_log_fails_only_its_module(self):
@@ -121,7 +122,7 @@ class TestSpawnDefenses(unittest.TestCase):
         _write_module(tests_dir, "test_two.py", OK_MODULE)
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
-            statuses = check_parallel_workers.supervise(
+            statuses = parallel_workers.supervise(
                 ["test_ok", "test_two"],
                 [sys.executable, "-m", "unittest", "-v"],
                 tests_dir,
@@ -165,12 +166,12 @@ class TestSpawnDefenses(unittest.TestCase):
             return CloseFails(handle) if descriptor else handle
 
         with (
-            mock.patch.object(check_parallel_workers.os, "fdopen", side_effect=failing_fdopen),
-            mock.patch.object(check_parallel_workers.subprocess, "Popen",
+            mock.patch.object(parallel_workers.os, "fdopen", side_effect=failing_fdopen),
+            mock.patch.object(parallel_workers.subprocess, "Popen",
                               side_effect=capture_popen),
         ):
             with self.assertRaisesRegex(OSError, "log close failed"):
-                check_parallel_workers._spawn(
+                parallel_workers._spawn(
                     "test_sleep", [sys.executable, "-c", "import time; time.sleep(30)"],
                     str(ROOT), log_path, 30,
                 )
@@ -184,7 +185,7 @@ class TestSpawnDefenses(unittest.TestCase):
         interrupt_handlers = [(signal.SIGINT, object())]
         with (
             mock.patch.object(
-                check_parallel_workers.subprocess, "Popen",
+                parallel_workers.subprocess, "Popen",
                 side_effect=RuntimeError("broken popen wrapper"),
             ),
             mock.patch.object(
@@ -199,7 +200,7 @@ class TestSpawnDefenses(unittest.TestCase):
             ) as replay,
         ):
             with self.assertRaisesRegex(RuntimeError, "broken popen wrapper"):
-                check_parallel_workers._spawn(
+                parallel_workers._spawn(
                     "test_broken", ["python"], str(ROOT), log_path, 30
                 )
 
@@ -214,8 +215,8 @@ class TestSpawnDefenses(unittest.TestCase):
         # coordinator's own process group -- under `make check`, make's
         # jobserver. The guard must reach no signal at all.
         with mock.patch.object(process_group.os, "killpg") as killpg:
-            check_parallel_workers.kill_group(
-                check_parallel_workers._NeverStarted()
+            parallel_workers.kill_group(
+                parallel_workers._NeverStarted()
             )
         killpg.assert_not_called()
 
@@ -225,7 +226,7 @@ class TestSpawnDefenses(unittest.TestCase):
             process_group.os, "killpg",
             side_effect=ProcessLookupError,
         ) as killpg:
-            check_parallel_workers.kill_group(process)
+            parallel_workers.kill_group(process)
 
         killpg.assert_called_once_with(123, signal.SIGKILL)
 
@@ -233,7 +234,7 @@ class TestSpawnDefenses(unittest.TestCase):
         process = mock.Mock()
         process.wait.side_effect = subprocess.TimeoutExpired("worker", 5)
 
-        check_parallel_workers.reap(process)
+        parallel_workers.reap(process)
 
         process.wait.assert_called_once_with(timeout=5.0)
 
@@ -247,13 +248,13 @@ class TestSpawnDefenses(unittest.TestCase):
         self.addCleanup(kill_tracked, tracked)
         log_path = str(make_tmp_dir(self) / "spawn.log")
         with mock.patch.object(
-            check_parallel_workers.subprocess,
+            parallel_workers.subprocess,
             "Popen",
             side_effect=signal_into_popen(number, tracked),
         ):
             with self.assertRaises(raises) as caught:
                 with process_signals.exit_on_termination():
-                    check_parallel_workers._spawn(
+                    parallel_workers._spawn(
                         "test_probe",
                         [sys.executable, "-c", "import time; time.sleep(60)"],
                         str(ROOT),

@@ -48,7 +48,8 @@ from support.cli_fixtures import run_main
 from support.process_assertions import assert_failed, assert_succeeded
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
-from tools import check_parallel, check_parallel_workers
+from tools import check_parallel
+from tools.check import parallel_workers
 
 
 class TestCoordinator(unittest.TestCase):
@@ -181,7 +182,7 @@ class TestCoordinator(unittest.TestCase):
             return real_scandir(directory)
 
         with mock.patch(
-            "tools.check_parallel_discovery.os.scandir",
+            "tools.check.parallel_discovery.os.scandir",
             side_effect=guarded_scandir,
         ):
             result = self._run("--tests-dir", tests_dir)
@@ -206,14 +207,14 @@ class TestCoordinator(unittest.TestCase):
             starts.append(now)
             process = mock.Mock()
             process.poll.return_value = 0
-            return check_parallel_workers._Worker(
+            return parallel_workers._Worker(
                 module, log_path, process, now + timeout, now
             )
 
-        with mock.patch.object(check_parallel_workers, "_spawn", side_effect=spawn), \
-                mock.patch.object(check_parallel_workers.time, "sleep", side_effect=sleep), \
-                mock.patch.object(check_parallel_workers.time, "monotonic", side_effect=lambda: now):
-            statuses = check_parallel_workers.supervise(
+        with mock.patch.object(parallel_workers, "_spawn", side_effect=spawn), \
+                mock.patch.object(parallel_workers.time, "sleep", side_effect=sleep), \
+                mock.patch.object(parallel_workers.time, "monotonic", side_effect=lambda: now):
+            statuses = parallel_workers.supervise(
                 ["first", "second"], [], ".",
                 {"first": "first.log", "second": "second.log"}, 60, 1,
             )
@@ -259,7 +260,7 @@ class TestCoordinator(unittest.TestCase):
         }
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
-            statuses = check_parallel_workers.supervise(
+            statuses = parallel_workers.supervise(
                 ["test_ok", "test_two"],
                 [sys.executable, "-m", "unittest", "-v"],
                 tests_dir,
@@ -302,7 +303,7 @@ class TestCoordinator(unittest.TestCase):
         os.mkfifo(fifo)
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
-            statuses = check_parallel_workers.supervise(
+            statuses = parallel_workers.supervise(
                 ["test_ok"], [sys.executable, "-m", "unittest", "-v"],
                 tests_dir, {"test_ok": str(fifo)}, 60, 1,
             )

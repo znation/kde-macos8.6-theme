@@ -1,4 +1,4 @@
-"""Tests for bounded worker-log reporting in check_parallel_results.
+"""Tests for bounded worker-log reporting in tools/check/parallel_results.py.
 
 The started-test marker scan is pinned in ``tests/test_check_parallel_marker.py``.
 """
@@ -15,7 +15,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.tmp_dir import make_tmp_dir
-from tools.check_parallel_results import (
+from tools.check.parallel_results import (
     _LOG_TAIL_BYTES,
     _bounded_log_text,
     print_results,
@@ -189,7 +189,7 @@ class TestPrintResults(unittest.TestCase):
         # and a FIFO substituted before that scan still fails the module: the
         # scan's plain open() used to block on the pipe with no writer.
         with mock.patch(
-            "tools.check_parallel_results._bounded_log_text",
+            "tools.check.parallel_results._bounded_log_text",
             return_value="Ran 0 tests\nNO TESTS RAN\n",
         ):
             output = StringIO()

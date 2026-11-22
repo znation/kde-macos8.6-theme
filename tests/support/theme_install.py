@@ -89,7 +89,7 @@ def write_file(path, body):
     ``write_file`` call sites are already shared, not duplicated, test_invariants.py's
     ``test_cross_check_rejects_a_non_utf8_register`` writes and reads bytes
     that must not survive a UTF-8 decode, and
-    tools/check_references_selftest.py stages inline in ``tools`` rather
+    tools/check/references_selftest.py stages inline in ``tools`` rather
     than importing test support. The mkdir-only fixtures that prepare a
     symlink or unreadable path (which write nothing) stay direct too.
     tests/test_gtk_staging.py's and tests/test_gtk_staging_backups.py's

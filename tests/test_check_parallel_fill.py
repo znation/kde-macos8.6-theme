@@ -1,4 +1,4 @@
-"""Tests for tools/check_parallel_workers.py's concurrency bound and durations.
+"""Tests for tools/check/parallel_workers.py's concurrency bound and durations.
 
 ``supervise`` runs each queued module through ``_fill_workers``, which starts
 workers only while fewer than ``workers`` are running. These tests drive that
@@ -12,7 +12,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repo root on sys.path)
-from tools import check_parallel_workers
+from tools.check import parallel_workers
 
 
 class _VirtualRun:
@@ -42,19 +42,19 @@ class _VirtualRun:
         self.live.add(module)
         self.peak = max(self.peak, len(self.live))
         self.spawn_order.append(module)
-        return check_parallel_workers._Worker(
+        return parallel_workers._Worker(
             module, log_path, process, started + 60.0, started
         )
 
     def supervise(self, modules, workers, durations=None):
         log_paths = {module: f"{module}.log" for module in modules}
-        with mock.patch.object(check_parallel_workers, "_spawn",
+        with mock.patch.object(parallel_workers, "_spawn",
                                side_effect=self.spawn), \
-                mock.patch.object(check_parallel_workers.time, "sleep",
+                mock.patch.object(parallel_workers.time, "sleep",
                                   side_effect=self.sleep), \
-                mock.patch.object(check_parallel_workers.time, "monotonic",
+                mock.patch.object(parallel_workers.time, "monotonic",
                                   side_effect=lambda: self.now):
-            return check_parallel_workers.supervise(
+            return parallel_workers.supervise(
                 modules, [], ".", log_paths, 60, workers, durations=durations,
             )
 
@@ -108,8 +108,8 @@ class TestSuperviseTimedOutDurations(unittest.TestCase):
         # run's ordering reads it, and a missing entry would sort it blind.
         run = _VirtualRun(duration=float("inf"))
         durations: dict[str, float] = {}
-        with mock.patch.object(check_parallel_workers, "kill_group") as kill, \
-                mock.patch.object(check_parallel_workers, "reap"):
+        with mock.patch.object(parallel_workers, "kill_group") as kill, \
+                mock.patch.object(parallel_workers, "reap"):
             statuses = run.supervise(["a"], workers=1, durations=durations)
         self.assertEqual({"a": None}, statuses)
         kill.assert_called_once()
@@ -132,7 +132,7 @@ class TestSuperviseWorkerCountRefusal(unittest.TestCase):
 
     def _refused(self, workers) -> str:
         with self.assertRaises(ValueError) as caught:
-            check_parallel_workers.supervise(
+            parallel_workers.supervise(
                 ["a"], [], ".", {"a": "a.log"}, 60, workers
             )
         return str(caught.exception)

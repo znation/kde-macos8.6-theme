@@ -24,10 +24,10 @@ import math
 import os
 from pathlib import Path
 
-if __package__:
+try:
     from tools.atomic_write import write_bytes_atomically
     from tools.containment import read_capped_bytes
-else:  # run directly: python3 tools/check_parallel_order.py
+except ImportError:  # imported from a directly run tool, which puts tools/ on the path
     from atomic_write import write_bytes_atomically
     from containment import read_capped_bytes
 

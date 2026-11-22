@@ -26,13 +26,13 @@ from __future__ import annotations
 import sys
 
 try:
-    from tools.check_references_selftest import run_self_test
+    from tools.check.references_selftest import run_self_test
     from tools.diagnostics import report_error, plural
     from tools.reference_validation import SOURCES_NAME, check_references
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
 except ImportError:  # run directly: python3 tools/check_references.py
-    from check_references_selftest import run_self_test
+    from check.references_selftest import run_self_test
     from diagnostics import report_error, plural
     from reference_validation import SOURCES_NAME, check_references
     from repo_root import ROOT

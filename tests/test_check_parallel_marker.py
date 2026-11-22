@@ -1,4 +1,4 @@
-"""Tests for the started-test marker scan in tools/check_parallel_results.py.
+"""Tests for the started-test marker scan in tools/check/parallel_results.py.
 
 Pins ``_test_marker_step``'s per-byte transitions and ``_log_has_started_test``
 carrying the marker state across its 8192-byte reads. The results report
@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.check_parallel_results import (
+from tools.check.parallel_results import (
     _MARKER_COUNTS_DOTS,
     _MARKER_SEEKS_PAREN,
     _MARKER_SEEKS_SPACE,

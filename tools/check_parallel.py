@@ -15,30 +15,30 @@ import sys
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser, positive_int
-    from tools.check_parallel_discovery import (
+    from tools.check.parallel_discovery import (
         DiscoveryError, assign_log_paths, discover_modules,
     )
-    from tools.check_parallel_order import (
+    from tools.check.parallel_order import (
         cache_path, load_durations, merge_durations, order_modules,
         save_durations,
     )
-    from tools.check_parallel_results import count_noun, print_results
-    from tools.check_parallel_workers import supervise
+    from tools.check.parallel_results import count_noun, print_results
+    from tools.check.parallel_workers import supervise
     from tools.diagnostics import create_scratch_directory, report_error
     from tools.process_signals import exit_on_termination
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/check_parallel.py
     from argument_parsing import EscapingArgumentParser, positive_int
-    from check_parallel_discovery import (
+    from check.parallel_discovery import (
         DiscoveryError, assign_log_paths, discover_modules,
     )
-    from check_parallel_order import (
+    from check.parallel_order import (
         cache_path, load_durations, merge_durations, order_modules,
         save_durations,
     )
-    from check_parallel_results import count_noun, print_results
-    from check_parallel_workers import supervise
+    from check.parallel_results import count_noun, print_results
+    from check.parallel_workers import supervise
     from diagnostics import create_scratch_directory, report_error
     from process_signals import exit_on_termination
     from repo_root import ROOT

@@ -9,13 +9,13 @@ import subprocess
 import sys
 import time
 
-if __package__:
+try:
     from tools.process_group import kill_group, reap
     from tools.process_signals import (
         popen_deferred, replay_deferred, restore_termination,
     )
     from tools.terminal import escape_controls
-else:
+except ImportError:  # imported from a directly run tool, which puts tools/ on the path
     from process_group import kill_group, reap
     from process_signals import (
         popen_deferred, replay_deferred, restore_termination,

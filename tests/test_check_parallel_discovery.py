@@ -1,4 +1,4 @@
-"""Tests for tools/check_parallel_discovery.py's module discovery.
+"""Tests for tools/check/parallel_discovery.py's module discovery.
 
 The coordinator and the serial fallback replace `unittest discover`'s glob
 walk with this module's discovery, whose module set both paths must import
@@ -21,7 +21,7 @@ from support.check_parallel_fixtures import (
     make_package,
     make_suite_dir,
 )
-from tools import check_parallel_discovery
+from tools.check import parallel_discovery
 
 
 
@@ -47,11 +47,11 @@ class TestDiscovery(unittest.TestCase):
             return real_scandir(directory)
 
         with mock.patch(
-            "tools.check_parallel_discovery.os.scandir",
+            "tools.check.parallel_discovery.os.scandir",
             side_effect=guarded_scandir,
         ):
-            with self.assertRaises(check_parallel_discovery.DiscoveryError) as raised:
-                check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+            with self.assertRaises(parallel_discovery.DiscoveryError) as raised:
+                parallel_discovery.discover_modules(tests_dir, "test*.py")
         self.assertIn("cannot list ", str(raised.exception))
         self.assertIn("Permission denied", str(raised.exception))
 
@@ -62,11 +62,11 @@ class TestDiscovery(unittest.TestCase):
         # the sorted() walk.
         tests_dir = make_suite_dir(self)
         with mock.patch(
-            "tools.check_parallel_discovery.os.scandir",
+            "tools.check.parallel_discovery.os.scandir",
             side_effect=PermissionError(13, "Permission denied"),
         ):
-            with self.assertRaises(check_parallel_discovery.DiscoveryError) as raised:
-                check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+            with self.assertRaises(parallel_discovery.DiscoveryError) as raised:
+                parallel_discovery.discover_modules(tests_dir, "test*.py")
         self.assertIn("cannot list ", str(raised.exception))
 
     def test_an_uninspectable_package_marker_is_reported_not_skipped(self):
@@ -86,10 +86,10 @@ class TestDiscovery(unittest.TestCase):
             return real_stat(path, *args, **kwargs)
 
         with mock.patch(
-            "tools.check_parallel_discovery.os.stat", side_effect=guarded_stat
+            "tools.check.parallel_discovery.os.stat", side_effect=guarded_stat
         ):
-            with self.assertRaises(check_parallel_discovery.DiscoveryError) as raised:
-                check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+            with self.assertRaises(parallel_discovery.DiscoveryError) as raised:
+                parallel_discovery.discover_modules(tests_dir, "test*.py")
         self.assertIn(marker, str(raised.exception))
         self.assertIn("Permission denied", str(raised.exception))
 
@@ -100,7 +100,7 @@ class TestDiscovery(unittest.TestCase):
         os.mkdir(plain)
         _write_module(plain, "test_hidden.py", OK_MODULE)
         self.assertEqual(
-            [], check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+            [], parallel_discovery.discover_modules(tests_dir, "test*.py")
         )
 
     def test_names_top_level_modules_in_sorted_order(self):
@@ -109,7 +109,7 @@ class TestDiscovery(unittest.TestCase):
             _write_module(tests_dir, name, OK_MODULE)
         self.assertEqual(
             ["test_a", "test_b"],
-            check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
+            parallel_discovery.discover_modules(tests_dir, "test*.py"),
         )
 
     def test_entry_metadata_errors_fall_back_to_path_checks(self):
@@ -127,11 +127,11 @@ class TestDiscovery(unittest.TestCase):
                 scan = mock.MagicMock()
                 scan.__enter__.return_value = iter([entry])
                 with mock.patch(
-                    "tools.check_parallel_discovery.os.scandir", return_value=scan
+                    "tools.check.parallel_discovery.os.scandir", return_value=scan
                 ):
                     self.assertEqual(
                         ["test_ok"],
-                        check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
+                        parallel_discovery.discover_modules(tests_dir, "test*.py"),
                     )
 
     def test_unavailable_fallback_metadata_is_reported_not_skipped(self):
@@ -144,13 +144,13 @@ class TestDiscovery(unittest.TestCase):
         scan = mock.MagicMock()
         scan.__enter__.return_value = iter([entry])
         with mock.patch(
-            "tools.check_parallel_discovery.os.scandir", return_value=scan
+            "tools.check.parallel_discovery.os.scandir", return_value=scan
         ), mock.patch(
-            "tools.check_parallel_discovery.os.lstat",
+            "tools.check.parallel_discovery.os.lstat",
             side_effect=PermissionError(13, "Permission denied"),
         ):
-            with self.assertRaises(check_parallel_discovery.DiscoveryError) as raised:
-                check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+            with self.assertRaises(parallel_discovery.DiscoveryError) as raised:
+                parallel_discovery.discover_modules(tests_dir, "test*.py")
         self.assertIn(entry.path, str(raised.exception))
         self.assertIn("Permission denied", str(raised.exception))
 
@@ -166,7 +166,7 @@ class TestDiscovery(unittest.TestCase):
         _write_module(package, "test_shown.py", OK_MODULE)
         self.assertEqual(
             ["shown_pkg.test_shown"],
-            check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
+            parallel_discovery.discover_modules(tests_dir, "test*.py"),
         )
 
     def test_symlinked_package_directories_are_not_recursed(self):
@@ -175,7 +175,7 @@ class TestDiscovery(unittest.TestCase):
         _write_module(outside, "test_outside.py", OK_MODULE)
         os.symlink(outside, os.path.join(tests_dir, "linked_pkg"))
         self.assertEqual(
-            [], check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+            [], parallel_discovery.discover_modules(tests_dir, "test*.py")
         )
 
     def test_a_symlinked_test_module_file_is_not_imported(self):
@@ -195,7 +195,7 @@ class TestDiscovery(unittest.TestCase):
         _write_module(tests_dir, "test_ok.py", OK_MODULE)
         self.assertEqual(
             ["test_ok"],
-            check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
+            parallel_discovery.discover_modules(tests_dir, "test*.py"),
         )
 
     def test_files_unittest_cannot_load_are_skipped(self):
@@ -210,11 +210,11 @@ class TestDiscovery(unittest.TestCase):
         _write_module(tests_dir, "testaux.pyz", "not python\n")
         _write_module(tests_dir, "test-x.py", OK_MODULE)
         self.assertEqual(
-            ["test_ok"], check_parallel_discovery.discover_modules(tests_dir, "test*")
+            ["test_ok"], parallel_discovery.discover_modules(tests_dir, "test*")
         )
         self.assertEqual(
             ["test_ok"],
-            check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
+            parallel_discovery.discover_modules(tests_dir, "test*.py"),
         )
 
     def test_modules_sharing_one_log_stem_get_unique_paths(self):
@@ -227,16 +227,16 @@ class TestDiscovery(unittest.TestCase):
         package = make_package(tests_dir, "test_a")
         _write_module(package, "test_b.py", OK_MODULE)
         _write_module(tests_dir, "test_a_test_b.py", OTHER_MODULE)
-        modules = check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+        modules = parallel_discovery.discover_modules(tests_dir, "test*.py")
         self.assertEqual(["test_a.test_b", "test_a_test_b"], modules)
-        paths = check_parallel_discovery.assign_log_paths(modules, "/scratch")
+        paths = parallel_discovery.assign_log_paths(modules, "/scratch")
         self.assertEqual(2, len(set(paths.values())))
 
     def test_a_disambiguated_log_never_claims_another_modules_name(self):
         # The `_2` suffix must not collide with a third module's own natural
         # stem: `test_a_test_b_2` keeps its natural log, and the later
         # colliding module takes the next free suffix.
-        paths = check_parallel_discovery.assign_log_paths(
+        paths = parallel_discovery.assign_log_paths(
             ["test_a.test_b", "test_a_test_b_2", "test_a_test_b"],
             "/scratch",
         )
