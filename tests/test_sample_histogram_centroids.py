@@ -8,7 +8,8 @@ from unittest import mock
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
 from support.png_fixtures import make_png, rgb_image
-from tools import sample, sample_report_histogram
+from tools import sample
+from tools.sample_lib import report_histogram
 
 
 class TestSampleHistogramCentroids(CliTestCase):
@@ -49,8 +50,8 @@ class TestSampleHistogramCentroids(CliTestCase):
     def test_shared_optional_traversal_and_default_omission(self):
         _, data = rgb_image(2, 2, lambda _x, _y: (1, 2, 3))
         path = self._write(self._tmp_dir(), "small.png", data)
-        with mock.patch.object(sample_report_histogram, "positioned_region_pixels",
-                               wraps=sample_report_histogram.positioned_region_pixels) as positioned:
+        with mock.patch.object(report_histogram, "positioned_region_pixels",
+                               wraps=report_histogram.positioned_region_pixels) as positioned:
             plain = self._run(path, "0", "0", "--width", "2", "--height", "2", "--histogram", "--json")
             measured = self._run(path, "0", "0", "--width", "2", "--height", "2",
                                  "--histogram", "--color-centroids", "--color-bounds", "--color-positions", "--json")
@@ -96,8 +97,8 @@ class TestSampleHistogramCentroids(CliTestCase):
         path = self._write(self._tmp_dir(), "rgba.png", make_png(3, 1, [
             bytes((1, 2, 3, 0, 1, 2, 3, 128, 1, 2, 3, 0)),
         ], color_type=6))
-        with mock.patch.object(sample_report_histogram, "positioned_region_pixels",
-                               wraps=sample_report_histogram.positioned_region_pixels) as positioned:
+        with mock.patch.object(report_histogram, "positioned_region_pixels",
+                               wraps=report_histogram.positioned_region_pixels) as positioned:
             result = self._run(path, "0", "0", "--width", "3", "--histogram", "--alpha",
                                "--color-centroids", "--color-bounds", "--color-positions", "--json")
         self._assert_success(result)
@@ -107,8 +108,8 @@ class TestSampleHistogramCentroids(CliTestCase):
             {"x": 1.0, "y": 0.0}, {"x": 1.0, "y": 0.0},
         ])
         positioned.assert_called_once()
-        with mock.patch.object(sample_report_histogram, "positioned_region_pixels",
-                               wraps=sample_report_histogram.positioned_region_pixels) as positioned:
+        with mock.patch.object(report_histogram, "positioned_region_pixels",
+                               wraps=report_histogram.positioned_region_pixels) as positioned:
             plain = self._run(path, "0", "0", "--width", "3", "--histogram", "--json")
         self._assert_success(plain)
         self.assertNotIn("centroid", json.loads(plain.stdout)["colors"][0])

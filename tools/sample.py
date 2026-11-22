@@ -20,9 +20,9 @@ if __package__:
     )
     from tools.png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from tools.repo_root import ROOT
-    from tools.sample_arguments import build_parser, option_error, region_error
-    from tools.sample_reports import report
-    from tools.sample_report_common import format_image_header
+    from tools.sample_lib.arguments import build_parser, option_error, region_error
+    from tools.sample_lib.reports import report
+    from tools.sample_lib.report_common import format_image_header
 else:  # run directly: python3 tools/sample.py
     from containment import resolves_within
     from diagnostics import report_error
@@ -32,9 +32,9 @@ else:  # run directly: python3 tools/sample.py
     )
     from png import PngError, pixel_at, read_png, read_png_size  # noqa: F401
     from repo_root import ROOT
-    from sample_arguments import build_parser, option_error, region_error
-    from sample_reports import report
-    from sample_report_common import format_image_header
+    from sample_lib.arguments import build_parser, option_error, region_error
+    from sample_lib.reports import report
+    from sample_lib.report_common import format_image_header
 
 
 _MAX_JPEG_BYTES = 512 * 1024 * 1024

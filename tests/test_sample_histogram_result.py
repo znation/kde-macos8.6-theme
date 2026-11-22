@@ -12,7 +12,7 @@ from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
 from support.png_fixtures import make_png
 from tools import sample
-from tools import sample_report_histogram
+from tools.sample_lib import report_histogram
 
 
 class TestSampleHistogramResult(CliTestCase):
@@ -30,7 +30,7 @@ class TestSampleHistogramResult(CliTestCase):
         original = vars(args).copy()
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            result = sample_report_histogram._histogram_result(args, image, 2, 1)
+            result = report_histogram._histogram_result(args, image, 2, 1)
         self.assertEqual(result, {
             "image": "fixture.png", "image_width": 2, "image_height": 1,
             "region": {"x": 0, "y": 0, "width": 2, "height": 1},
@@ -50,7 +50,7 @@ class TestSampleHistogramResult(CliTestCase):
                                alpha=True, top_colors=None, color_bounds=False,
                                color_positions=False, color_fractions=False,
                                color_centroids=False)
-        self.assertEqual(sample_report_histogram._histogram_result(args, image, 1, 1)["colors"], [
+        self.assertEqual(report_histogram._histogram_result(args, image, 1, 1)["colors"], [
             {"rgb": [7, 8, 9], "hex": "#070809", "count": 1, "alpha": 255},
         ])
 
@@ -62,7 +62,7 @@ class TestSampleHistogramResult(CliTestCase):
                                min_color_fraction=None, max_color_fraction=None,
                                exclude_colors=None, color_bounds=False,
                                color_positions=False, color_fractions=True)
-        result = sample_report_histogram._histogram_result(args, image, 2, 1)
+        result = report_histogram._histogram_result(args, image, 2, 1)
         self.assertEqual(result["colors"], [])
         self.assertEqual((result["total_colors"], result["omitted_pixels"]), (2, 2))
 
@@ -74,7 +74,7 @@ class TestSampleHistogramResult(CliTestCase):
         args = SimpleNamespace(image="fixture.png", x=1, y=0, width=4, height=2,
                                alpha=True, top_colors=1, color_bounds=True,
                                color_positions=True, color_fractions=True)
-        self.assertEqual(sample_report_histogram._histogram_result(args, image, 5, 2), {
+        self.assertEqual(report_histogram._histogram_result(args, image, 5, 2), {
             "image": "fixture.png", "image_width": 5, "image_height": 2,
             "region": {"x": 1, "y": 0, "width": 4, "height": 2},
             "colors": [{"rgb": [1, 2, 3], "hex": "#010203", "count": 4,
@@ -133,7 +133,7 @@ class TestSampleHistogramResult(CliTestCase):
         args = SimpleNamespace(x=1, y=1, width=3, height=2, alpha=True,
                                color_bounds=True, color_positions=True, color_centroids=True)
         colors = [((1, 2, 3, 0), 4), ((1, 2, 3, 4), 2)]
-        fields = sample_report_histogram._histogram_spatial_fields(args, image, colors)
+        fields = report_histogram._histogram_spatial_fields(args, image, colors)
         self.assertEqual(fields, {
             (1, 2, 3, 0): {"position": {"x": 1, "y": 1},
                            "centroid": {"x": 1.75, "y": 1.5},
@@ -143,14 +143,14 @@ class TestSampleHistogramResult(CliTestCase):
                            "bounds": {"x": 2, "y": 1, "width": 2, "height": 2}},
         })
         args.color_bounds = args.color_positions = args.color_centroids = False
-        with patch.object(sample_report_histogram, "positioned_region_pixels") as scan:
-            self.assertEqual(sample_report_histogram._histogram_spatial_fields(args, image, colors),
+        with patch.object(report_histogram, "positioned_region_pixels") as scan:
+            self.assertEqual(report_histogram._histogram_spatial_fields(args, image, colors),
                              {color: {} for color, _ in colors})
         scan.assert_not_called()
         args.color_bounds = args.color_positions = args.color_centroids = True
-        with patch.object(sample_report_histogram, "positioned_region_pixels",
-                          wraps=sample_report_histogram.positioned_region_pixels) as scan:
-            sample_report_histogram._histogram_spatial_fields(args, image, colors)
+        with patch.object(report_histogram, "positioned_region_pixels",
+                          wraps=report_histogram.positioned_region_pixels) as scan:
+            report_histogram._histogram_spatial_fields(args, image, colors)
         scan.assert_called_once_with(image, 1, 1, 3, 2)
 
 

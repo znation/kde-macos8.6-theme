@@ -50,51 +50,6 @@ paths.
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
-### Group the flat sample_* tools modules into tools/sample_lib/ (part 3/8 of the tools regroup) (planned 2026-11-21 by the plan role)
-
-**Goal.** Land the sample-family slice of the flat-`tools/` regroup (see
-part 1/8 for the split's shared rules; the parts are independent).
-This part departs from the shared rules' package name: the family
-package is `tools/sample_lib/`, not `tools/sample/`, because a
-same-named package would shadow the kept CLI `tools/sample.py` (Python
-resolves `tools/sample/__init__.py` ahead of `tools/sample.py`, so the
-tests' `from tools import sample` would load the empty package —
-feature's plan-defect finding, 2026-11-21). The CLI keeps its path and
-its `from tools import sample` importers stay as they are; moved-module
-importers switch to `from tools.sample_lib import arguments`-style lines.
-
-**Modules to move (import lines per module; importer files counted on
-main).** `sample_arguments` (19), `sample_match_runs` (7), `sample_parser`
-(4), `sample_report_common` (8), `sample_report_histogram` (8),
-`sample_report_pixels` (3), `sample_report_runs` (4),
-`sample_report_search` (9), `sample_reports` (6), `sample_validators` (4)
-→ `tools/sample_lib/` with `__init__.py`: `arguments.py`, `match_runs.py`,
-`parser.py`, `report_common.py`, `report_histogram.py`,
-`report_pixels.py`, `report_runs.py`, `report_search.py`, `reports.py`,
-`validators.py`. 45 files import a `sample_*` member. `sample.py` stays
-(CLI).
-
-**Files touched.** The ten moved modules, their 45 importer files under
-`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
-paths.
-
-**Acceptance criteria.**
-
-- `ls tools/sample_lib/` lists `__init__.py` and the ten moved modules, and
-  `rg -n 'tools[./]sample_(arguments|match_runs|parser|report_common|report_histogram|report_pixels|report_runs|report_search|reports|validators)\b|import (sample_arguments|sample_match_runs|sample_parser|sample_report_common|sample_report_histogram|sample_report_pixels|sample_report_runs|sample_report_search|sample_reports|sample_validators)\b'
-  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
-  reference.
-- Every `mock.patch` string or object target naming a moved module
-  resolves, and the tests that patch them pass.
-- `python3 tools/sample.py --help` exits 0 with the usage text it printed
-  before this change, and `python3 -c "from tools import sample; print(callable(sample.main))"`
-  run from the repo root prints `True` (the CLI module, not a package).
-- `git ls-files tools/sample/` prints nothing (no package shadows the CLI).
-- No behavior change: `git diff` shows moves, import lines, patch targets
-  and doc paths only.
-- `make check` passes after the final edit, apart from main's known-red
-  tests.
-
 ### Group the tests/support fidelity and kvantum modules into subpackages (part 3/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
 
 **Needs review 2026-11-21 by feature: too large for one run**

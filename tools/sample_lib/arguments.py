@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import argparse
-if __package__:
-    from tools.sample_validators import (
+if __package__.startswith("tools"):
+    from tools.sample_lib.validators import (
         color_fraction, max_color_fraction, color_tolerance, match_alpha,
         color_offset, match_pixel_offset, match_pixels, nonnegative_offset,
         rgb_argument)
 else:
-    from sample_validators import (
+    from sample_lib.validators import (
         color_fraction, max_color_fraction, color_tolerance, match_alpha,
         color_offset, match_pixel_offset, match_pixels, nonnegative_offset,
         rgb_argument)
@@ -167,8 +167,8 @@ def region_error(args: argparse.Namespace, image_width: int, image_height: int) 
 
 def build_parser() -> argparse.ArgumentParser:
     """Build the sample tool's command-line argument parser."""
-    if __package__:
-        from tools.sample_parser import build_parser as parser_builder
+    if __package__.startswith("tools"):
+        from tools.sample_lib.parser import build_parser as parser_builder
     else:
-        from sample_parser import build_parser as parser_builder
+        from sample_lib.parser import build_parser as parser_builder
     return parser_builder()

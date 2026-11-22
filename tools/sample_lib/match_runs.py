@@ -77,7 +77,7 @@ class MatchRuns:
                                   run_offset=run_offset, run_limit=run_limit,
                                   collect=collect_runs)
         # The page owns the counts and the retained runs; aliases keep the
-        # attributes read by sample_report_search and the storage tests.
+        # attributes read by sample_lib.report_search and the storage tests.
         self.runs = self.runs_page.retained
         self.run_start = self.run_y = None
         self.longest_run = None

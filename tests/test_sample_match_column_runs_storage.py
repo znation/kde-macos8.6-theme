@@ -9,7 +9,7 @@ from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
 from support.png_fixtures import make_png, rgb_image
 from tools import sample
-from tools.sample_match_runs import ColumnRuns
+from tools.sample_lib.match_runs import ColumnRuns
 
 
 class TestColumnRunsStorage(unittest.TestCase):

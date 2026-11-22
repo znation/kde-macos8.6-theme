@@ -8,7 +8,8 @@ from unittest import mock
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
 from support.png_fixtures import make_png, rgb_image
-from tools import sample, sample_report_search
+from tools import sample
+from tools.sample_lib import report_search
 
 
 class TestSampleMatchRuns(CliTestCase):
@@ -108,8 +109,8 @@ class TestSampleMatchRuns(CliTestCase):
         args = (path, "1", "1", "--width", "3", "--height", "3", "--find-color",
                 "0a141e", "--color-tolerance", "1", "--match-alpha", "255",
                 "--match-runs", "--match-column-runs", "--match-pixels", "1")
-        with mock.patch.object(sample_report_search, "positioned_region_pixels",
-                               wraps=sample_report_search.positioned_region_pixels) as pixels:
+        with mock.patch.object(report_search, "positioned_region_pixels",
+                               wraps=report_search.positioned_region_pixels) as pixels:
             result = self._run(*args, "--json")
         self._assert_success(result)
         match = json.loads(result.stdout)["match"]

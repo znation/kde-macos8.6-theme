@@ -6,7 +6,8 @@ import argparse
 import unittest
 
 from support import repo_root  # noqa: F401
-from tools import sample_arguments, sample_validators as validators
+from tools.sample_lib import arguments
+from tools.sample_lib import validators
 
 
 class TestSampleValidators(unittest.TestCase):
@@ -28,7 +29,7 @@ class TestSampleValidators(unittest.TestCase):
         self.assertEqual(validators.color_fraction("1"), 1.0)
         for name in ("rgb_argument", "color_tolerance", "match_alpha", "match_pixels",
                      "match_pixel_offset", "color_offset", "color_fraction"):
-            self.assertIs(getattr(sample_arguments, name), getattr(validators, name))
+            self.assertIs(getattr(arguments, name), getattr(validators, name))
 
     def test_invalid_values_are_argument_errors(self):
         cases = (

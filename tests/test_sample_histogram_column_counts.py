@@ -9,7 +9,7 @@ from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
 from support.png_fixtures import make_png, rgb_image
 from tools import sample
-from tools import sample_report_histogram
+from tools.sample_lib import report_histogram
 
 _PALETTE = {"A": (1, 1, 1), "B": (4, 5, 6), "C": (7, 8, 9)}
 _RGB_ROWS = ("AAB", "AAB", "ACB")
@@ -117,7 +117,7 @@ class TestSampleHistogramColumnCounts(CliTestCase):
     def test_omitting_the_flags_skips_the_collection_pass_and_output(self):
         _, data = _rows_image()
         path = self._write(self._tmp_dir(), "columns.png", data)
-        with mock.patch.object(sample_report_histogram, "_scanline_color_counts",
+        with mock.patch.object(report_histogram, "_scanline_color_counts",
                                return_value=(None, None)) as scan:
             json_run = self._run(path, "0", "0", "--width", "3", "--height", "3",
                                  "--histogram", "--json")

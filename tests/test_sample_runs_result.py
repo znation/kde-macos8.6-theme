@@ -8,8 +8,8 @@ from types import SimpleNamespace
 from unittest import TestCase
 
 from support import repo_root  # noqa: F401
-from tools.sample_arguments import build_parser
-from tools.sample_report_runs import _runs_result, report_runs
+from tools.sample_lib.arguments import build_parser
+from tools.sample_lib.report_runs import _runs_result, report_runs
 
 
 class TestSampleRunsResult(TestCase):

@@ -6,7 +6,7 @@ import argparse
 import math
 import re
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.argument_parsing import plain_number
 else:
     from argument_parsing import plain_number

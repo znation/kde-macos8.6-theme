@@ -8,7 +8,7 @@ from io import StringIO
 from argparse import Namespace
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.sample_report_common import (  # noqa: E402
+from tools.sample_lib.report_common import (  # noqa: E402
     compact_json, format_image_header, hex, positioned_region_column_alpha,
     positioned_region_column_pixels, positioned_region_pixels,
     print_json_report, print_report_header, region_alpha, region_from_args,

@@ -10,8 +10,8 @@ from io import StringIO
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.sample_report_pixels import _pixel_records, report_pixels  # noqa: E402
-from tools.sample_report_common import positioned_region_pixels  # noqa: E402
+from tools.sample_lib.report_pixels import _pixel_records, report_pixels  # noqa: E402
+from tools.sample_lib.report_common import positioned_region_pixels  # noqa: E402
 
 
 class _TwoByTwoImage:

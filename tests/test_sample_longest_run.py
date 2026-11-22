@@ -197,11 +197,11 @@ class TestSampleLongestRun(CliTestCase):
 
     def test_no_second_scan_when_requested_or_omitted(self):
         path = self._rows_region()
-        from tools import sample_report_runs
+        from tools.sample_lib import report_runs
         for extra in ((), ("--longest-run",)):
             with self.subTest(extra=extra), \
-                    mock.patch.object(sample_report_runs, "_color_runs",
-                                      wraps=sample_report_runs._color_runs) as color_runs:
+                    mock.patch.object(report_runs, "_color_runs",
+                                      wraps=report_runs._color_runs) as color_runs:
                 result = self._run(path, "0", "0", "--width", "5", "--height", "4",
                                    "--runs", "--run-axis", "horizontal", *extra, "--json")
                 self._assert_success(result)

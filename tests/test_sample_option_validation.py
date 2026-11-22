@@ -9,7 +9,7 @@ from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
 from support.png_fixtures import solid_rgb
 from tools import sample
-from tools.sample_arguments import build_parser, option_error, region_error
+from tools.sample_lib.arguments import build_parser, option_error, region_error
 
 
 class TestSampleOptionValidation(CliTestCase):

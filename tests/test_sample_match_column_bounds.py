@@ -8,7 +8,8 @@ from unittest import mock
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
 from support.png_fixtures import make_png, rgb_image
-from tools import sample, sample_report_search
+from tools import sample
+from tools.sample_lib import report_search
 
 
 class TestSampleMatchColumnBounds(CliTestCase):
@@ -28,8 +29,8 @@ class TestSampleMatchColumnBounds(CliTestCase):
         args = (path, "1", "1", "--width", "3", "--height", "4",
                 "--find-color", "0a141e", "--color-tolerance", "1",
                 "--match-column-bounds")
-        with mock.patch.object(sample_report_search, "positioned_region_pixels",
-                               wraps=sample_report_search.positioned_region_pixels) as pixels, \
+        with mock.patch.object(report_search, "positioned_region_pixels",
+                               wraps=report_search.positioned_region_pixels) as pixels, \
                 mock.patch.object(sample, "read_png", wraps=sample.read_png) as read:
             result = self._run(*args, "--match-pixels", "1", "--match-rows",
                                "--match-columns", "--match-runs", "--match-column-runs",

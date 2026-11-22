@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import argparse
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.argument_parsing import EscapingArgumentParser, plain_number, positive_int
-    from tools.sample_validators import (
+    from tools.sample_lib.validators import (
         color_fraction, max_color_fraction, color_tolerance, match_alpha,
         color_offset, match_pixel_offset, match_pixels, nonnegative_offset,
         rgb_argument)
 else:
     from argument_parsing import EscapingArgumentParser, plain_number, positive_int
-    from sample_validators import (
+    from sample_lib.validators import (
         color_fraction, max_color_fraction, color_tolerance, match_alpha,
         color_offset, match_pixel_offset, match_pixels, nonnegative_offset,
         rgb_argument)

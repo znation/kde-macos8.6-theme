@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-if __package__:
-    from tools.sample_report_histogram import report_histogram
-    from tools.sample_report_search import report_search
-    from tools.sample_report_runs import report_runs
-    from tools.sample_report_pixels import report_pixels
+if __package__.startswith("tools"):
+    from tools.sample_lib.report_histogram import report_histogram
+    from tools.sample_lib.report_search import report_search
+    from tools.sample_lib.report_runs import report_runs
+    from tools.sample_lib.report_pixels import report_pixels
 else:  # run directly: python3 tools/sample.py
-    from sample_report_histogram import report_histogram
-    from sample_report_search import report_search
-    from sample_report_runs import report_runs
-    from sample_report_pixels import report_pixels
+    from sample_lib.report_histogram import report_histogram
+    from sample_lib.report_search import report_search
+    from sample_lib.report_runs import report_runs
+    from sample_lib.report_pixels import report_pixels
 
 
 def report(args, image, width: int, height: int, header: str) -> None:

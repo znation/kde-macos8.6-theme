@@ -90,7 +90,7 @@ class TestSampleLongestMatchColumnRun(CliTestCase):
                          {"x": 0, "y": 0, "length": 3})
 
     def test_summary_only_tie_order_validation_help_and_direct_script(self):
-        from tools.sample_match_runs import MatchRuns
+        from tools.sample_lib.match_runs import MatchRuns
         collector = MatchRuns(0, 0, 3, 5, horizontal=False, vertical=True,
                                summarize=False, collect_runs=False,
                                summarize_columns=True, collect_column_runs=False)

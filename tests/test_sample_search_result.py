@@ -8,8 +8,8 @@ from types import SimpleNamespace
 from unittest import TestCase
 
 from support import repo_root  # noqa: F401
-from tools.sample_arguments import build_parser
-from tools.sample_report_search import _search_match
+from tools.sample_lib.arguments import build_parser
+from tools.sample_lib.report_search import _search_match
 
 
 class TestSampleSearchResult(TestCase):

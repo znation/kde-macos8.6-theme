@@ -2,22 +2,22 @@
 
 from __future__ import annotations
 
-if __package__:
-    from tools.sample_report_common import (
+if __package__.startswith("tools"):
+    from tools.sample_lib.report_common import (
         compact_json, hex, positioned_region_column_pixels,
         positioned_region_column_alpha, positioned_region_pixels,
         print_json_report, print_report_header, region_alpha,
         report_context,
     )
-    from tools.sample_match_runs import ColumnRuns, MatchRuns
+    from tools.sample_lib.match_runs import ColumnRuns, MatchRuns
 else:  # run directly: python3 tools/sample.py
-    from sample_report_common import (
+    from sample_lib.report_common import (
         compact_json, hex, positioned_region_column_pixels,
         positioned_region_column_alpha, positioned_region_pixels,
         print_json_report, print_report_header, region_alpha,
         report_context,
     )
-    from sample_match_runs import ColumnRuns, MatchRuns
+    from sample_lib.match_runs import ColumnRuns, MatchRuns
 
 
 def _extend_match_bound(bounds, index: int, position: int,

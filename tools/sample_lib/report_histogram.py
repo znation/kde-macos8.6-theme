@@ -5,13 +5,13 @@ from __future__ import annotations
 from collections import Counter
 from heapq import nsmallest
 
-if __package__:
-    from tools.sample_report_common import (
+if __package__.startswith("tools"):
+    from tools.sample_lib.report_common import (
         compact_json, hex, positioned_region_pixels, print_json_report, print_report_header,
         region_alpha, region_pixels, report_context,
     )
 else:  # run directly: python3 tools/sample.py
-    from sample_report_common import (
+    from sample_lib.report_common import (
         compact_json, hex, positioned_region_pixels, print_json_report, print_report_header,
         region_alpha, region_pixels, report_context,
     )

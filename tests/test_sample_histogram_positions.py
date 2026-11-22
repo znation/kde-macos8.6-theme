@@ -9,7 +9,7 @@ from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
 from support.png_fixtures import make_png, rgb_image
 from tools import sample
-from tools import sample_report_histogram
+from tools.sample_lib import report_histogram
 
 
 class TestSampleHistogramPositions(CliTestCase):
@@ -52,8 +52,8 @@ class TestSampleHistogramPositions(CliTestCase):
     def test_alpha_keys_and_one_positioned_traversal_shared_with_bounds(self):
         rows = [bytes((1, 2, 3, 0, 1, 2, 3, 128, 1, 2, 3, 0))]
         path = self._write(self._tmp_dir(), "rgba.png", make_png(3, 1, rows, color_type=6))
-        with mock.patch.object(sample_report_histogram, "positioned_region_pixels",
-                               wraps=sample_report_histogram.positioned_region_pixels) as positioned:
+        with mock.patch.object(report_histogram, "positioned_region_pixels",
+                               wraps=report_histogram.positioned_region_pixels) as positioned:
             result = self._run(path, "0", "0", "--width", "3", "--histogram", "--alpha",
                                "--color-positions", "--color-bounds", "--json")
         self._assert_success(result)

@@ -3,7 +3,7 @@
 import unittest
 
 from support import repo_root  # noqa: F401
-from tools.sample_match_runs import MatchRuns
+from tools.sample_lib.match_runs import MatchRuns
 
 
 class TestMatchRunsStorage(unittest.TestCase):
