@@ -1,10 +1,11 @@
 """Generate the Platinum wallpaper package's flat desktop field.
 
-The tool writes a 128x128 solid ``#63639C`` tile tiled to full-screen PNGs. The
-colour is sampled from the lossless ``desktop_betawiki.png`` reference desktop
-strip (the same value the splash's field pins), not from any screenshot artwork.
+The tool writes a 128x128 solid ``#63639C`` tile tiled to full-screen PNGs,
 one per resolution, under the wallpaper package's ``contents/images/``. Plasma
 picks the image nearest the screen size, so a matching screen shows the tile 1:1.
+The colour is sampled from the lossless ``desktop_betawiki.png`` reference
+desktop strip (the same value the splash's field pins); no screenshot artwork
+is loaded or shipped.
 
 Run ``python3 tools/make_wallpaper.py`` from anywhere; the output is
 deterministic, so re-running rewrites identical bytes.
