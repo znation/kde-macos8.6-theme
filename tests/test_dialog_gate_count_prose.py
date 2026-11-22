@@ -13,7 +13,7 @@ The expected gate count derives from the live ``Test...DialogRender`` gate
 classes in the render capture suites, never from the prose, so the
 two cannot drift in opposite directions.
 The kdialog-mode count derives from the live ``DIALOG_MODES`` table in
-``tools/render_dialogs.py``, not from the gate classes: a mode can be added
+``tools/render/dialogs.py``, not from the gate classes: a mode can be added
 before its gate (the file-dialog series' part 1/2 added the mode, part 2/2 its gate),
 and the words that say how many kdialog clients the render CLI demands must
 track the CLI's table from the moment the mode exists, not wait for the gate.
@@ -29,7 +29,7 @@ import unittest
 
 from support import containment
 from support.repo_root import ROOT
-from tools import render_dialogs
+from tools.render import dialogs as render_dialogs
 
 # Gate classes ship as top-level definitions, so a class name defined
 # anywhere in the render capture suites is the live set; a mention

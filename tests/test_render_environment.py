@@ -9,7 +9,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.render.stub_tools import StubTools
-from tools import render_session
+from tools.render import session as render_session
 
 
 class TestRenderEnvironment(StubTools, unittest.TestCase):

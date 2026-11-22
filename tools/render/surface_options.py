@@ -5,12 +5,12 @@ from __future__ import annotations
 import argparse
 from collections.abc import Callable
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.argument_parsing import EscapingArgumentParser, plain_number, positive_int
-    from tools.render_dialogs import DIALOG_MODES
+    from tools.render.dialogs import DIALOG_MODES
 else:  # imported by a directly run render_surface.py
     from argument_parsing import EscapingArgumentParser, plain_number, positive_int
-    from render_dialogs import DIALOG_MODES
+    from render.dialogs import DIALOG_MODES
 
 REQUIRED_TOOLS = (
     "make", "dbus-run-session", "kwin_wayland", "plasma-apply-colorscheme",

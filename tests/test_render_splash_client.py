@@ -1,4 +1,4 @@
-"""Tests for the splash client argv in tools/render_splash_client.py.
+"""Tests for the splash client argv in tools/render/splash_client.py.
 
 ``splash_client`` is the one argv the splash render mode hands the session
 script. Its docstring pins the shape: ``ksplashqml --test --nofork`` followed
@@ -13,8 +13,8 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import render_splash_client  # noqa: E402
-from tools.render_session import Session  # noqa: E402
+from tools.render import splash_client as render_splash_client  # noqa: E402
+from tools.render.session import Session  # noqa: E402
 
 
 class TestSplashClient(unittest.TestCase):

@@ -451,7 +451,7 @@ class TestInactiveDialogRender(DialogGate, unittest.TestCase):
     KIND = "inactive"
 
     # The left (unfocused) window's forced frame rectangle and the inner
-    # client-edge rectangle, from tools/render_window_rules.py's
+    # client-edge rectangle, from tools/render/window_rules.py's
     # INACTIVE_GEOMETRY (position (4, 8), size (224, 344)); the ring test
     # pins the forced placement too, since a moved or resized window no
     # longer puts the ring on these coordinates.

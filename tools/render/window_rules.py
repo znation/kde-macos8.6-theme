@@ -36,7 +36,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from tools.render_session import Session
+    from tools.render.session import Session
 
 try:
     from tools.atomic_write import write_bytes_atomically

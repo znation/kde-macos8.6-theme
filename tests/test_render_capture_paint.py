@@ -7,7 +7,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from tools import render_workflow  # noqa: E402
+from tools.render import workflow as render_workflow  # noqa: E402
 
 
 class TestCapturePaintCheck(unittest.TestCase):

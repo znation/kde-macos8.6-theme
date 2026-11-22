@@ -6,7 +6,7 @@ The render's end-to-end capture gates live in
 ``tests/test_render_failure_paths.py`` and ``tests/test_render_live_capture.py``, and the output publication in
 ``tests/test_render_output.py``; this module covers the units they are built
 from: KWin session command construction in
-``tools/render_session.py``. Capture-paint checks live in
+``tools/render/session.py``. Capture-paint checks live in
 ``tests/test_render_capture_paint.py``. The session command and dialog argv
 checks live in ``tests/test_render_session_command.py``, the scratch-session
 setup checks live in ``tests/test_render_session_setup.py``, and the
@@ -35,10 +35,7 @@ import unittest
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
 from support.executable_stubs import write_executable
-from tools import (
-    render_session,
-    render_workflow,
-)  # noqa: E402
+from tools.render import session as render_session, workflow as render_workflow  # noqa: E402
 
 
 class TestSessionScript(unittest.TestCase):

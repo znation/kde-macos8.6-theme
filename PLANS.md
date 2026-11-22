@@ -5,62 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Group the flat render_* tools modules into tools/render/ (part 1/8 of the tools regroup) (planned 2026-11-21 by the plan role)
-
-**Goal.** Land the render-family slice of the flat-`tools/` regroup, split
-from the single regroup entry after feature parked it as too large for one
-run. The regroup moves 59 modules into eight packages; this part carries the
-split's shared rules (the later parts cite them) and lands the render family.
-The parts are independent: each lands its own package and its importers
-together, in its own change.
-
-**Shared rules (cited by parts 2/8–8/8).** One subpackage per subsystem,
-each with `__init__.py`; a moved module loses its family prefix
-(`tools/render_session.py` becomes `tools/render/session.py`), and importers
-switch to `from tools.render import session` / `from tools.render.session
-import X` — the style already used for `tools/png`. The CLI entry points
-stay at the top of `tools/` and keep their paths (the Makefile, `docs/*.md`
-and the help text run `python3 tools/sample.py`, `tools/fidelity.py` and
-similar commands there), as do their flat private helpers
-(`apply_optional.py`, `apply_konsole_font.py`, `kvantum_selection.py`,
-`local_hook.py`, `install_firefox.py`) and the shared modules
-(`atomic_write`, `text_lines`, `process_group`, `repo_root`,
-`diagnostics`, ...). Modules serving two families get one owner and the
-other family imports it. Retarget both patch styles — string
-`mock.patch("tools.<old>.…")` targets and
-`mock.patch.object(<old_module>, …)` object targets — to the module whose
-global the caller resolves. Grep
-every old flat name over `tools/`, `tests/`, `docs/`, `Makefile` and
-`README.md` before `make check`; `BUGS.md` and the `PLANS-DONE.md` /
-`BUGS-FIXED.md` archives are exempt — they quote the flat paths as history.
-
-**Modules to move (import lines per module; importer files counted on
-main).** `render_applet` (2), `render_clients` (6), `render_dialogs` (8),
-`render_output` (6), `render_session` (14), `render_session_script` (2),
-`render_setup` (12), `render_splash_client` (3), `render_surface_options`
-(3), `render_window_rules` (7), `render_workflow` (19) → `tools/render/`
-with `__init__.py`: `applet.py`, `clients.py`, `dialogs.py`, `output.py`,
-`session.py`, `session_script.py`, `setup.py`, `splash_client.py`,
-`surface_options.py`, `window_rules.py`, `workflow.py`. 37 files import a
-`render_*` member. `render_surface.py` stays (CLI).
-
-**Files touched.** The eleven moved modules, their 37 importer files under
-`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
-paths.
-
-**Acceptance criteria.**
-
-- `ls tools/render/` lists `__init__.py` and the eleven moved modules, and
-  `rg -n 'tools[./]render_(applet|clients|dialogs|output|session|session_script|setup|splash_client|surface_options|window_rules|workflow)\b|import (render_applet|render_clients|render_dialogs|render_output|render_session|render_session_script|render_setup|render_splash_client|render_surface_options|render_window_rules|render_workflow)\b'
-  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
-  reference.
-- Every `mock.patch` string or object target naming a moved module
-  resolves, and the tests that patch them pass.
-- No behavior change: `git diff` shows moves, import lines, patch targets
-  and doc paths only.
-- `make check` passes after the final edit, apart from main's known-red
-  tests.
-
 ### Group the flat fidelity_* tools modules into tools/fidelity/ (part 2/8 of the tools regroup) (planned 2026-11-21 by the plan role)
 
 **Needs review 2026-11-21 by feature: plan defect — name collision with the kept CLI.** The plan keeps `tools/fidelity.py` (CLI) while creating `tools/fidelity/` with `__init__.py`. Python resolves a package directory ahead of a same-named module in the same directory, so `from tools import fidelity` returns the empty package. I checked this with a scratch tree (`tools/fidelity.py` setting `X=1`, `tools/fidelity/__init__.py` setting `Y=2`: `from tools import fidelity` loads the `__init__.py`, and `hasattr(fidelity, "X")` is False). About fifteen tests use `from tools import fidelity` and `mock.patch.object(fidelity, "_read_source")` on the CLI, and `tests/test_fidelity_bounds.py` runs `tools/fidelity.py` directly. Moving the family under `tools/fidelity/` as the plan states would break them. The plan needs a different package name (for example `tools/fidelity_lib/`, or a non-prefix name) or a decision to move the CLI, which is the plan role's call.

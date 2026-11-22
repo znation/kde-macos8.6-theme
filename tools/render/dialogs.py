@@ -1,7 +1,7 @@
 """The dialog render modes the render CLI and workflow share.
 
 ``tools/render_surface.py`` defines one ``--*-dialog`` flag per mode and
-refuses more than one at a time; ``tools/render_workflow.py`` maps the chosen
+refuses more than one at a time; ``tools/render/workflow.py`` maps the chosen
 flag to the dialog client it opens and installs the matching theme
 selections. Both read this module's ``DIALOG_MODES`` table so a mode is
 declared once: its namespace attribute, CLI flag, help text, client factory
@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable, NamedTuple
 
 try:
-    from tools.render_clients import (
+    from tools.render.clients import (
         calendar_dialog_client,
         checkbox_dialog_client,
         color_dialog_client,
@@ -30,7 +30,7 @@ try:
         textbox_dialog_client,
     )
 except ImportError:  # imported from a directly run tool
-    from render_clients import (
+    from render.clients import (
         calendar_dialog_client,
         checkbox_dialog_client,
         color_dialog_client,
@@ -48,7 +48,7 @@ except ImportError:  # imported from a directly run tool
     )
 
 if TYPE_CHECKING:
-    from tools.render_session import Session
+    from tools.render.session import Session
 
 
 class DialogMode(NamedTuple):

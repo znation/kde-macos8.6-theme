@@ -559,13 +559,13 @@ check-references:
 
 # Opt-in: the render needs a Plasma 6 session's tools (kwin_wayland, spectacle,
 # plasmawindowed), so it stays out of `check`. It installs into a scratch data
-# home and leaves the user's configuration alone; tools/render_surface_options.py
+# home and leaves the user's configuration alone; tools/render/surface_options.py
 # validates CLI options, and tools/render_surface.py handles preflight and
-# dispatches the render to tools/render_workflow.py.
+# dispatches the render to tools/render/workflow.py.
 RENDER_OUTPUT ?= render.png
 # The render modes the `render` target accepts, in the order
-# tools/render_surface_options.py lists its flags: the calculator applet render
-# first, then one entry per tools/render_dialogs.py's DIALOG_MODES table, then
+# tools/render/surface_options.py lists its flags: the calculator applet render
+# first, then one entry per tools/render/dialogs.py's DIALOG_MODES table, then
 # the standalone desktop mode (not a table entry: the options module adds --desktop
 # flag beside the table-derived dialog flags). The
 # two refusal echoes in the `render` recipe and the help line build their mode

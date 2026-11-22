@@ -31,11 +31,8 @@ from unittest import mock
 
 from support import process_runner
 from support.cli_fixtures import assert_missing_tool_named, call_main
-from tools import (
-    render_setup,
-    render_surface,
-    render_workflow,
-)  # noqa: E402
+from tools import render_surface  # noqa: E402
+from tools.render import setup as render_setup, workflow as render_workflow  # noqa: E402
 from support.render.stub_tools import StubTools
 
 

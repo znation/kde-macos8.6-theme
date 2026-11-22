@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from tools.render_session import Session
+    from tools.render.session import Session
 
 
 def splash_client(session: Session) -> tuple[str, ...]:

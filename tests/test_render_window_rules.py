@@ -1,6 +1,6 @@
 """Tests for the inactive-dialog render's forced-geometry window rules.
 
-``tools/render_window_rules.py`` writes the scratch session's
+``tools/render/window_rules.py`` writes the scratch session's
 ``kwinrulesrc``: exactly two rules, one per fixed client title, each
 forcing both position and size so the two ``kdialog --msgbox`` windows of
 the ``--inactive-dialog`` render stand side by side, fully inside the
@@ -14,8 +14,8 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import render_dialogs
-from tools.render_window_rules import (
+from tools.render import dialogs as render_dialogs
+from tools.render.window_rules import (
     FOCUSED_GEOMETRY,
     FOCUSED_TITLE,
     FOCUS_SETTLE_SCRIPT,
@@ -132,7 +132,7 @@ class TestWindowRules(unittest.TestCase):
         # KWin activates the newest window, so the rules must tell the two
         # kdialog windows apart by exact title: the inactive one spawns
         # first, the focused one last, and the client wrapper (the
-        # inactive_dialog_client factory in tools/render_clients.py) opens
+        # inactive_dialog_client factory in tools/render/clients.py) opens
         # them with these titles. A shared title would rule-match both
         # windows and leave the pair's placement to ordering alone.
         self.assertNotEqual(INACTIVE_TITLE, FOCUSED_TITLE)

@@ -14,7 +14,7 @@ import os
 import shutil
 from pathlib import Path
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.atomic_write import write_atomically
     from tools.containment import open_regular_binary
     from tools.diagnostics import require_path

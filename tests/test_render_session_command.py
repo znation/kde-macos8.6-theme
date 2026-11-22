@@ -2,8 +2,8 @@
 
 The session-command and dialog argv checks moved out of
 ``tests/test_render_surface_units.py``. They check the KWin session command
-``tools/render_session.py`` builds and the argv each dialog client builder in
-``tools/render_clients.py`` hands that command.
+``tools/render/session.py`` builds and the argv each dialog client builder in
+``tools/render/clients.py`` hands that command.
 """
 
 from __future__ import annotations
@@ -13,8 +13,8 @@ import shlex
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import render_session, render_window_rules  # noqa: E402
-from tools.render_clients import (  # noqa: E402
+from tools.render import session as render_session, window_rules as render_window_rules  # noqa: E402
+from tools.render.clients import (  # noqa: E402
     calendar_dialog_client,
     checkbox_dialog_client,
     color_dialog_client,
@@ -268,7 +268,7 @@ class TestSessionCommand(unittest.TestCase):
             # gate's existing pins can re-derive against.
             documents = session.home / "Documents"
             for name in ("alpha.txt", "bravo.txt", "delta.rtf"):
-                # 1104537600 = the seed epoch tools/render_clients.py pins
+                # 1104537600 = the seed epoch tools/render/clients.py pins
                 # (2005-01-01 00:00:00 UTC), spelled as a literal so the
                 # expectation here is independent of the code under test.
                 self.assertEqual(1104537600, (documents / name).stat().st_mtime)

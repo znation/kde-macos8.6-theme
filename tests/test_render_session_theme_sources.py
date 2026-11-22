@@ -1,6 +1,6 @@
 """Tests for the session theme-source writes in the render tools.
 
-Moved out of ``tests/test_render_surface_units.py``: ``tools/render_setup.py``'s
+Moved out of ``tests/test_render_surface_units.py``: ``tools/render/setup.py``'s
 ``install_theme``, ``write_session_configs``, ``write_kvantum_selection``,
 ``write_desktop_selection`` and ``install_gtk_selection`` calls against a real
 scratch session. The class starts no session or display, so it has no skip guard.
@@ -12,7 +12,8 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import apply_theme, apply_optional, render_session, render_setup  # noqa: E402
+from tools import apply_theme, apply_optional  # noqa: E402
+from tools.render import session as render_session, setup as render_setup  # noqa: E402
 from tools.gtk_selection import ConfigError as _ConfigError  # noqa: E402
 from tools.gtk_selection import installed_sheet  # noqa: E402
 from tools.gtk_user_files import GTK4_CSS_MARKER  # noqa: E402

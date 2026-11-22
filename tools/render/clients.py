@@ -6,12 +6,12 @@ import os
 from typing import TYPE_CHECKING
 
 try:
-    from tools import render_window_rules
+    from tools.render import window_rules as render_window_rules
 except ImportError:  # imported from a directly run tool
-    import render_window_rules
+    from render import window_rules as render_window_rules
 
 if TYPE_CHECKING:
-    from tools.render_session import Session
+    from tools.render.session import Session
 
 
 def _kdialog_client(*arguments: str) -> tuple[str, ...]:
@@ -239,7 +239,7 @@ def inactive_dialog_client(_session: Session) -> tuple[str, ...]:
     lifecycle every client already relies on.
 
     The titles are the exact matches the session's forced-geometry
-    ``kwinrulesrc`` rules (``tools/render_window_rules.py``) pin, and the
+    ``kwinrulesrc`` rules (``tools/render/window_rules.py``) pin, and the
     inter-spawn sleep keeps the mapping order that decides which window
     KWin activates: the second window spawns after the first has had time
     to map, so KWin's newest-window activation lands on the focused one.

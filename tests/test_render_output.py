@@ -1,4 +1,4 @@
-"""Tests for tools/render_output.py's atomic output publication.
+"""Tests for tools/render/output.py's atomic output publication.
 
 ``publish`` must not write through a symlink planted at a guessable temporary
 name, and must leave the output with the mode a plain copy would.
@@ -15,7 +15,7 @@ from pathlib import Path
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.close_tracking import failing_fdopen  # noqa: E402
 from support.tmp_dir import make_tmp_dir  # noqa: E402
-from tools import render_output  # noqa: E402
+from tools.render import output as render_output  # noqa: E402
 
 
 class TestPublish(unittest.TestCase):

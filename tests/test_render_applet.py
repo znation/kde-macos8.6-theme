@@ -1,4 +1,4 @@
-"""Tests for tools/render_applet.py's KPackage applet-package preflight.
+"""Tests for tools/render/applet.py's KPackage applet-package preflight.
 
 The finder's location rule is the XDG data-root layout KPackage searches:
 ``<root>/plasma/plasmoids/<id>/metadata.json``. These tests pass explicit
@@ -16,7 +16,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.render.applet_package import make_applet_package  # noqa: E402
-from tools import render_applet  # noqa: E402
+from tools.render import applet as render_applet  # noqa: E402
 
 APPLET = "org.example.widget"
 _RELATIVE = Path("plasma") / "plasmoids" / APPLET

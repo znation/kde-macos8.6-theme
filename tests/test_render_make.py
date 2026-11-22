@@ -8,7 +8,7 @@ from pathlib import Path
 from support import repo_root, theme_install
 from support.executable_stubs import write_executable
 from support.process_assertions import assert_failed, assert_succeeded
-from tools.render_dialogs import DIALOG_MODES
+from tools.render.dialogs import DIALOG_MODES
 
 
 class TestRenderMake(unittest.TestCase):

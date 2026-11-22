@@ -29,9 +29,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 try:
-    from tools.render_session_script import session_script
+    from tools.render.session_script import session_script
 except ImportError:  # imported from a directly run tool
-    from render_session_script import session_script
+    from render.session_script import session_script
 
 SOCKET = "render-surface"
 COLOR_SCHEME = "MacOS8"

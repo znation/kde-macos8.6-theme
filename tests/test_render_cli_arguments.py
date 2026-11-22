@@ -10,7 +10,8 @@ from support.render.cli_cases import (  # noqa: E402
     assert_usage_error,
     delegated_render_args,
 )
-from tools import render_surface, render_workflow  # noqa: E402
+from tools import render_surface  # noqa: E402
+from tools.render import workflow as render_workflow  # noqa: E402
 
 
 class TestRenderCliArguments(unittest.TestCase):

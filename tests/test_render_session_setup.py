@@ -1,8 +1,8 @@
 """Tests for the scratch-session setup checks in the render tools.
 
 Moved out of ``tests/test_render_surface_units.py``: the layout, environment
-and cleanup that ``tools/render_session.py``'s ``Session.create`` makes, and
-the Kvantum themes link that ``tools/render_setup.py`` makes. The session
+and cleanup that ``tools/render/session.py``'s ``Session.create`` makes, and
+the Kvantum themes link that ``tools/render/setup.py`` makes. The session
 command and dialog argv checks live in ``tests/test_render_session_command.py``.
 """
 
@@ -15,7 +15,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from tools import render_session, render_setup  # noqa: E402
+from tools.render import session as render_session, setup as render_setup  # noqa: E402
 
 
 class TestSessionSetup(unittest.TestCase):

@@ -40,17 +40,17 @@ from pathlib import Path
 if __package__:
     from tools.diagnostics import report_error, report_missing_tool
     from tools.process_signals import exit_on_termination
-    from tools.render_applet import applet_problem
-    from tools.render_output import output_problem
-    from tools.render_surface_options import REQUIRED_TOOLS, parse_options
-    from tools.render_workflow import render
+    from tools.render.applet import applet_problem
+    from tools.render.output import output_problem
+    from tools.render.surface_options import REQUIRED_TOOLS, parse_options
+    from tools.render.workflow import render
 else:  # run directly: python3 tools/render_surface.py
     from diagnostics import report_error, report_missing_tool
     from process_signals import exit_on_termination
-    from render_applet import applet_problem
-    from render_output import output_problem
-    from render_surface_options import REQUIRED_TOOLS, parse_options
-    from render_workflow import render
+    from render.applet import applet_problem
+    from render.output import output_problem
+    from render.surface_options import REQUIRED_TOOLS, parse_options
+    from render.workflow import render
 
 TOOL = "render_surface"
 

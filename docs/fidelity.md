@@ -359,7 +359,7 @@ dense `difference_column_bounds` array and text prints it after row bounds and b
 Add the corresponding crop's y origin to locate an interval in either source image. The report
 uses raw RGBA deltas, including RGB beneath transparency, and is omitted unless requested.
 `make render` invokes the CLI
-(`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
+(`tools/render_surface.py`), which dispatches the lifecycle in `tools/render/workflow.py` to
 produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the
 window and byte-compares the title-bar strip (candidate `30,0,80,22` against reference
 `30,25,80,22`), the close, zoom and collapse box regions, and the side and bottom border strips of

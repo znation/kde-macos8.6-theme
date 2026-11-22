@@ -12,7 +12,7 @@ from pathlib import Path
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
 from support.executable_stubs import write_executable
-from tools import render_session, render_workflow  # noqa: E402
+from tools.render import session as render_session, workflow as render_workflow  # noqa: E402
 
 
 class TestSessionFocusSettle(unittest.TestCase):

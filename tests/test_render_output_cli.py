@@ -21,7 +21,8 @@ from unittest import mock
 
 from support import repo_root
 from support.cli_fixtures import call_main
-from tools import render_surface, render_workflow
+from tools import render_surface
+from tools.render import workflow as render_workflow
 from support.render.stub_tools import StubTools
 
 
@@ -43,7 +44,7 @@ class TestRenderOutputCli(StubTools, unittest.TestCase):
                 self.assert_scratch_removed()
 
     def test_a_read_only_output_directory_is_refused_before_installing(self):
-        # The last branch of `tools/render_output.py`'s `output_problem`: the
+        # The last branch of `tools/render/output.py`'s `output_problem`: the
         # directory exists but this
         # user may not write it. `os.access` is the only check that sees that,
         # and a refusal here keeps the failure a named diagnostic instead of

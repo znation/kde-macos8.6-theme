@@ -6,23 +6,23 @@ import argparse
 import os
 from pathlib import Path
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.containment import open_regular_binary
     from tools.diagnostics import log_tail_lines, report_error, report_failure, report_note
     from tools.png import PngError, read_png
     from tools.process_group import run_logged
-    from tools.render_output import publish
+    from tools.render.output import publish
     from tools.gtk_user_files import ConfigError
-    from tools.render_splash_client import splash_client
-    from tools.render_dialogs import DIALOG_MODES, DialogMode
-    from tools.render_session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command
-    from tools.render_window_rules import (
+    from tools.render.splash_client import splash_client
+    from tools.render.dialogs import DIALOG_MODES, DialogMode
+    from tools.render.session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command
+    from tools.render.window_rules import (
         RULES_FILE,
         write_focus_settle_script,
         write_readiness_settle_script,
         write_window_rules,
     )
-    from tools.render_setup import (
+    from tools.render.setup import (
         CONFIG_FILES,
         install_gtk_selection,
         install_theme,
@@ -37,18 +37,18 @@ else:  # run directly from render_surface.py
     from diagnostics import log_tail_lines, report_error, report_failure, report_note
     from png import PngError, read_png
     from process_group import run_logged
-    from render_output import publish
+    from render.output import publish
     from gtk_user_files import ConfigError
-    from render_splash_client import splash_client
-    from render_dialogs import DIALOG_MODES, DialogMode
-    from render_session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command
-    from render_window_rules import (
+    from render.splash_client import splash_client
+    from render.dialogs import DIALOG_MODES, DialogMode
+    from render.session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command
+    from render.window_rules import (
         RULES_FILE,
         write_focus_settle_script,
         write_readiness_settle_script,
         write_window_rules,
     )
-    from render_setup import (
+    from render.setup import (
         CONFIG_FILES,
         install_gtk_selection,
         install_theme,

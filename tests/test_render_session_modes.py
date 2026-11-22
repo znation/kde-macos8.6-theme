@@ -14,11 +14,7 @@ import unittest
 from unittest import mock
 
 from support.render.stub_tools import StubTools
-from tools import (
-    render_setup,
-    render_window_rules,
-    render_workflow,
-)
+from tools.render import setup as render_setup, window_rules as render_window_rules, workflow as render_workflow
 
 
 class TestSessionModes(StubTools, unittest.TestCase):

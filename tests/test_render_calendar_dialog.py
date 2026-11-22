@@ -197,7 +197,7 @@ class TestCalendarLocaleDialogRender(DialogGate, unittest.TestCase):
     default shifted the whole grid one column left and turned the red-ink
     pins below dark, gray and white (the 2026-11-12 steward failure the
     bug ledger records). The render session therefore pins the
-    measurement locale (``tools/render_session.py``), and this render
+    measurement locale (``tools/render/session.py``), and this render
     starts from a Monday-first caller (``Renders.HOSTILE_ENVIRONMENTS``)
     so a session that leaks the caller's locale again fails here instead
     of on a user's shell.

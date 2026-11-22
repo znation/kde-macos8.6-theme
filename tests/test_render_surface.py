@@ -1,10 +1,10 @@
 """Pixel gates for the headless Plasma render CLI's applet and desktop captures.
 
 ``tools/render_surface.py`` parses and validates arguments, while
-``tools/render_workflow.py`` runs the session through capture and publication.
-``tools/render_session.py`` owns scratch-session state and KWin command building,
-``tools/render_setup.py`` installs and configures its theme, and
-``tools/render_clients.py`` builds the dialog client argv; this module pins
+``tools/render/workflow.py`` runs the session through capture and publication.
+``tools/render/session.py`` owns scratch-session state and KWin command building,
+``tools/render/setup.py`` installs and configures its theme, and
+``tools/render/clients.py`` builds the dialog client argv; this module pins
 what the CLI's captures draw of the applet window's Aurorae chrome and the
 desktop bar. The startup splash's gate is in
 ``tests/test_render_splash_gate.py``. The dialog clients' engine-drawn widgets

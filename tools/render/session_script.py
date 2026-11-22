@@ -5,9 +5,9 @@ from __future__ import annotations
 import shlex
 
 try:
-    from tools.render_window_rules import READINESS_INTERFACE, READINESS_MEMBER
+    from tools.render.window_rules import READINESS_INTERFACE, READINESS_MEMBER
 except ImportError:  # imported from a directly run tool
-    from render_window_rules import READINESS_INTERFACE, READINESS_MEMBER
+    from render.window_rules import READINESS_INTERFACE, READINESS_MEMBER
 
 COLOR_SCHEME = "MacOS8"
 CLIENT_EXITED_DURING_CAPTURE = "render-session: client exited during the capture"
@@ -145,7 +145,7 @@ def session_script(
     returned, so the two-window pair's focus state is settled by
     re-activation before the frame is read, not left to the window
     manager's newest-window race (see
-    ``tools/render_window_rules.py::focus_settle_text``). The loop's
+    ``tools/render/window_rules.py::focus_settle_text``). The loop's
     ``qdbus6``/``qdbus`` fallback is resolved inside the session: a host
     without either only logs the omission and keeps the older race.
     With no script given the whole block is inert (an empty ``$focus``

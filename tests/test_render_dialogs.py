@@ -1,4 +1,4 @@
-"""Tests for the shared dialog-mode table in tools/render_dialogs.py.
+"""Tests for the shared dialog-mode table in tools/render/dialogs.py.
 
 ``DIALOG_MODES`` is the single declaration of the render CLI's fourteen dialog
 modes: the parser builds one ``--*-dialog`` flag per entry from it, the CLI's
@@ -13,8 +13,8 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import render_clients, render_dialogs  # noqa: E402
-from tools.render_clients import inactive_dialog_client
+from tools.render import clients as render_clients, dialogs as render_dialogs  # noqa: E402
+from tools.render.clients import inactive_dialog_client
 
 
 class TestDialogModes(unittest.TestCase):
