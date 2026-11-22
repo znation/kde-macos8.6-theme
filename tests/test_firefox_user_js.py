@@ -1,4 +1,4 @@
-"""Tests for ``tools/firefox_user_js.py`` -- the marker-delimited preference block.
+"""Tests for ``tools/firefox/user_js.py`` -- the marker-delimited preference block.
 
 The transform is pure text in and out, so these cases need no profile
 directory. The install that writes the block into a real ``user.js`` is pinned
@@ -13,7 +13,8 @@ from pathlib import Path
 from support import containment
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.firefox.content_cases import MARKER as CONTENT_MARKER
-from tools import firefox_user_js, install_firefox
+from tools import install_firefox
+from tools.firefox import user_js as firefox_user_js
 
 SHEET_PATH = Path(repo_root.ROOT) / install_firefox.SHEET
 CONTENT_SHEET_PATH = Path(repo_root.ROOT) / install_firefox.CONTENT_SHEET

@@ -17,10 +17,8 @@ from support import containment
 from support import repo_root
 from support.theme_install import write_file as _write
 from support.firefox_profile_case import FirefoxProfileTestCase, read_utf8 as _read
-from tools import (
-    firefox_user_files,
-    install_firefox,
-)
+from tools import install_firefox
+from tools.firefox import user_files as firefox_user_files
 
 SHEET_PATH = Path(repo_root.ROOT) / install_firefox.SHEET
 

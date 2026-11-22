@@ -23,12 +23,10 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.theme_install import write_file as _write
 from support.firefox_profile_case import FirefoxProfileTestCase, read_utf8 as _read
 from support.process_assertions import assert_succeeded
-from tools import (
-    firefox_profile_actions,
-    firefox_user_files,
-    firefox_user_js,
-    install_firefox,
-)
+from tools import install_firefox
+from tools.firefox import profile_actions as firefox_profile_actions
+from tools.firefox import user_files as firefox_user_files
+from tools.firefox import user_js as firefox_user_js
 
 SHEET_PATH = Path(repo_root.ROOT) / install_firefox.SHEET
 CONTENT_SHEET_PATH = Path(repo_root.ROOT) / install_firefox.CONTENT_SHEET

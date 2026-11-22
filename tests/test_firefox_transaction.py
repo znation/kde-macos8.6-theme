@@ -9,7 +9,8 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import firefox_profile_actions, firefox_transaction
+from tools.firefox import profile_actions as firefox_profile_actions
+from tools.firefox import transaction as firefox_transaction
 
 
 class TestPublishInstall(unittest.TestCase):

@@ -19,7 +19,10 @@ from unittest import mock
 
 from support.cli_fixtures import run_main_with_env
 from support.tmp_dir import make_tmp_dir
-from tools import firefox_profile, firefox_user_files, firefox_user_js, install_firefox
+from tools import install_firefox
+from tools.firefox import profile as firefox_profile
+from tools.firefox import user_files as firefox_user_files
+from tools.firefox import user_js as firefox_user_js
 
 
 def read_utf8(path):

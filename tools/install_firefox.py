@@ -7,11 +7,11 @@ directory and adds the preference that makes Firefox read them;
 ``make remove-firefox`` removes exactly those three changes. The profile is
 named with ``--profile``/``FIREFOX_PROFILE`` or, without either, resolved from
 ``installs.ini`` and ``profiles.ini`` under ``$HOME/.mozilla/firefox``.
-Profile discovery lives in ``tools/firefox_profile.py``, the profile files'
-bounded read and atomic write in ``tools/firefox_user_files.py``, and the
-``user.js`` marker-block transform in ``tools/firefox_user_js.py``. Profile
-file installation and removal live in ``tools/firefox_profile_actions.py``;
-install publication and rollback live in ``tools/firefox_transaction.py``.
+Profile discovery lives in ``tools/firefox/profile.py``, the profile files'
+bounded read and atomic write in ``tools/firefox/user_files.py``, and the
+``user.js`` marker-block transform in ``tools/firefox/user_js.py``. Profile
+file installation and removal live in ``tools/firefox/profile_actions.py``;
+install publication and rollback live in ``tools/firefox/transaction.py``.
 The bounded-wait profile lock shared with the GTK tools lives in
 ``tools/file_lock.py``.
 
@@ -41,8 +41,8 @@ from pathlib import Path
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import report_error, report_note
-    from tools.firefox_profile import resolve_profile
-    from tools.firefox_profile_actions import (
+    from tools.firefox.profile import resolve_profile
+    from tools.firefox.profile_actions import (
         CONTENT_CSS_MARKER,
         CONTENT_SHEET,
         CSS_MARKER,
@@ -51,13 +51,13 @@ if __package__:
         apply_profile,
         remove_profile,
     )
-    from tools.firefox_user_files import ConfigError
+    from tools.firefox.user_files import ConfigError
     from tools.file_lock import exclusive_flock
 else:  # run directly: python3 tools/install_firefox.py
     from argument_parsing import EscapingArgumentParser
     from diagnostics import report_error, report_note
-    from firefox_profile import resolve_profile
-    from firefox_profile_actions import (
+    from firefox.profile import resolve_profile
+    from firefox.profile_actions import (
         CONTENT_CSS_MARKER,
         CONTENT_SHEET,
         CSS_MARKER,
@@ -66,7 +66,7 @@ else:  # run directly: python3 tools/install_firefox.py
         apply_profile,
         remove_profile,
     )
-    from firefox_user_files import ConfigError
+    from firefox.user_files import ConfigError
     from file_lock import exclusive_flock
 
 TOOL = "install_firefox"

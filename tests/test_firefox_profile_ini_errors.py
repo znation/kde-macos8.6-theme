@@ -1,4 +1,4 @@
-"""Tests for ``tools/firefox_profile.py`` -- reading ``installs.ini`` and ``profiles.ini``.
+"""Tests for ``tools/firefox/profile.py`` -- reading ``installs.ini`` and ``profiles.ini``.
 
 These pin how profile discovery reports an INI file that cannot be read: a
 malformed, duplicate-keyed, non-UTF-8, unreadable, oversize, or FIFO file. They
@@ -18,7 +18,8 @@ from unittest import mock
 from support import repo_root, snippet_child
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.firefox_profile_case import FirefoxProfileTestCase
-from tools import firefox_profile, firefox_user_files
+from tools.firefox import profile as firefox_profile
+from tools.firefox import user_files as firefox_user_files
 
 
 class TestProfileIniErrors(FirefoxProfileTestCase):

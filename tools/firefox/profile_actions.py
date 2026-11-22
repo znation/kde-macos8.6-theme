@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-if __package__:
+if __package__ == "tools.firefox":
     from tools.containment import read_bytes
     from tools.diagnostics import report_failure, report_note
-    from tools.firefox_user_files import (
+    from tools.firefox.user_files import (
         MAX_PROFILE_FILE_BYTES,
         ConfigError,
         read_profile_text,
@@ -16,8 +16,8 @@ if __package__:
         user_js_path,
         write_profile_text,
     )
-    from tools.firefox_user_js import remove_user_js, set_user_js
-    from tools.firefox_transaction import (
+    from tools.firefox.user_js import remove_user_js, set_user_js
+    from tools.firefox.transaction import (
         collect_rollback_errors,
         publish_install,
         raise_with_rollback_errors,
@@ -29,7 +29,7 @@ if __package__:
 else:  # imported from a directly run tool
     from containment import read_bytes
     from diagnostics import report_failure, report_note
-    from firefox_user_files import (
+    from firefox.user_files import (
         MAX_PROFILE_FILE_BYTES,
         ConfigError,
         read_profile_text,
@@ -38,8 +38,8 @@ else:  # imported from a directly run tool
         user_js_path,
         write_profile_text,
     )
-    from firefox_user_js import remove_user_js, set_user_js
-    from firefox_transaction import (
+    from firefox.user_js import remove_user_js, set_user_js
+    from firefox.transaction import (
         collect_rollback_errors,
         publish_install,
         raise_with_rollback_errors,

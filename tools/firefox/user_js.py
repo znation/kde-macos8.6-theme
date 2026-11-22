@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 
-if __package__:
+if __package__ == "tools.firefox":
     from tools.text_lines import BOM, join_line_pairs
 else:  # imported from a directly run tool
     from text_lines import BOM, join_line_pairs

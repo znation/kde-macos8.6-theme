@@ -16,11 +16,9 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.theme_install import write_file as _write
 from support.firefox_profile_case import FirefoxProfileTestCase, read_utf8 as _read
-from tools import (
-    firefox_user_files,
-    firefox_user_js,
-    install_firefox,
-)
+from tools import install_firefox
+from tools.firefox import user_files as firefox_user_files
+from tools.firefox import user_js as firefox_user_js
 
 
 class TestRemoveRollback(FirefoxProfileTestCase):

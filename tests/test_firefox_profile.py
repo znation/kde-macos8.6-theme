@@ -1,4 +1,4 @@
-"""Tests for ``tools/firefox_profile.py`` -- resolving the Firefox profile directory.
+"""Tests for ``tools/firefox/profile.py`` -- resolving the Firefox profile directory.
 
 Each case runs against a temp ``HOME`` so a real Firefox profile is never read
 or written. The installer suites that use the resolved profile live in
@@ -15,7 +15,8 @@ from unittest import mock
 
 from support.theme_install import write_file as _write
 from support.firefox_profile_case import FirefoxProfileTestCase
-from tools import firefox_profile, firefox_user_files
+from tools.firefox import profile as firefox_profile
+from tools.firefox import user_files as firefox_user_files
 
 
 class TestProfileResolution(FirefoxProfileTestCase):

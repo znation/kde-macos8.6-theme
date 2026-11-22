@@ -93,7 +93,7 @@ def unresolved_home_state(value: str) -> str:
     value is named in shell quoting that marks the value's bounds, and
     ``report_error``'s escaping keeps every byte from reaching a terminal
     raw. Two refusals for a direct ``HOME`` read speak this wording, in
-    ``tools/apply_cursor.py``'s ``resolve_homes`` and ``tools/firefox_profile``'s
+    ``tools/apply_cursor.py``'s ``resolve_homes`` and ``tools/firefox/profile``'s
     profile discovery; :func:`require_home` names each XDG variable through
     :func:`_home_state`, which additionally distinguishes an empty one.
     """

@@ -5,6 +5,40 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Group the flat firefox_* tools modules into tools/firefox/ (part 6/8 of the tools regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Land the firefox-family slice of the flat-`tools/` regroup (see
+part 1/8 for the split's shared rules; the parts are independent).
+
+**Modules to move (import lines per module; importer files counted on
+main).** `firefox_profile` (7), `firefox_profile_actions` (11),
+`firefox_transaction` (4), `firefox_user_files` (12), `firefox_user_js`
+(4) → `tools/firefox/` with `__init__.py`: `profile.py`,
+`profile_actions.py`, `transaction.py`, `user_files.py`, `user_js.py`. 10
+files import a `firefox_*` member. `install_firefox.py` stays (CLI).
+
+**Files touched.** The five moved modules, their 10 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tools/firefox/` lists `__init__.py` and the five moved modules, and
+  `rg -n 'tools[./]firefox_(profile|profile_actions|transaction|user_files|user_js)\b|import (firefox_profile|firefox_profile_actions|firefox_transaction|firefox_user_files|firefox_user_js)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+Landed note: the importer list above is short. The test modules and `tests/support/`
+files that import the moved modules are updated too, and the installer and the moved
+modules fall back to `firefox.<module>` when run directly, with their package check
+narrowed to `tools.firefox`, so `python3 tools/install_firefox.py` still runs from any cwd.
+
 ### Group the flat uninstall_* tools modules into tools/uninstall/ (part 7/8 of the tools regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** Land the uninstall-family slice of the flat-`tools/` regroup

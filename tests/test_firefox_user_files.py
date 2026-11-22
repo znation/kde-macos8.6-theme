@@ -1,4 +1,4 @@
-"""Unit tests for tools/firefox_user_files.py profile text reads.
+"""Unit tests for tools/firefox/user_files.py profile text reads.
 
 ``read_profile_text`` reads a profile file (userChrome.css, user.js) through a
 byte cap of ``MAX_PROFILE_FILE_BYTES``: a file exactly at the cap is read whole,
@@ -11,8 +11,8 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import firefox_user_files
-from tools.firefox_user_files import ConfigError, read_profile_text
+from tools.firefox import user_files as firefox_user_files
+from tools.firefox.user_files import ConfigError, read_profile_text
 
 CAP = firefox_user_files.MAX_PROFILE_FILE_BYTES
 

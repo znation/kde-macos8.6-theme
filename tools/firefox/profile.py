@@ -5,7 +5,7 @@ otherwise the active profile is discovered under ``$HOME/.mozilla/firefox``
 following Firefox's own ``installs.ini`` then ``profiles.ini`` order.
 
 :class:`ConfigError` is the Firefox install's refusal type, defined in
-``tools/firefox_user_files.py`` so this module and the installer raise the
+``tools/firefox/user_files.py`` so this module and the installer raise the
 same one.
 """
 
@@ -17,13 +17,13 @@ import os
 import stat
 from pathlib import Path
 
-if __package__:
+if __package__ == "tools.firefox":
     from tools.containment import resolves_within
-    from tools.firefox_user_files import ConfigError, read_failure, read_firefox_bytes
+    from tools.firefox.user_files import ConfigError, read_failure, read_firefox_bytes
     from tools import xdg_homes
 else:  # imported from a directly run tool
     from containment import resolves_within
-    from firefox_user_files import ConfigError, read_failure, read_firefox_bytes
+    from firefox.user_files import ConfigError, read_failure, read_firefox_bytes
     import xdg_homes
 
 

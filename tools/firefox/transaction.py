@@ -6,8 +6,8 @@ from collections.abc import Callable, Iterable, Sequence
 from pathlib import Path
 from typing import NoReturn
 
-if __package__:
-    from tools.firefox_user_files import (
+if __package__ == "tools.firefox":
+    from tools.firefox.user_files import (
         ConfigError,
         read_profile_text,
         write_profile_bytes,
@@ -15,7 +15,7 @@ if __package__:
     )
     from tools.os_error_refusal import refusing_os_errors
 else:  # imported from a directly run tool
-    from firefox_user_files import (
+    from firefox.user_files import (
         ConfigError,
         read_profile_text,
         write_profile_bytes,
@@ -32,7 +32,7 @@ def raise_with_rollback_errors(
     With no rollback errors this re-raises *failure* unchanged. Otherwise it
     raises a ``ConfigError`` whose message is *failure* followed by each
     rollback error, chained to *failure* as its cause. Its two callers are
-    ``publish_install`` here and the removal path in ``firefox_profile_actions``.
+    ``publish_install`` here and the removal path in ``tools/firefox/profile_actions.py``.
     """
     if rollback_errors:
         raise ConfigError(

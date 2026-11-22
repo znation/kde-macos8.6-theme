@@ -10,17 +10,17 @@ non-blocking read they share, and the atomic write that publishes them.
 write below raises it, and so do profile discovery and the install workflow,
 so ``main`` can report one ``install_firefox: error:`` line instead of letting
 a bare ``OSError`` or ``UnicodeDecodeError`` traceback escape. Profile
-discovery lives in ``tools/firefox_profile.py``, the ``user.js`` marker-block
-transform in ``tools/firefox_user_js.py``, transaction recovery in
-``tools/firefox_transaction.py`` and install/remove policy in
-``tools/firefox_profile_actions.py``.
+discovery lives in ``tools/firefox/profile.py``, the ``user.js`` marker-block
+transform in ``tools/firefox/user_js.py``, transaction recovery in
+``tools/firefox/transaction.py`` and install/remove policy in
+``tools/firefox/profile_actions.py``.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-if __package__:
+if __package__ == "tools.firefox":
     from tools.atomic_write import write_atomically
     from tools.containment import read_capped_bytes
     from tools.os_error_refusal import refusing_os_errors
