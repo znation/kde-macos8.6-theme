@@ -14,7 +14,7 @@
  * check-radio arm at all, only the `.osd popover.menu` transparency
  * override left untouched here. The recipe values are the existing CHECK and
  * RADIO specs (tests/support/gtk_theme_spec.py), pinned by the shared
- * GtkSheetRuleCases::test_check_and_radio; every state group repeats them
+ * GtkSharedControlCases::test_check_and_radio; every state group repeats them
  * byte-for-byte because the stock arms set no geometry, glyph source or
  * checked spelling, so the plain `check`, `radio` and mixed/checked glyph
  * rules keep governing inside overlays. The one clearance is
