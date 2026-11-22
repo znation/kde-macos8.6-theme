@@ -10,6 +10,7 @@ if __package__ == "tools.firefox":
     from tools.firefox.user_files import (
         MAX_PROFILE_FILE_BYTES,
         ConfigError,
+        read_failure,
         read_profile_text,
         user_chrome_path,
         user_content_path,
@@ -32,6 +33,7 @@ else:  # imported from a directly run tool
     from firefox.user_files import (
         MAX_PROFILE_FILE_BYTES,
         ConfigError,
+        read_failure,
         read_profile_text,
         user_chrome_path,
         user_content_path,
@@ -76,7 +78,7 @@ def apply_profile(profile: Path) -> int:
         try:
             data = read_bytes(source_path, ROOT)
         except (OSError, ValueError) as exc:
-            raise ConfigError(f"cannot read {source_path}: {exc}") from exc
+            raise read_failure(source_path, exc) from exc
         pending.append((source_path, marker, path_for(profile), data))
 
     destinations = []
