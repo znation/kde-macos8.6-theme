@@ -215,6 +215,30 @@ class TestUnwritableConfigHome(GhosttyCase):
         self.assertEqual(self.target.read_bytes(), self.block())
 
 
+class TestUnreadableConfigFile(GhosttyCase):
+    """A config path that cannot be read as a file is refused with exit 2, untouched."""
+
+    def make_directory_at_target(self):
+        self.target.mkdir(parents=True)
+        (self.target / "keep").write_bytes(b"x = 1\n")
+
+    def test_apply_refuses_a_directory_at_the_config_path(self):
+        self.make_directory_at_target()
+        result = self.run_tool()
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn(f"cannot read {self.target}", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertEqual((self.target / "keep").read_bytes(), b"x = 1\n")
+
+    def test_remove_refuses_a_directory_at_the_config_path(self):
+        self.make_directory_at_target()
+        result = self.run_tool("--remove")
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn(f"cannot read {self.target}", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertEqual((self.target / "keep").read_bytes(), b"x = 1\n")
+
+
 class TestMakeTargets(unittest.TestCase):
     def test_apply_runs_the_ghostty_step_after_the_cursor_step(self):
         result = theme_install.run_make(
