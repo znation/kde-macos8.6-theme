@@ -22,6 +22,7 @@ from __future__ import annotations
 import os
 import shutil
 import unittest
+from collections import Counter
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -46,7 +47,7 @@ from support.render.gates import (
 from support.svg_case import parse_svg
 from svg_assertions import render_slices
 from tools import render_surface  # noqa: E402
-from tools.png import pixel_at  # noqa: E402
+from tools.png import Image, pixel_at  # noqa: E402
 
 
 # The rendered check box cell: the shipped 14x14 canvas at 1:1, measured
@@ -432,6 +433,48 @@ class TestIconDialogRender(DialogGate, unittest.TestCase):
         self.assert_push_button_face_reaches_its_row(ICON_PUSH_BUTTON)
 
 
+def band_colour_summary(image, band, limit=3):
+    """Name the most common colours in *band* as ``"#RRGGBB xN"`` items.
+
+    *band* is ``(x, y, width, height)``; the colours are ordered most common
+    first, so a failure message shows what the band actually held.
+    """
+    bx, by, bw, bh = band
+    counts = Counter(
+        hex_colour(pixel_at(image, x, y))
+        for x in range(bx, bx + bw)
+        for y in range(by, by + bh)
+    )
+    return ", ".join(f"{colour} x{n}" for colour, n in counts.most_common(limit))
+
+
+class TestBandColourSummary(unittest.TestCase):
+    """The band summary names the dominant colours, most common first."""
+
+    def test_names_the_dominant_colours_in_order(self):
+        # A 2x2 band: three black pixels and one #777777 pixel.
+        image = Image(
+            2,
+            2,
+            bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0x77, 0x77, 0x77]),
+        )
+        self.assertEqual(
+            band_colour_summary(image, (0, 0, 2, 2), limit=2),
+            "#000000 x3, #777777 x1",
+        )
+
+    def test_limit_caps_the_number_of_colours_named(self):
+        # A 3x2 band: black x3, #101010 x2, #202020 x1. A limit of 2 keeps
+        # the two most common and drops the single #202020 pixel.
+        black, mid, low = (0, 0, 0), (0x10, 0x10, 0x10), (0x20, 0x20, 0x20)
+        pixels = [black] * 3 + [mid] * 2 + [low]
+        image = Image(3, 2, bytes(b for pixel in pixels for b in pixel))
+        self.assertEqual(
+            band_colour_summary(image, (0, 0, 3, 2), limit=2),
+            "#000000 x3, #101010 x2",
+        )
+
+
 @dialog_gate_guard()
 class TestInactiveDialogRender(DialogGate, unittest.TestCase):
     """The shipped inactive Aurorae decoration as KWin draws the unfocused window.
@@ -530,14 +573,18 @@ class TestInactiveDialogRender(DialogGate, unittest.TestCase):
         # byte-compared.
         image = self.candidate_image()
         gx, gy, gw, gh = self.GLYPH_BAND
-        self.assertTrue(
-            any(
-                hex_colour(pixel_at(image, x, y)) == "#777777"
-                for x in range(gx, gx + gw)
-                for y in range(gy, gy + gh)
-            ),
-            "the inactive title has no full-strength text ink",
+        found = any(
+            hex_colour(pixel_at(image, x, y)) == "#777777"
+            for x in range(gx, gx + gw)
+            for y in range(gy, gy + gh)
         )
+        if not found:
+            # Name the colours the band holds: an all-black band is a capture
+            # that never drew the title, a different shade is a colour change.
+            self.fail(
+                "the inactive title has no full-strength text ink; band colours: "
+                + band_colour_summary(image, self.GLYPH_BAND)
+            )
 
     def test_right_window_keeps_its_active_frame(self):
         # The right window's border ring stays the active BLACK frame, and

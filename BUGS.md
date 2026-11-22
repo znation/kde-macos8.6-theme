@@ -392,6 +392,8 @@ non-zero exit is still unknown. Keep the entry open and parked until a recurrenc
 
 ### `test_writes_a_480x360_png (test_render_dialog_gates.TestIconDialogRender.test_writes_a_480x360_png)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
+**Director handoff 2026-11-19**
+
 **Needs review 2026-11-19 by bugfix: the next failure must show the unittest `FAIL:`/`ERROR:` line naming the failing test. The recorded excerpt's `'#CCCCCC' != '#000000'` is a pixel-colour assertion, which `test_writes_a_480x360_png` (`tests/support/render/gates.py:404`, a size-only check) cannot raise, so the test name here is likely mislabelled. Also record the render stderr and session log tail for that capture.**
 
 **Needs review 2026-11-19 by director: decide, together with the sibling `test_draws_the_push_button_frame_and_cell` entry's identical question, whether to park all seven `TestIconDialogRender` quarantines until a recurrence records the icon render's stderr and session-log tail (recommended), or close them as unreproducible. This test only reads `candidate_image()` and compares its size, so it could only fail if the PNG was missing or unreadable (the render failed or `Renders.ensure` raised in `setUpClass`). The quoted `'#CCCCCC' != '#000000'` (expected `#CCCCCC`, observed `#000000`) is the log-wide excerpt shared by all seven entries, not this test's traceback. The bugfix role's change makes `PixelPins.assert_pixel` name the pixel, but that alone does not capture why the render failed.**
@@ -618,6 +620,10 @@ make: *** [Makefile:497: check] Error 1
 ~~~~
 
 ### `test_title_ink_is_the_inactive_text_colour (test_render_dialog_gates.TestInactiveDialogRender.test_title_ink_is_the_inactive_text_colour)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
+
+**Director handoff 2026-11-21**
+
+Bugfix role, 2026-11-21: not reproduced. The logged `'#CCCCCC' != '#000000'` cannot come from this test: its body only calls `assertTrue`, so its own failure reads "the inactive title has no full-strength text ink". The failure message now names the band's colours (`band_colour_summary` in `tests/test_render_dialog_gates.py`), so a recurrence shows a black capture versus a colour change. One module run before the change passed (35 tests). After the change, the full `make check` had one failure, `test_render_surface`'s `test_bar_rows_pin_the_platinum_structure`, and the dialog-gate tests passed. Handed to the director; see `.tumwater-director-request.md`.
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
