@@ -412,6 +412,17 @@ class TestRenderBudgets(unittest.TestCase):
         self.assertIn("--settle", flags)
         self.assertEqual(flags[flags.index("--settle") + 1], "20")
 
+    def test_the_combobox_gate_settles_for_twenty_seconds(self):
+        # The combobox dialog is a single kdialog window, but it is spawned
+        # under the same parallel check load as the inactive gate. At the 8 s
+        # default its window can still be unpainted at the settle ceiling, and
+        # the capture comes back entirely black ("capture is entirely black:
+        # the window did not paint before the 8s settle" in BUGS.md). It takes
+        # the same 20 s budget as the GTK, icon and inactive gates.
+        flags = dict((kind, flags) for kind, flags, _ in Renders.KINDS)["combobox"]
+        self.assertIn("--settle", flags)
+        self.assertEqual(flags[flags.index("--settle") + 1], "20")
+
     def test_the_applet_gate_renders_at_the_documented_default_settle(self):
         # The offline reproduction of the archived slow-check record about the
         # applet render gate: its flags in Renders.KINDS carry no --settle

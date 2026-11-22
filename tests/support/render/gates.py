@@ -229,7 +229,7 @@ class Renders:
     KINDS = (
         ("applet", (), "render.png"),
         ("checkbox", ("--checkbox-dialog",), "dialog.png"),
-        ("combobox", ("--combobox-dialog",), "dialog.png"),
+        ("combobox", ("--combobox-dialog", "--settle", "20"), "dialog.png"),
         ("lineedit", ("--lineedit-dialog",), "dialog.png"),
         ("menu", ("--menu-dialog",), "dialog.png"),
         ("radiolist", ("--radiolist-dialog",), "dialog.png"),

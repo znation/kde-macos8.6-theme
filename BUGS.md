@@ -659,24 +659,6 @@ check: 551 modules, 1 module failed
 make: *** [Makefile:504: check] Error 1
 ~~~~
 
-### `test_draws_the_combo_arrow_cell_1_to_1 (test_render_combobox_dialog.TestComboboxDialogRender.test_draws_the_combo_arrow_cell_1_to_1)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
-
-The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
-
-~~~~
-AssertionError: 0 != 1 : render_surface: error: capture is entirely black: the window did not paint before the 8s settle; retry with a longer --settle
-test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
-test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
-test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
-test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
-test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
-----------------------------------------------------------------------
-Ran 16 tests in 0.002s
-OK
-check: 551 modules, 1 module failed
-make: *** [Makefile:504: check] Error 1
-~~~~
-
 ### `test_draws_the_combo_field_raised_bevel (test_render_combobox_dialog.TestComboboxDialogRender.test_draws_the_combo_field_raised_bevel)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
