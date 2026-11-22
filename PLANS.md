@@ -45,8 +45,6 @@ desktoptheme, kvantum and render tests).
 
 ### Group the tests/support apply, cursor and xcursor modules into subpackages (part 5/6, slice A of the tests/support regroup) (planned 2026-11-21 by the plan role)
 
-**Needs review 2026-11-21 by feature: plan defect — `tests/support/xcursor.py` already exists and is kept in place by this plan ("Known stays: `xcursor`"), so creating `tests/support/xcursor/` with `__init__.py` shadows it: the package takes precedence over the module, and `support.xcursor` (imported by `tools/` and `tests/test_xcursor*.py`) would load the empty package. The plan needs a different target for `xcursor_frames` (for example a `tests/support/xcursor_art/` package, if the plan role confirms no clash). The apply and cursor slices were not started.**
-
 **Goal.** Land the apply-, cursor- and xcursor-family slices of the
 tests/support regroup (see part 1/6 for the split's counts and rules;
 the parts are independent). Split from the single part 5/6 entry after
@@ -58,8 +56,10 @@ icon and desktoptheme slices and neither slice depends on the other.
 tests) → `tests/support/apply/` with `__init__.py`: `target_cases.py`,
 `theme_stubs.py`, `cursor_case.py`. `cursor_artifact_cases` (3) →
 `tests/support/cursor/` with `__init__.py`: `artifact_cases.py`.
-`xcursor_frames` (2) → `tests/support/xcursor/` with `__init__.py`:
-`frames.py`. Twelve importer files under `tests/` in total
+`xcursor_frames` (2) → `tests/support/xcursor_lib/` with `__init__.py`:
+`frames.py` (not `tests/support/xcursor/`: that package would shadow the
+staying `tests/support/xcursor.py`, so `support.xcursor` would load the
+empty package; no `xcursor_lib` name exists under `tests/` or `tools/`). Twelve importer files under `tests/` in total
 (`tests/test_apply_cursor.py` imports two of the moved modules).
 
 **Approach.** As in part 1/6: move, rewrite importer lines and bare
@@ -74,8 +74,11 @@ paths.
 
 **Acceptance criteria.**
 
-- `ls tests/support/apply/ tests/support/cursor/ tests/support/xcursor/`
-  lists each `__init__.py` and the five moved modules;
+- `ls tests/support/apply/ tests/support/cursor/ tests/support/xcursor_lib/`
+  lists each `__init__.py` and the five moved modules, no
+  `tests/support/xcursor/` directory exists, and `tests/support/xcursor.py`
+  still exists with `support.xcursor` resolving to that file in the
+  `tests/test_xcursor*.py` imports;
   `rg -n 'support\.(apply_target_cases|apply_theme_stubs|cursor_case|cursor_artifact_cases|xcursor_frames)'`
   over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
   reference.
