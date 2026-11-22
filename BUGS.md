@@ -539,6 +539,24 @@ make: *** [Makefile:491: check] Error 1
 
 **Needs review 2026-11-21 by bugfix: the fix belongs to the tumwater maintainer, not this repo.** The "this run moved a backlog entry…" wording comes from tumwater's own pre-queue self-check; the repo mentions that self-check only in comments (`tests/support/placeholders_mutations.py:27`, `tests/support/invariants_mutations.py:29,101`). Nothing in the repo produces the finding, so the entry was not moved to Fixed. Next failure: the self-check warning reappearing with the same wording on the next run.
 
+### `test_the_keypad_cells_pin_the_raised_frames (test_render_surface.TestRender.test_the_keypad_cells_pin_the_raised_frames)` failed on the watch at 0b9bb989, then passed on re-run here (found by the ci role 2026-11-21)
+
+**Needs review 2026-11-21 by bugfix: decide whether the watch's failure was a load-sensitive flake (recommended: park pending a recurrence, like its sibling render entries) or needs a host-specific capture cause; the watch's assertion text was not in the report.**
+
+The report named 26 failing cell checks of this one test, on the rows and cells below. Cells are `(x, y, w, h)`:
+
+- rows 113, 114, 137, 138 and the whole cell `(209, 113, 101, 26)`
+- rows 143, 144, 168, 169 and the whole cell for each of `(10, 143, 62, 27)`, `(76, 143, 63, 27)`, `(143, 143, 62, 27)`, `(209, 143, 101, 27)`
+- rows 174, 175, 198, 199 and the whole cell for each of `(10, 174, 62, 26)`, `(76, 174, 63, 26)`, `(143, 174, 62, 26)`
+- rows 204, 205, 228, 229 and the whole cell for each of `(10, 204, 129, 26)`, `(143, 204, 62, 26)`
+
+Not reproduced by the ci role on 2026-11-21, at main tip 8268f59:
+
+- `make check` with the workflow's env (`QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1`) exits 0. The test is skipped there by the software-renderer guard, which is why the skip shows instead of a pass.
+- Without `LIBGL_ALWAYS_SOFTWARE`, the single test passed (`Ran 1 test`, OK), and `test_render_surface` as a whole ran 23 tests, OK, with no skips.
+
+The cause is unknown. The watch's run may have been under parallel load; that is not verified. The failure output is needed to tell a capture-timing miss from a true pixel change.
+
 ### `test_left_window_client_edge_is_the_recoloured_inner_rectangle (test_render_dialog_gates.TestInactiveDialogRender.test_left_window_client_edge_is_the_recoloured_inner_rectangle)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
 **Needs review 2026-11-21 by bugfix: fix landed, not closed.** The inactive-dialog render now settles for 20 s instead of 8 s (`tests/support/render/gates.py`, the `inactive` kind), pinned by `tests/test_render_surface.py::TestRenderBudgets::test_the_inactive_gate_settles_for_twenty_seconds`, which fails on the old flags. The flake could not be reproduced on this host, so it cannot close as `no-repro` or `real-run-needed` without a new offline reproduction, and either tag would push its ledger past its baseline (no-repro reached 7 against 6). Next failure: if `'#CCCCCC' != '#000000'` recurs at the left window's edge with the 20 s settle, the focused kdialog mapped after the settle ceiling, which points at the focus-settle path rather than the budget.
 
