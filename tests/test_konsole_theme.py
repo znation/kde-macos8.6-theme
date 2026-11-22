@@ -3,7 +3,7 @@
 Konsole reads a colorscheme as a KConfig INI file: one `[Group]` per color,
 each holding `Color=R,G,B`. The background and foreground groups, and their
 intense variants, must equal `[Colors:View]` in `MacOS8.colors`. Slots 0 to 7
-must equal the classic 16-color table pinned in `tests/test_ghostty_theme.py`,
+must equal the classic 16-color table pinned in `tests/support/terminal_palette.py`,
 and slots 8 to 15 are the `...Intense` groups. The file has no selection group:
 Konsole's colorscheme grammar has none. Every value is re-derived here, so a
 drift in either source fails a pin.
@@ -15,7 +15,7 @@ import unittest
 
 from support.colorscheme_fixtures import load_scheme
 from support.repo_root import ROOT
-from test_ghostty_theme import PALETTE
+from support.terminal_palette import PALETTE
 
 SHIPPED = os.path.join(ROOT, "theme", "konsole", "MacOS8.colorscheme")
 

@@ -5,7 +5,7 @@
 #     [Colors:View] BackgroundNormal and ForegroundNormal in
 #     theme/color-schemes/MacOS8.colors. No reference screenshot shows a terminal.
 #   [Color0]..[Color7], [Color0Intense]..[Color7Intense]: the classic 16-color
-#     system table, ANSI slot 0..7 and 8..15, as tests/test_ghostty_theme.py pins it.
+#     system table, ANSI slot 0..7 and 8..15, as tests/support/terminal_palette.py pins it.
 #     The table has no separate bright blue or bright cyan, so Color4Intense and
 #     Color6Intense repeat Color4 and Color6, as in the Ghostty theme file.
 #   Group and key names: the colorscheme keys Konsole 25.04.2 reads, taken from its

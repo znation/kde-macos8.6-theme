@@ -5,7 +5,7 @@ base colors must equal `[Colors:View]` and `[Colors:Selection]` in
 `MacOS8.colors`, and the font must equal `FIXED_VALUE` in `tools/apply_theme.py`.
 Those sources are re-read here, so a drift in either one fails a pin. The
 16-color palette has no reference screenshot and is pinned against the table
-written below. The `ghostty` binary, when installed, must print the same values
+in `tests/support/terminal_palette.py`. The `ghostty` binary, when installed, must print the same values
 back from `ghostty +show-config`.
 """
 
@@ -17,6 +17,7 @@ import unittest
 from support import process_runner
 from support.colorscheme_fixtures import SCHEME
 from support.repo_root import ROOT
+from support.terminal_palette import PALETTE
 from support.tmp_dir import make_tmp_dir
 from tools.apply_theme import FIXED_VALUE
 
@@ -37,29 +38,6 @@ ALLOWED_KEYS = {
     "selection-foreground",
     "palette",
 }
-
-# Classic Platinum-era 16-color system table, ANSI slot -> color. Slots 12 and
-# 14 repeat 4 and 6 because the table has no bright blue or bright cyan. Written
-# here as the contract; the file must match it exactly.
-PALETTE = {
-    0: "#000000",
-    1: "#dd0806",
-    2: "#006411",
-    3: "#562c05",
-    4: "#0000d4",
-    5: "#4600a5",
-    6: "#02abea",
-    7: "#c0c0c0",
-    8: "#808080",
-    9: "#ff6403",
-    10: "#1fb714",
-    11: "#fcf305",
-    12: "#0000d4",
-    13: "#f20884",
-    14: "#02abea",
-    15: "#ffffff",
-}
-
 
 def _read_pairs(path):
     """Return the `(key, value)` pairs of a Ghostty config file, in order."""
