@@ -535,6 +535,96 @@ make: *** [Makefile:491: check] Error 1
 
 **Needs review 2026-11-21 by bugfix: the fix belongs to the tumwater maintainer, not this repo.** The "this run moved a backlog entry…" wording comes from tumwater's own pre-queue self-check; the repo mentions that self-check only in comments (`tests/support/placeholders_mutations.py:27`, `tests/support/invariants_mutations.py:29,101`). Nothing in the repo produces the finding, so the entry was not moved to Fixed. Next failure: the self-check warning reappearing with the same wording on the next run.
 
+### `test_left_window_client_edge_is_the_recoloured_inner_rectangle (test_render_dialog_gates.TestInactiveDialogRender.test_left_window_client_edge_is_the_recoloured_inner_rectangle)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.001s
+OK
+check: 549 modules, 2 modules failed
+make: *** [Makefile:497: check] Error 1
+~~~~
+
+### `test_left_window_field_is_the_flat_buttonless_bar (test_render_dialog_gates.TestInactiveDialogRender.test_left_window_field_is_the_flat_buttonless_bar)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.001s
+OK
+check: 549 modules, 2 modules failed
+make: *** [Makefile:497: check] Error 1
+~~~~
+
+### `test_left_window_outline_is_the_inactive_outline (test_render_dialog_gates.TestInactiveDialogRender.test_left_window_outline_is_the_inactive_outline)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.001s
+OK
+check: 549 modules, 2 modules failed
+make: *** [Makefile:497: check] Error 1
+~~~~
+
+### `test_right_window_keeps_its_active_frame (test_render_dialog_gates.TestInactiveDialogRender.test_right_window_keeps_its_active_frame)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.001s
+OK
+check: 549 modules, 2 modules failed
+make: *** [Makefile:497: check] Error 1
+~~~~
+
+### `test_title_ink_is_the_inactive_text_colour (test_render_dialog_gates.TestInactiveDialogRender.test_title_ink_is_the_inactive_text_colour)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.001s
+OK
+check: 549 modules, 2 modules failed
+make: *** [Makefile:497: check] Error 1
+~~~~
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
