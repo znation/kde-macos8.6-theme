@@ -123,7 +123,7 @@ not restore earlier settings or backups.
 To reselect the installed Plasma settings without installing packages or applying the other
 theme surfaces, run `make apply-plasma`. Install first with `make install`; it requires Python
 3.10+, `lookandfeeltool`, `plasma-apply-colorscheme`, `plasma-apply-desktoptheme` and
-`kwriteconfig6`. It preserves panels, attempts Kvantum selection when available (a non-default
+`kwriteconfig6`. It also writes the fixed-width font selection, points Konsole's default profile at that font and writes the window-button layout, as [Installing](docs/installing.md) describes. It preserves panels, attempts Kvantum selection when available (a non-default
 `${XDG_DATA_HOME}` prints a note naming the limitation, as the Installing section describes),
 and the splash change appears at the next login.
 
