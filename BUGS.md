@@ -599,6 +599,8 @@ make: *** [Makefile:497: check] Error 1
 
 ### `test_right_window_keeps_its_active_frame (test_render_dialog_gates.TestInactiveDialogRender.test_right_window_keeps_its_active_frame)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
 
+**Director handoff 2026-11-21**
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
