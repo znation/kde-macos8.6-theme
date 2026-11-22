@@ -70,8 +70,20 @@ class TestApplyBlock(unittest.TestCase):
         data = b"x = 1\r\n" + crlf_block + b"y = 2\r\n"
         self.assertEqual(apply_block(data, THEME), b"x = 1\r\n" + BLOCK + b"y = 2\r\n")
 
+    def test_block_whose_end_marker_is_the_last_line_without_newline_is_replaced(self):
+        # BLOCK[:-1] drops only the final newline after the end marker, so the
+        # marker is still the block's last line and the file ends inside it.
+        data = b"x = 1\n" + BLOCK[:-1]
+        self.assertEqual(apply_block(data, THEME), b"x = 1\n" + BLOCK)
+
 
 class TestRemoveBlock(unittest.TestCase):
+    def test_block_whose_end_marker_is_the_last_line_without_newline_is_removed(self):
+        self.assertEqual(remove_block(b"font-size = 12\n" + BLOCK[:-1]), b"font-size = 12\n")
+
+    def test_block_only_without_final_newline_becomes_empty(self):
+        self.assertEqual(remove_block(BLOCK[:-1]), b"")
+
     def test_restores_bytes_before_the_block(self):
         self.assertEqual(remove_block(b"background = #000000\n" + BLOCK), b"background = #000000\n")
 
