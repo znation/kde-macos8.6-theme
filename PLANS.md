@@ -89,9 +89,9 @@ paths.
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
-### Wallpaper: ground the flat desktop field in the reference desktop's `#63639C` (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup parts — its only shared surface, the desktop render gate, rides this same change)
-**Needs review 2026-11-21 by feature: plan defect — the desktop area of a fresh `--desktop` capture is not a stable flat value on this host, so the pin in step 5 has no consecutive pair to take. Four consecutive full runs (`tools/render_surface.py <scratch>/desktop.png --desktop`, all exit 0): runs 1 and 3 paint rows 20..399 solid `#000000` (243200 of 243200 pixels), runs 2 and 4 paint solid `#63639C`. No two consecutive runs agree, so the entry's stop condition holds. The black captures look like the wallpaper not yet painted at the capture point; this was not measured on the unchanged `#CCCCCC` tree, so it is not yet shown to be caused by the new tile. The plan role should decide how the gate settles the wallpaper before the pin is taken. The wallpaper edits (generator, tests, invariants, prose) were reverted and nothing is landed.**
+### Desktop wallpaper, part 2/2: ground the flat desktop field in the reference desktop's `#63639C` (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup parts — its only shared surface, the desktop render gate, rides this same change; "requires part 1/2 landed")
 
+**Settling (rewritten 2026-11-21 by the plan role, answering feature's plan-defect note).** The feature run measured alternate fresh `--desktop` captures painting rows 20..399 solid `#000000`. The cause is the render session, not the new tile: since the 2026-11-18 single-window readiness change, `tools/render/workflow.py` gives `--desktop` the KWin readiness script, whose `readiness_settle_text` reports `window.desktopWindow`, so the 30 s settle ends 1 s after plasmashell maps its desktop window, before the wallpaper paints. The same black rows already fail the gate on the unchanged `#CCCCCC` tree (BUGS.md, the `TestDesktopRender` quarantine reports first seen 2026-11-18: `'#CCCCCC' != '#000000'` in the desktop-area loop). Part 1/2 ("Desktop wallpaper, part 1/2: keep the `--desktop` render's settle ceiling") restores the full settle; take step 5's pair only after it has landed.
 
 **Goal.** The wallpaper package's images are a deliberate non-fidelity
 placeholder — a flat `#CCCCCC` tile the `docs/invariants.md` `## wallpapers`
@@ -181,6 +181,69 @@ is involved (each PNG is generated flat at its own resolution).
   wallpaper a neutral placeholder or "not a fidelity match"; the
   invariants wallpapers row names `desktop_betawiki.png` and the shade
   variant.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Desktop wallpaper, part 1/2: keep the `--desktop` render's settle ceiling (planned 2026-11-21 by the plan role; part 2/2 of the desktop wallpaper series depends on it)
+
+**Goal.** A fresh `tools/render_surface.py <out> --desktop` capture must show
+the painted desktop field below the menu bar every run. Today alternate runs
+paint rows 20..399 solid `#000000` (measured by the feature role 2026-11-21,
+four consecutive runs, two black and two painted), which fails
+`tests/test_render_surface.py::TestDesktopRender::test_bar_rows_pin_the_platinum_structure`
+on the unchanged `#CCCCCC` wallpaper (the BUGS.md `TestDesktopRender`
+quarantine reports, first seen 2026-11-18) and blocks part 2/2's re-pin.
+
+**Cause.** The 2026-11-18 readiness change (1b1c24b8c) gives every mode but
+`--splash` and the two-window inactive dialog the KWin readiness script.
+`tools/render/window_rules.py::readiness_settle_text` reports any
+`window.desktopWindow`, so for `--desktop` the session's `_settle_wait`
+(`tools/render/session_script.py`) ends the mode's 30 s settle 1 s after
+plasmashell maps its desktop window, before the containment's wallpaper
+paints. The bar paints first, so `_capture_is_unpainted` does not catch the
+frame. The mode's measured settle (`docs/invariants.md` `## tooling`
+`--desktop` row: plasmashell painted the bar and the flat desktop by a 20 s
+settle) predates readiness, like the splash's measured ceiling, which
+readiness already leaves alone.
+
+**Approach and files.**
+
+1. `tools/render/workflow.py`: in the `readiness_script` selection, leave
+   `--desktop` sessions without the readiness script, beside `args.splash`,
+   and extend the comment above it to say why (the desktop window maps
+   before its wallpaper paints, so the mode keeps its measured ceiling).
+2. `tests/test_render_session_modes.py::TestSessionModes::test_desktop_render_launches_the_plasmashell_client`:
+   assert the session script carries `readiness=""`, as the splash and
+   inactive-dialog tests in the same module already do.
+3. `docs/invariants.md`: in the `## tooling` readiness row (the one starting
+   "Single-window render sessions start a KWin readiness script"), add the
+   `--desktop` session to the sessions that keep their measured settle
+   ceiling, with the reason, and add the step 2 test to its test column.
+4. BUGS.md: once the runs in the criteria below pass, close the
+   `TestDesktopRender` quarantine reports whose recorded failure is the
+   desktop-area mismatch or the capture itself
+   (`test_bar_rows_pin_the_platinum_structure`, `test_left_mark_is_the_raised_box`,
+   `test_the_bar_between_the_mark_and_the_right_half_is_empty`,
+   `test_the_right_half_draws_its_live_content`,
+   `test_exits_zero_and_writes_a_640x400_png`). Move them to BUGS-FIXED.md
+   with the cause above and the run evidence. Leave any whose report shows a
+   different failure open.
+
+Leave the wallpaper and the gate's pinned values unchanged: part 2/2 owns
+those.
+
+**Acceptance criteria.**
+
+- `python3 tools/render_surface.py <scratch>/desktop.png --desktop` exits 0
+  on four consecutive runs, and every run's rows 20..399 are flat `#CCCCCC`
+  (no `#000000` pixel). Each run's render log shows the settle ending at its
+  ceiling, not at a client-ready signal.
+- A `--desktop` session script carries no readiness listener
+  (`readiness=""`). Applet and single-dialog sessions still carry the
+  readiness script, and the existing `tests/test_render_readiness.py` cases
+  pass unchanged.
+- The invariants readiness row names `--desktop` among the
+  ceiling-keeping sessions.
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
