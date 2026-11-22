@@ -279,6 +279,13 @@ GHOSTTY_ID := org.macos8.desktop
 GHOSTTY_PACKAGE := theme/ghostty/$(GHOSTTY_ID)
 GHOSTTY_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/ghostty/themes
 
+# Konsole reads a colorscheme flat from `$XDG_DATA_HOME/konsole/<name>.colorscheme`,
+# so the package is one file and installs by the single-file staging recipe
+# (`install_konsole_scheme`), not the id-nested package swap.
+KONSOLE_PACKAGE := theme/konsole
+KONSOLE_SCHEME_NAME := MacOS8.colorscheme
+KONSOLE_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/konsole
+
 # Kvantum's user-local theme search path is
 # `$XDG_DATA_HOME/themes/<name>/Kvantum/`, so a Kvantum theme installs as two
 # files directly inside a `Kvantum/` directory rather than as a package
@@ -326,8 +333,8 @@ GTK_USER_CSS_MARKER := /* org.macos8.desktop GTK 4 user CSS */
 # though it is one file. INSTALL_FAMILIES is the guard's vocabulary; the default
 # below must name the same families, and the guard rejects a default that names
 # one it does not know.
-INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk ghostty
-INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk ghostty
+INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk ghostty konsole
+INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk ghostty konsole
 
 # INSTALL_PACKAGES selects which artifact families `_install` copies. An empty
 # value (`?=` keeps one from the environment) filters every family out, so the
@@ -542,7 +549,7 @@ help:
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
 	@echo "  FIREFOX_PROFILE=path  absolute Firefox profile for apply/install-firefox/remove-firefox (default: active profile under \$$HOME/.mozilla/firefox)"
-	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk ghostty)"
+	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae kwin-decoration wallpaper icon-theme kvantum fonts gtk ghostty konsole)"
 	@echo "  FLOCK_TIMEOUT=s     seconds to wait for the install lock (default 60)"
 	@echo ""
 	@echo "Reference tools (run from the repository root):"
@@ -781,6 +788,16 @@ define install_color_scheme
 	mv "$$staging" "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)"
 endef
 
+# Konsole's colorscheme is one flat file in `konsole/`, staged as a hidden
+# sibling and renamed in exactly as `install_color_scheme` does, so an
+# interrupted copy cannot truncate a working scheme.
+define install_konsole_scheme
+	@staging="$(KONSOLE_INSTALL_DIR)/.$(KONSOLE_SCHEME_NAME).staging"; \
+	trap 'rm -f "$$staging"' EXIT; \
+	install -Dm644 "$(KONSOLE_PACKAGE)/$(KONSOLE_SCHEME_NAME)" "$$staging" && \
+	mv "$$staging" "$(KONSOLE_INSTALL_DIR)/$(KONSOLE_SCHEME_NAME)"
+endef
+
 # Stage each Kvantum theme file as a hidden sibling and rename it in, as the
 # color scheme does; the two files sit directly in the Kvantum/ directory, so
 # the package-directory swap does not fit.
@@ -834,6 +851,7 @@ _install:
 	$(if $(filter kvantum,$(INSTALL_PACKAGES)),$(call install_kvantum))
 	$(if $(filter fonts,$(INSTALL_PACKAGES)),$(call install_package,$(FONT_ID),$(FONT_PACKAGE),$(FONT_INSTALL_DIR)))
 	$(if $(filter ghostty,$(INSTALL_PACKAGES)),$(call install_package,$(GHOSTTY_ID),$(GHOSTTY_PACKAGE),$(GHOSTTY_INSTALL_DIR)))
+	$(if $(filter konsole,$(INSTALL_PACKAGES)),$(call install_konsole_scheme))
 	$(if $(filter gtk,$(INSTALL_PACKAGES)),$(call install_gtk))
 
 # Remove only the artifacts this theme installed -- including the GTK files,
@@ -855,7 +873,7 @@ uninstall:
 # the fixed destination parents before the removal recipe can reach outside
 # DATA_HOME; links at the final package directory are removed as links by
 # rm -rf and do not redirect traversal.
-require_uninstall_parents = for path in "$(DATA_HOME)" "$(INSTALL_DIR)" "$(LNF_INSTALL_DIR)" "$(DTHEME_INSTALL_DIR)" "$(AURORAE_INSTALL_DIR)" "$(KWINDEC_INSTALL_DIR)" "$(WALLPAPER_INSTALL_DIR)" "$(ICON_THEME_INSTALL_DIR)" "$(FONT_INSTALL_DIR)" "$(GHOSTTY_INSTALL_DIR)" "$(KVANTUM_INSTALL_DIR)" "$(GTK_INSTALL_DIR)" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(GTK_INSTALL_DIR)/assets"; do if [ -L "$$path" ]; then echo "$(1): refusing a symlink in the install destination: $$path" >&2; exit 2; fi; done
+require_uninstall_parents = for path in "$(DATA_HOME)" "$(INSTALL_DIR)" "$(LNF_INSTALL_DIR)" "$(DTHEME_INSTALL_DIR)" "$(AURORAE_INSTALL_DIR)" "$(KWINDEC_INSTALL_DIR)" "$(WALLPAPER_INSTALL_DIR)" "$(ICON_THEME_INSTALL_DIR)" "$(FONT_INSTALL_DIR)" "$(GHOSTTY_INSTALL_DIR)" "$(KONSOLE_INSTALL_DIR)" "$(KVANTUM_INSTALL_DIR)" "$(GTK_INSTALL_DIR)" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(GTK_INSTALL_DIR)/assets"; do if [ -L "$$path" ]; then echo "$(1): refusing a symlink in the install destination: $$path" >&2; exit 2; fi; done
 
 # The package removals repeat one shape -- the directory this theme owns
 # beside its `install_package` state: the package itself and the hidden
@@ -889,6 +907,10 @@ _uninstall:
 	# The Ghostty `themes/` directory and its `ghostty/` parent are removed only
 	# when empty, so a foreign file a user placed under either one survives.
 	rmdir "$(GHOSTTY_INSTALL_DIR)" "$(DATA_HOME)/ghostty" 2>/dev/null || true; \
+	# The Konsole scheme file and its staging sibling go; `konsole/` is removed
+	# only when empty, so a profile or foreign file there survives.
+	rm -f "$(KONSOLE_INSTALL_DIR)/$(KONSOLE_SCHEME_NAME)" "$(KONSOLE_INSTALL_DIR)/.$(KONSOLE_SCHEME_NAME).staging"; \
+	rmdir "$(KONSOLE_INSTALL_DIR)" 2>/dev/null || true; \
 	rmdir "$(GTK_INSTALL_DIR)/assets" "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" "$(KVANTUM_INSTALL_DIR)" "$(GTK_INSTALL_DIR)" 2>/dev/null || true
 # Every selection `make apply` published names an id `make uninstall` removes,
 # so each config file the apply wrote is read back afterwards and a selection

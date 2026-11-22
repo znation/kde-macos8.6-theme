@@ -1,0 +1,79 @@
+# Platinum Konsole color scheme (a KConfig colorscheme file).
+#
+# Sources:
+#   [Background], [BackgroundIntense], [Foreground], [ForegroundIntense]:
+#     [Colors:View] BackgroundNormal and ForegroundNormal in
+#     theme/color-schemes/MacOS8.colors. No reference screenshot shows a terminal.
+#   [Color0]..[Color7], [Color0Intense]..[Color7Intense]: the classic 16-color
+#     system table, ANSI slot 0..7 and 8..15, as tests/test_ghostty_theme.py pins it.
+#     The table has no separate bright blue or bright cyan, so Color4Intense and
+#     Color6Intense repeat Color4 and Color6, as in the Ghostty theme file.
+#   Group and key names: the colorscheme keys Konsole 25.04.2 reads, taken from its
+#     installed libkonsoleprivate library, because no bundled system colorscheme is
+#     installed on the reference machine.
+#   No selection group: that Konsole's colorscheme grammar has none. Konsole draws
+#     the selection from the profile's InvertSelectionColors setting instead.
+
+[Background]
+Color=255,255,255
+
+[BackgroundIntense]
+Color=255,255,255
+
+[Foreground]
+Color=0,0,0
+
+[ForegroundIntense]
+Color=0,0,0
+
+[Color0]
+Color=0,0,0
+
+[Color1]
+Color=221,8,6
+
+[Color2]
+Color=0,100,17
+
+[Color3]
+Color=86,44,5
+
+[Color4]
+Color=0,0,212
+
+[Color5]
+Color=70,0,165
+
+[Color6]
+Color=2,171,234
+
+[Color7]
+Color=192,192,192
+
+[Color0Intense]
+Color=128,128,128
+
+[Color1Intense]
+Color=255,100,3
+
+[Color2Intense]
+Color=31,183,20
+
+[Color3Intense]
+Color=252,243,5
+
+[Color4Intense]
+Color=0,0,212
+
+[Color5Intense]
+Color=242,8,132
+
+[Color6Intense]
+Color=2,171,234
+
+[Color7Intense]
+Color=255,255,255
+
+[General]
+Description=Platinum
+Opacity=1

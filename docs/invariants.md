@@ -104,6 +104,13 @@ blank guarantee or provenance-exception cell fails `make check`.
 | `make install INSTALL_PACKAGES=ghostty` copies the Platinum theme file byte for byte into `$XDG_DATA_HOME/ghostty/themes/org.macos8.desktop/`, and `make uninstall` removes it along with the `ghostty/themes` and `ghostty` directories only when they are empty, so a foreign file under `ghostty/themes` survives. | `tests/test_ghostty_install.py` | none |
 | `make apply` (its `--optional` step, and `make apply-ghostty`) writes one marker-delimited Platinum block at the end of `$XDG_CONFIG_HOME/ghostty/config.ghostty` naming the absolute installed theme path, creating the file when absent and replacing an existing block in place, so every byte outside the block is kept and a repeat apply is byte-identical; a missing installed theme, a symbolic link at the config file, or unbalanced or repeated markers exit 2 with a diagnostic, and an `--optional` apply without `ghostty` on `PATH` writes nothing and exits 0. `make remove-ghostty` deletes only the block, and deletes the file when it then holds nothing; removing the block restores a file's original bytes, except that a file lacking a final newline keeps the one the apply added. The legacy `ghostty/config` file is never opened for writing. | `tests/test_apply_ghostty.py`, `tests/test_ghostty_config.py` | none |
 
+## konsole
+
+| Guarantee | Test | Provenance exception |
+| --- | --- | --- |
+| The shipped Konsole colorscheme `theme/konsole/MacOS8.colorscheme` is a KConfig colorscheme with only the colorscheme groups Konsole reads (no selection group): its `Background`, `BackgroundIntense`, `Foreground` and `ForegroundIntense` colors equal `[Colors:View]` `BackgroundNormal` and `ForegroundNormal` in `MacOS8.colors`, and its `Color0`..`Color7` and `Color0Intense`..`Color7Intense` colors equal the classic sixteen-color table pinned in `tests/test_ghostty_theme.py`, slots 0 to 7 and 8 to 15. | `tests/test_konsole_theme.py` | No reference screenshot shows a terminal: the base colors come from `MacOS8.colors`, and the palette from the classic 16-color system table. The group and key names are the colorscheme keys of the installed Konsole 25.04.2 library, since no bundled system colorscheme file is installed to compare against. |
+| `make install INSTALL_PACKAGES=konsole` copies the Konsole colorscheme byte for byte into `$XDG_DATA_HOME/konsole/MacOS8.colorscheme` with no other file beside it, a later subset install keeps it, and `make uninstall` removes it along with the `konsole` directory only when that directory is empty, so a foreign file under `konsole/` survives. | `tests/test_konsole_install.py` | none |
+
 ## firefox
 
 | Guarantee | Test | Provenance exception |

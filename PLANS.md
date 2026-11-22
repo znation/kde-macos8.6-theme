@@ -271,56 +271,6 @@ is involved (each PNG is generated flat at its own resolution).
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
-### Konsole colorscheme, part 1/2: ship and install a Platinum Konsole color scheme (planned 2026-11-21 by the plan role)
-
-**Goal.** The theme selects JetBrains Mono as the fixed-width face and
-`tools/apply_konsole_font.py` points Konsole's default profile at it, but the
-profile still inherits `FALLBACK/`'s colors, so a Konsole window is the one
-terminal surface not painted with the theme's palette — Ghostty already is
-(`theme/ghostty/org.macos8.desktop/Platinum`). This part ships and installs a
-Platinum Konsole colorscheme; part 2/2 selects it in the profile.
-
-**Approach.** Add `theme/konsole/MacOS8.colorscheme`, a Konsole colorscheme
-INI whose background, foreground, their intense variants and selection colors
-equal the corresponding `MacOS8.colors` `[Colors:View]` and `[Colors:Selection]`
-values, and whose sixteen palette slots equal the classic table
-`tests/test_ghostty_theme.py` already pins. Ground the group and key grammar
-against a bundled system colorscheme under `/usr/share/konsole/` (the
-installed Konsole's own files are the working reference) and record that
-provenance in `docs/installing.md`, beside the font row's existing note: no
-reference screenshot shows a terminal, so the colors come from `MacOS8.colors`
-and the classic table and the grammar from upstream Konsole.
-
-In the Makefile, add the `konsole` family: `KONSOLE_PACKAGE := theme/konsole`,
-`KONSOLE_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/konsole`, and `konsole`
-appended to `INSTALL_FAMILIES`, the default `INSTALL_PACKAGES`, the help text
-and the README `INSTALL_PACKAGES` list sentence. Konsole reads colorschemes
-flat from its data directory, so the install recipe follows the single-file
-`install_color_scheme` shape (direct copy plus a hidden `.staging` sibling),
-not `install_package`'s id-nested directory swap. `_uninstall` removes the
-file and its `.staging` sibling and `rmdir`s `$(DATA_HOME)/konsole` only when
-empty, so a foreign file survives; add the directory to
-`require_uninstall_parents`'s symlink-refusal list.
-
-**Files touched.** `theme/konsole/MacOS8.colorscheme` (new), `Makefile`,
-`tests/test_konsole_theme.py` and `tests/test_konsole_install.py` (new),
-`tests/test_ci_workflow.py` only if it pins the family list, `docs/invariants.md`
-(new `## konsole` section), `docs/installing.md`, README.md.
-
-**Acceptance criteria.**
-
-- `make install INSTALL_PACKAGES=konsole` staged into a scratch `DESTDIR`
-  places `MacOS8.colorscheme` at `<scratch>$(XDG_DATA_HOME)/konsole/` and
-  nothing else, and a second staged subset install adds beside what is there
-  without deleting it (the documented additive-subset behavior).
-- A test re-derives every color value in the shipped file from
-  `MacOS8.colors` and the classic palette table pinned in
-  `tests/test_ghostty_theme.py`, so no value is asserted from a printout.
-- After a staged install followed by `make uninstall`, the file is gone and
-  `konsole/` survives when a foreign file was placed in it.
-- `make check` passes after the final edit, apart from main's known-red
-  tests.
-
 ### Konsole colorscheme, part 2/2: select the shipped scheme in Konsole's default profile (planned 2026-11-21 by the plan role; "requires part 1/2 landed")
 
 **Goal.** Point the profile at part 1/2's installed colorscheme so a new
