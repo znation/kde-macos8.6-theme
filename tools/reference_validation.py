@@ -101,7 +101,7 @@ def _image_head_and_tail(path: Path) -> tuple[bytes, bytes, int]:
         return head, handle.read(_TAIL_BYTES), size
 
 
-def _incomplete_stream_suffix(head: bytes, tail: bytes, size: int) -> str:
+def _incomplete_stream_suffix(head: bytes, size: int) -> str:
     """Return the diagnostic naming how the stream *head* identifies ends short."""
     stream = image_stream_format(head)
     if stream == "WebP":
@@ -173,7 +173,7 @@ def _check_entry(
     if not is_complete(head, tail, size):
         return [
             (lineno, f"{sources}:{lineno}: {filename!r} "
-             f"{_incomplete_stream_suffix(head, tail, size)}")
+             f"{_incomplete_stream_suffix(head, size)}")
         ]
     return []
 

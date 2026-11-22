@@ -106,7 +106,7 @@ def _mode_of(target: Path) -> int | None:
         return None
 
 
-def apply(config_home: Path, data_home: Path, env: dict[str, str], optional: bool) -> int:
+def apply(config_home: Path, data_home: Path, optional: bool) -> int:
     """Write the Platinum block naming the installed theme into the config file."""
     if optional and shutil.which("ghostty") is None:
         report_note(
@@ -207,7 +207,7 @@ def main(argv: list[str] | None = None) -> int:
             "$HOME/.local/share",
             error=GhosttyConfigError,
         )
-        return apply(config_home, data_home, env, args.optional)
+        return apply(config_home, data_home, args.optional)
     except GhosttyConfigError as exc:
         return report_error(TOOL, str(exc))
 
