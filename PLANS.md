@@ -63,6 +63,8 @@ paths.
 
 ### Group the flat fidelity_* tools modules into tools/fidelity/ (part 2/8 of the tools regroup) (planned 2026-11-21 by the plan role)
 
+**Needs review 2026-11-21 by feature: plan defect — name collision with the kept CLI.** The plan keeps `tools/fidelity.py` (CLI) while creating `tools/fidelity/` with `__init__.py`. Python resolves a package directory ahead of a same-named module in the same directory, so `from tools import fidelity` returns the empty package. I checked this with a scratch tree (`tools/fidelity.py` setting `X=1`, `tools/fidelity/__init__.py` setting `Y=2`: `from tools import fidelity` loads the `__init__.py`, and `hasattr(fidelity, "X")` is False). About fifteen tests use `from tools import fidelity` and `mock.patch.object(fidelity, "_read_source")` on the CLI, and `tests/test_fidelity_bounds.py` runs `tools/fidelity.py` directly. Moving the family under `tools/fidelity/` as the plan states would break them. The plan needs a different package name (for example `tools/fidelity_lib/`, or a non-prefix name) or a decision to move the CLI, which is the plan role's call.
+
 **Goal.** Land the fidelity-family slice of the flat-`tools/` regroup (see
 part 1/8 for the split's shared rules; the parts are independent).
 
