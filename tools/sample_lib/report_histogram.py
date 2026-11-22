@@ -100,7 +100,6 @@ def _scanline_color_counts(args, image):
 def _histogram_result(args, image, width: int, height: int) -> dict:
     """Assemble the complete histogram report without printing or mutating args."""
     context = report_context(args, width, height)
-    region = context["region"]
     if args.alpha:
         pixels = zip(region_pixels(image, args.x, args.y, args.width, args.height),
                      region_alpha(image, args.x, args.y, args.width, args.height))

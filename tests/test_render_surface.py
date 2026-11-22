@@ -601,7 +601,6 @@ class TestDesktopPixelDiagnostic(unittest.TestCase):
     def test_missing_capture_reports_render_result(self):
         class MissingCapture:
             _candidate = None
-            output = "/missing/desktop.png"
             returncode = 0
             stdout = "capture started"
             stderr = "render-session: capture status 1"
