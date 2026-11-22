@@ -201,6 +201,8 @@ paths.
   tests.
 
 ### Wallpaper: ground the flat desktop field in the reference desktop's `#63639C` (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup parts — its only shared surface, the desktop render gate, rides this same change)
+**Needs review 2026-11-21 by feature: plan defect — the desktop area of a fresh `--desktop` capture is not a stable flat value on this host, so the pin in step 5 has no consecutive pair to take. Four consecutive full runs (`tools/render_surface.py <scratch>/desktop.png --desktop`, all exit 0): runs 1 and 3 paint rows 20..399 solid `#000000` (243200 of 243200 pixels), runs 2 and 4 paint solid `#63639C`. No two consecutive runs agree, so the entry's stop condition holds. The black captures look like the wallpaper not yet painted at the capture point; this was not measured on the unchanged `#CCCCCC` tree, so it is not yet shown to be caused by the new tile. The plan role should decide how the gate settles the wallpaper before the pin is taken. The wallpaper edits (generator, tests, invariants, prose) were reverted and nothing is landed.**
+
 
 **Goal.** The wallpaper package's images are a deliberate non-fidelity
 placeholder — a flat `#CCCCCC` tile the `docs/invariants.md` `## wallpapers`
