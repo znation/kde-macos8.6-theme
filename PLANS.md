@@ -205,6 +205,78 @@ renamed and no stylesheet changes.
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
+### Makefile refusal tests: move the colour-scheme guards into their own module and the shared hostile values into support (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup, desktop wallpaper, file-dialog gate and GTK rule cases entries — it touches only the Makefile refusal test modules, one new support module and one `docs/invariants.md` row)
+
+**Goal.** `tests/test_make_refusals.py` (656 lines) holds seven guard
+classes, and `tests/test_make_refusals_tools.py` reaches into it with
+`import test_make_refusals as refusals` to borrow
+`TestShellUnsafeInstallPaths.HOSTILES` — one test module importing another.
+Move the shared hostile-value table into a support module and the two
+`COLOR_SCHEME` guard classes into their own test module, so each file stays
+readable in one sitting and no test module imports another for data.
+
+**Approach.**
+1. Create `tests/support/make_hostiles.py` holding a module-level `HOSTILES`
+   tuple, moved with its comment unchanged from
+   `TestShellUnsafeInstallPaths.HOSTILES` (the four
+   `(char, make_value, shown_value)` triples for `"`, `$`, `` ` `` and `\`).
+   Delete the class attribute.
+2. In `tests/test_make_refusals.py`, import it
+   (`from support.make_hostiles import HOSTILES`) and rewrite every
+   `self.HOSTILES` and `TestShellUnsafeInstallPaths.HOSTILES` to `HOSTILES`;
+   reword the comments that say "the same HOSTILES pairs
+   `TestShellUnsafeInstallPaths` documents" to point at
+   `support.make_hostiles.HOSTILES`.
+3. In `tests/test_make_refusals_tools.py`, drop `import test_make_refusals as
+   refusals`, import `HOSTILES` from `support.make_hostiles`, and rewrite each
+   `refusals.TestShellUnsafeInstallPaths.HOSTILES` (code and comments) the
+   same way. Leave its prose mentions of other classes as names only.
+4. Move `TestShellUnsafeColorScheme` and `TestShellUnsafeColorSchemeName`,
+   bodies unchanged apart from the `HOSTILES` rewrite, into a new
+   `tests/test_make_refusals_color_scheme.py` with a module docstring saying
+   it pins the `COLOR_SCHEME` and `COLOR_SCHEME_NAME` parse-time refusals, and
+   with only the imports those classes use (`unittest`, `repo_root`,
+   `theme_install`, `assert_failed`/`assert_succeeded` as used, `make_tmp_dir`,
+   `HOSTILES`) and an `if __name__ == "__main__": unittest.main()` tail if the
+   source module has one. Remove from `tests/test_make_refusals.py` any import
+   the staying classes no longer use.
+5. Update the pointers: the module docstrings of `tests/test_make_refusals.py`,
+   `tests/test_make_refusals_tools.py`, `tests/test_theme_install.py` and
+   `tests/test_make_control_chars_evaluation.py` name the new module where
+   they list where the refusals live; and the `docs/invariants.md` row that
+   anchors `tests/test_make_refusals.py::TestShellUnsafeColorScheme` and
+   `::TestShellUnsafeColorSchemeName` retargets both anchors to
+   `tests/test_make_refusals_color_scheme.py::…`. Re-grep `tests/`, `docs/`
+   and `tests/support/validation_gaps/` for both class names before finishing
+   (the `no_repro.py` ledger names only `TestShellUnsafeInstallPaths`, which
+   stays).
+
+**Files touched.** `tests/test_make_refusals.py`,
+`tests/test_make_refusals_tools.py`, new
+`tests/test_make_refusals_color_scheme.py`, new
+`tests/support/make_hostiles.py`, `tests/test_theme_install.py` and
+`tests/test_make_control_chars_evaluation.py` (docstrings only),
+`docs/invariants.md`.
+
+**Acceptance criteria.**
+- `grep -rn "import test_make_refusals" tests` finds nothing, and
+  `grep -rn "TestShellUnsafeInstallPaths.HOSTILES" tests` finds nothing.
+- `grep -rn "class TestShellUnsafeColorScheme" tests` finds both classes in
+  `tests/test_make_refusals_color_scheme.py` and nowhere else; every
+  test method those classes had before the move is still defined, with the
+  same name, under the same class.
+- `tests/support/make_hostiles.py` defines `HOSTILES` with the same four
+  triples the class attribute held, character for character.
+- `docs/invariants.md` names `tests/test_make_refusals_color_scheme.py::TestShellUnsafeColorScheme`
+  and `::TestShellUnsafeColorSchemeName`, and no row names either class under
+  `tests/test_make_refusals.py`; the invariants register test
+  (`tests/test_invariants.py::TestRepositoryRegister`) passes.
+- `tests/test_make_refusals.py` is shorter by at least the two moved classes
+  (under 490 lines).
+- `make check CHECK_TESTS="test_make_refusals test_make_refusals_tools test_make_refusals_color_scheme"`
+  passes, and `make check` passes after the final edit, apart from main's
+  known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
