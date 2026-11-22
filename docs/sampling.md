@@ -602,6 +602,7 @@ list. An offset beyond the end returns an empty page. The option requires
 | The path is missing or unreadable | Check the path named in the diagnostic and confirm you can read the file. |
 | The pixel or region is outside the image | Correct `X`, `Y`, `--width` or `--height` to fit the image dimensions in the report. |
 | JPEG decoding says `convert` is missing | Install ImageMagick and ensure its `convert` command is on `PATH`; PNG inputs need no converter. |
+| `cannot read ...: file is N bytes, larger than the 536870912-byte limit`, or `file is larger than the 536870912-byte limit` | A JPEG input over 512 MiB is refused before it is buffered for conversion; the second form means the file grew while it was being read. A real reference screenshot is far smaller, so check that the path names the intended image and not a dump or wrong file. |
 | An alpha option was requested for JPEG | Omit `--alpha` or `--match-alpha`, or use a PNG that actually has alpha. JPEG conversion cannot recover transparency that JPEG does not store. |
 | An option dependency or min/max window is refused | Add the required mode or cap described in the [option families](#sampling-options), or correct the bounds so the minimum does not exceed the maximum. |
 
