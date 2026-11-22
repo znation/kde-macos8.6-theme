@@ -138,6 +138,79 @@ is involved (each PNG is generated flat at its own resolution).
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
+### File-dialog gate: move its title-bar icon box and sort-arrow pixel maps into support modules (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup and desktop wallpaper parts)
+
+**Goal.** `tests/test_render_file_dialog.py` is the largest test module
+(921 lines on main), and about 70 of those lines are two hand-measured
+pixel tables held as class attributes of `TestFileDialogRender`:
+`ICON_BOX_ROWS` (the title bar's 13x13 window-icon box) and `SORT_ARROW`
+(the column header's 11x9 sort arrow). Earlier runs already moved the list
+panel's and sidebar's measured maps into
+`tests/support/render/file_dialog_list_fixtures.py` and
+`tests/support/render/file_dialog_sidebar_fixtures.py`; this entry finishes
+that move for the two remaining tables so the module keeps its assertions
+and geometry and leaves the measured data in support modules. The
+`DialogGate` class stays in one piece: splitting it would add a second
+`file_dialog` render to every check (lesson L7).
+
+**Approach.**
+
+- New `tests/support/render/file_dialog_chrome_fixtures.py`, with a module
+  docstring written like the list fixtures' docstring (measured in the
+  2026-11-11 KIO chooser session; the owning assertions stay in
+  `tests/test_render_file_dialog.py`). It holds `ICON_BOX_ROWS`, moved
+  verbatim with its comment (the #888888-outline box with the fallback
+  icon mark and the #FFFFFF bevel column/row, x=4..16, y=7..19).
+- `tests/support/render/file_dialog_list_fixtures.py` gets `SORT_ARROW`,
+  moved verbatim with its comment, because the sort arrow belongs to the
+  list panel's column header. `SORT_ARROW_RECT` and the other geometry
+  constants (`HEADER_DIVIDERS`, `HEADER_CAPTIONS`, `CAPTION_ROWS`,
+  `TITLE_BAND`, `MAXIMIZE_BOX`, `SHADE_BOX`, …) stay on the class because
+  they are measured positions, not pixel maps.
+- `tests/test_render_file_dialog.py`: import the new module next to the two
+  existing fixture imports (`from support.render import
+  file_dialog_chrome_fixtures as chrome_fixtures`). Rewrite
+  `self.ICON_BOX_ROWS` as `chrome_fixtures.ICON_BOX_ROWS` in
+  `test_the_title_bar_marks_draw_their_boxes`, and every `self.SORT_ARROW`
+  as `list_fixtures.SORT_ARROW` in
+  `test_the_column_header_band_pins_its_face_and_dividers` and
+  `test_the_header_inks_its_captions_and_sort_arrow`. The class docstring's
+  pointer to where the measured maps live names the chrome fixtures module
+  alongside the other two.
+- On main, a grep of `docs/`, `tests/`, `tools/` and the top-level `*.md`
+  files (archives excluded) finds `ICON_BOX_ROWS` and `SORT_ARROW` only in
+  this test module, so no other file needs repointing. Follow L1 anyway:
+  grep `docs/rendering.md`, `docs/invariants.md` and
+  `tests/test_ci_workflow.py` for the class names before finishing.
+
+**Files touched.** `tests/test_render_file_dialog.py`,
+`tests/support/render/file_dialog_list_fixtures.py`, and the new
+`tests/support/render/file_dialog_chrome_fixtures.py`.
+
+**Acceptance criteria.**
+
+- `rg -n 'ICON_BOX_ROWS|SORT_ARROW\b' tests/` finds one definition of
+  each table, `ICON_BOX_ROWS` in `file_dialog_chrome_fixtures.py` and
+  `SORT_ARROW` in `file_dialog_list_fixtures.py`. In
+  `tests/test_render_file_dialog.py` it finds only the module-qualified
+  uses, with no `self.ICON_BOX_ROWS` or `self.SORT_ARROW`.
+- Each moved table holds the same values as before the move: 13 rows of
+  13 entries for the icon box and 9 rows of 11 entries for the arrow,
+  every entry unchanged. `git diff` shows the tables removed from the test
+  module and added unchanged to the support modules, plus the import lines,
+  the rewritten references and the docstring pointer, and nothing else.
+- `tests/test_render_file_dialog.py` is shorter by at least the two
+  tables' lines (under 860 lines), and the new support module stays under
+  100 lines.
+- `make check CHECK_TESTS=test_render_file_dialog` gives each test the
+  same result as before the move on the same host: the gate tests pass
+  where render tools are present (or skip with the same reason where they
+  are not), and
+  `TestFileDialogGateSkipGuards.test_the_file_dialog_gate_skips_only_when_a_tool_is_absent`
+  passes.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Desktop wallpaper, part 1/2: keep the `--desktop` render's settle ceiling (planned 2026-11-21 by the plan role; part 2/2 of the desktop wallpaper series depends on it)
 
 **Goal.** A fresh `tools/render_surface.py <out> --desktop` capture must show
