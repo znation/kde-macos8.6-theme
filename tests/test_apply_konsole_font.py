@@ -7,6 +7,7 @@ live in ``support/konsole_font_case.py``; refusal cases live in
 
 from __future__ import annotations
 
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -15,6 +16,7 @@ from support.konsole_font_case import (
     FOREIGN_PROFILE,
     StubKonsoleToolsTestCase,
 )
+from support.theme_install import write_file
 from tools import apply_konsole_font
 from tools.apply_theme import FIXED_VALUE as FONT
 
@@ -175,6 +177,123 @@ class TestFallback(StubKonsoleToolsTestCase):
         self.assertIsNone(status, stderr)
         self.assertEqual(konsolerc, self.read(self.konsolerc))
         self.assertIn(f"Font={FONT}\n", self.read(profile))
+
+
+class TestColorScheme(StubKonsoleToolsTestCase):
+    """The Platinum colorscheme selection, written only once it is installed."""
+
+    def install_scheme(self):
+        write_file(self.profile_dir / "MacOS8.colorscheme", "[General]\nName=MacOS8\n")
+
+    def read_key(self, path, group, key):
+        """Read *key* back through the reader stub, as a user would."""
+        result = subprocess.run(
+            [
+                str(self.bin / "kreadconfig6"),
+                "--file",
+                str(path),
+                "--group",
+                group,
+                "--key",
+                key,
+                "--default",
+                "",
+            ],
+            env={"PATH": str(self.bin)},
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.rstrip("\n")
+
+    def test_an_installed_scheme_is_selected_beside_the_font(self):
+        self.install_scheme()
+        self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
+        profile = self.write_profile(self.data, "Mine.profile", FOREIGN_PROFILE)
+        status, stderr = self.apply_font()
+        self.assertIsNone(status, stderr)
+        self.assertEqual("MacOS8", self.read_key(profile, "Appearance", "ColorScheme"))
+        self.assertEqual(FONT, self.read_key(profile, "Appearance", "Font"))
+
+    def test_only_the_font_and_scheme_entries_change(self):
+        self.install_scheme()
+        self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
+        profile = self.write_profile(self.data, "Mine.profile", FOREIGN_PROFILE)
+        self.apply_font()
+        kept = [
+            line
+            for line in self.read(profile).splitlines()
+            if not line.startswith(("Font=", "ColorScheme="))
+        ]
+        self.assertEqual(
+            [
+                line
+                for line in FOREIGN_PROFILE.splitlines()
+                if not line.startswith("Font=")
+            ],
+            kept,
+        )
+
+    def test_an_absent_scheme_leaves_the_key_unset(self):
+        self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
+        profile = self.write_profile(self.data, "Mine.profile", FOREIGN_PROFILE)
+        status, stderr = self.apply_font()
+        self.assertIsNone(status, stderr)
+        self.assertNotIn("ColorScheme", self.read(profile))
+        self.assertEqual("", self.read_key(profile, "Appearance", "ColorScheme"))
+
+    def test_a_system_default_copy_gets_the_scheme(self):
+        self.install_scheme()
+        self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
+        self.write_profile(self.system, "Mine.profile", FOREIGN_PROFILE)
+        status, stderr = self.apply_font()
+        self.assertIsNone(status, stderr)
+        local = self.profile_dir / "Mine.profile"
+        self.assertEqual("MacOS8", self.read_key(local, "Appearance", "ColorScheme"))
+
+    def test_a_repeat_apply_writes_the_scheme_once(self):
+        self.install_scheme()
+        self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
+        profile = self.write_profile(self.data, "Mine.profile", FOREIGN_PROFILE)
+        self.apply_font()
+        once = self.read(profile)
+        self.apply_font()
+        self.assertEqual(once, self.read(profile))
+        self.assertEqual(1, once.count("ColorScheme="))
+
+    def test_a_non_default_profile_never_gets_the_scheme(self):
+        self.install_scheme()
+        self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
+        self.write_profile(self.data, "Mine.profile", FOREIGN_PROFILE)
+        other = self.write_profile(self.data, "Other.profile", FOREIGN_PROFILE)
+        before = other.read_bytes()
+        self.apply_font()
+        self.assertEqual(before, other.read_bytes())
+
+    def test_an_unset_default_selects_the_scheme_in_the_platinum_profile(self):
+        self.install_scheme()
+        status, stderr = self.apply_font()
+        self.assertIsNone(status, stderr)
+        profile = self.profile_dir / "Platinum.profile"
+        self.assertEqual("MacOS8", self.read_key(profile, "Appearance", "ColorScheme"))
+        self.assertEqual(FONT, self.read_key(profile, "Appearance", "Font"))
+        self.assertEqual(1, self.read(profile).count("ColorScheme="))
+
+    def test_a_failing_scheme_write_exits_1_and_names_the_writer(self):
+        self.install_scheme()
+        self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
+        self.write_profile(self.data, "Mine.profile", FOREIGN_PROFILE)
+        self._write_stub(
+            self.writer,
+            "#!/usr/bin/env python3\nimport sys\n"
+            "if 'ColorScheme' in sys.argv:\n"
+            "    sys.stderr.write('exploded\\n')\n"
+            "    sys.exit(3)\n"
+            + self.WRITER.split("\n", 1)[1],
+        )
+        status, stderr = self.apply_font()
+        self.assertEqual(1, status)
+        self.assertIn("kwriteconfig6 exited 3", stderr)
 
 
 class TestSearchBases(StubKonsoleToolsTestCase):

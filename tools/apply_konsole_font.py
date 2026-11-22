@@ -22,11 +22,13 @@ default profile at the packaged face:
   data home first, so the copy is the profile new sessions load -- and the
   copy is edited. The system source is never modified.
 
-Only ``[Appearance] Font`` is written into a profile, and only through
-``kwriteconfig6``, so every other key -- the profile's name, its shell,
-colors, shortcuts and keyboard mappings -- survives untouched; ``konsolerc``
-is written only to name a default profile that is not set yet. Profile
-names that are not plain file names (absolute paths, path separators,
+Only ``[Appearance] Font`` is written into a profile, plus
+``[Appearance] ColorScheme=MacOS8`` when the Platinum colorscheme is
+installed as ``konsole/MacOS8.colorscheme`` under the data home, and only
+through ``kwriteconfig6``, so every other key -- the profile's name, its
+shell, color keys other than that selection, shortcuts and keyboard
+mappings -- survives untouched; ``konsolerc`` is written only to name a
+default profile that is not set yet. Profile names that are not plain file names (absolute paths, path separators,
 traversal), symlinked profile destinations and an unresolvable profile name
 are refused with an actionable diagnostic instead of guessed at.
 Non-default profiles are never read or written, and ``make uninstall``
@@ -71,6 +73,12 @@ FALLBACK_PARENT = "FALLBACK/"
 FALLBACK_NAME = "Platinum"
 FONT_GROUP = "Appearance"
 FONT_KEY = "Font"
+# The shipped colorscheme is one flat file in konsole/ (part 1/2); a profile
+# selects it under [Appearance] ColorScheme by its base name.
+SCHEME_GROUP = "Appearance"
+SCHEME_KEY = "ColorScheme"
+SCHEME_NAME = "MacOS8"
+SCHEME_FILE = SCHEME_NAME + ".colorscheme"
 PROFILE_DIR = "konsole"
 # The XDG Base Directory spec's default search path, used when XDG_DATA_DIRS
 # is unset or empty; a relative entry in the variable is ignored, as the
@@ -137,7 +145,7 @@ def apply(
     path, in_data_home = _resolve(profile, env, data_home, error)
     if not in_data_home:
         path = _copy_to_data_home(path, name, data_home, error)
-    return _write_font(scratch, env, path, font, timeout)
+    return _write_font(scratch, env, path, font, data_home, timeout)
 
 
 def _checked_name(name: str, error: type[Exception]) -> str:
@@ -240,11 +248,16 @@ def _apply_fallback(
     # The selection write lands in the config home, whose directory a
     # first-time user may not have yet; kwriteconfig6 would fail on it.
     _make_dir(config_home, error)
-    writes = (
+    writes = [
         (profile, "General", "Name", FALLBACK_NAME),
         (profile, "General", "Parent", FALLBACK_PARENT),
-        (profile, FONT_GROUP, FONT_KEY, font),
-        (config_home / KONSOLERC, PROFILE_GROUP, PROFILE_KEY, FALLBACK_PROFILE),
+    ]
+    writes += [
+        (profile, group, key, value)
+        for group, key, value in _appearance_writes(data_home, font)
+    ]
+    writes.append(
+        (config_home / KONSOLERC, PROFILE_GROUP, PROFILE_KEY, FALLBACK_PROFILE)
     )
     for file, group, key, value in writes:
         status = run_required(
@@ -260,32 +273,55 @@ def _apply_fallback(
     return None
 
 
+def _appearance_writes(data_home: Path, font: str) -> list[tuple[str, str, str]]:
+    """Return the ``(group, key, value)`` writes a profile's appearance takes.
+
+    The font always; the colorscheme selection only when the installed
+    ``konsole/MacOS8.colorscheme`` exists under the data home, so without
+    the scheme package the apply writes the font alone, as before.
+    """
+    writes = [(FONT_GROUP, FONT_KEY, font)]
+    if (data_home / PROFILE_DIR / SCHEME_FILE).is_file():
+        writes.append((SCHEME_GROUP, SCHEME_KEY, SCHEME_NAME))
+    return writes
+
+
 def _write_font(
-    scratch: Path, env: dict[str, str], profile: Path, font: str, timeout: float
+    scratch: Path,
+    env: dict[str, str],
+    profile: Path,
+    font: str,
+    data_home: Path,
+    timeout: float,
 ) -> int | None:
-    """Write ``[Appearance] Font`` into *profile*; return the status.
+    """Write the appearance keys into *profile*; return the status.
 
     ``kwriteconfig6`` edits only the named key in place, so the profile's
     other keys -- and the shell, colors, shortcuts and keyboard mappings
-    they hold -- are left byte-identical.
+    they hold -- are left byte-identical. The writes stop at the first
+    failing one, which is returned as the status.
     """
-    return run_required(
-        TOOL,
-        [
-            "kwriteconfig6",
-            "--file",
-            str(profile),
-            "--group",
-            FONT_GROUP,
-            "--key",
-            FONT_KEY,
-            font,
-        ],
-        env,
-        scratch / "kwriteconfig6-Font.log",
-        timeout,
-        ROOT,
-    )
+    for group, key, value in _appearance_writes(data_home, font):
+        status = run_required(
+            TOOL,
+            [
+                "kwriteconfig6",
+                "--file",
+                str(profile),
+                "--group",
+                group,
+                "--key",
+                key,
+                value,
+            ],
+            env,
+            scratch / f"kwriteconfig6-{key}.log",
+            timeout,
+            ROOT,
+        )
+        if status is not None:
+            return status
+    return None
 
 
 def _make_dir(directory: Path, error: type[Exception]) -> None:

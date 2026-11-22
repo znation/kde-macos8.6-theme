@@ -5,6 +5,47 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Konsole colorscheme, part 2/2: select the shipped scheme in Konsole's default profile (planned 2026-11-21 by the plan role; "requires part 1/2 landed") — done 2026-11-21 by the feature role
+
+**Goal.** Point the profile at part 1/2's installed colorscheme so a new
+Konsole session draws the theme palette.
+
+**Approach.** Extend `tools/apply_konsole_font.py`: constants
+`SCHEME_GROUP = "Appearance"`, `SCHEME_KEY = "ColorScheme"`, value `MacOS8`
+(the colorscheme file's base name). In the profiles this helper already
+writes, write `ColorScheme=MacOS8` through `kwriteconfig6` alongside `Font`:
+`tools.apply_konsole_font._apply_fallback` adds the key to the
+`(profile, FONT_GROUP, FONT_KEY, font)` writes tuple it already walks for the
+created `Platinum.profile`, and `tools.apply_konsole_font._write_font` gains
+the sibling key write for the resolved in-place/copy profile — both only when
+the installed `konsole/MacOS8.colorscheme` exists in the resolved data home:
+with the file absent the helper writes the font alone and changes nothing
+else, so behavior without part 1/2's package is today's. Update the module
+docstring's only-Font claim, the stub base in
+`tests/test_apply_konsole_font.py` and the expectation tables in
+`tests/test_apply_konsole_font_refusals.py`, and rewrite the
+`docs/invariants.md` Konsole row, whose guarantee text pins "only
+`[Appearance] Font` is written into a profile" and lists `colors` among the
+untouched keys — the same commit carries that guarantee change.
+`docs/installing.md` gains a sentence naming the new key.
+
+**Files touched.** `tools/apply_konsole_font.py`, the two
+`tests/test_apply_konsole_font*.py` modules, `tests/test_apply_theme.py`
+(`TestKonsoleFontStep`), `docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- After `make apply` with the scheme installed, `kreadconfig6 --group
+  Appearance --key ColorScheme` against the selected profile prints `MacOS8`,
+  and `--key Font` still prints the font it printed before this change.
+- With `konsole/MacOS8.colorscheme` absent from the data home, the apply
+  writes `Font` only and leaves `ColorScheme` absent — reading the key with
+  `kreadconfig6 --default ""` prints the empty default.
+- A repeat apply rewrites the same keys; a non-default profile's `ColorScheme`
+  is never written, matching the invariant row's non-default-profiles rule.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Group the flat fidelity_* tools modules into tools/fidelity_lib/ (part 2/8 of the tools regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
 
 **Goal.** Land the fidelity-family slice of the flat-`tools/` regroup (see
