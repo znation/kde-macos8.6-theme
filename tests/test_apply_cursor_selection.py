@@ -10,7 +10,7 @@ removes the scratch directory.
 
 The home and install arms live in ``tests/test_apply_cursor.py``, removal in
 ``tests/test_apply_cursor_remove.py``, and the shared temp-home base is
-``CursorTestCase`` in ``tests/support/cursor_case.py``.
+``CursorTestCase`` in ``tests/support/apply/cursor_case.py``.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from unittest import mock
 from support import process_runner
 from support.executable_stubs import write_executable
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.cursor_case import CursorTestCase
+from support.apply.cursor_case import CursorTestCase
 from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_failed,

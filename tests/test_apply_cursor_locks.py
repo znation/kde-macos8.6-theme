@@ -7,7 +7,7 @@ the theme between the check and the selection and leave a dangling link.
 The workflow and fault arms live in ``tests/test_apply_cursor.py``, the selector
 arms in ``tests/test_apply_cursor_selection.py``, the removal arms in
 ``tests/test_apply_cursor_remove.py``; the case base mirrors the
-``CursorTestCase`` setUp in ``tests/support/cursor_case.py``.
+``CursorTestCase`` setUp in ``tests/support/apply/cursor_case.py``.
 """
 
 from __future__ import annotations

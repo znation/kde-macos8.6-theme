@@ -25,7 +25,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import process_runner
-from support.apply_theme_stubs import ApplyStubTestCase
+from support.apply.theme_stubs import ApplyStubTestCase
 from support.cli_fixtures import assert_missing_tool_named, call_main
 from tools import (
     apply_theme,

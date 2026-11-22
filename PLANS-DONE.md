@@ -5,6 +5,52 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Group the tests/support apply, cursor and xcursor modules into subpackages (part 5/6, slice A of the tests/support regroup) (planned 2026-11-21 by the plan role) — done 2026-11-21 by the feature role
+
+**Goal.** Land the apply-, cursor- and xcursor-family slices of the
+tests/support regroup (see part 1/6 for the split's counts and rules;
+the parts are independent). Split from the single part 5/6 entry after
+feature parked it as too large for one run; slice B carries the splash,
+icon and desktoptheme slices and neither slice depends on the other.
+
+**Modules to move (importer files counted on main).** `apply_target_cases`
+(2), `apply_theme_stubs` (2), `cursor_case` (3; all importers are apply
+tests) → `tests/support/apply/` with `__init__.py`: `target_cases.py`,
+`theme_stubs.py`, `cursor_case.py`. `cursor_artifact_cases` (3) →
+`tests/support/cursor/` with `__init__.py`: `artifact_cases.py`.
+`xcursor_frames` (2) → `tests/support/xcursor_lib/` with `__init__.py`:
+`frames.py` (not `tests/support/xcursor/`: that package would shadow the
+staying `tests/support/xcursor.py`, so `support.xcursor` would load the
+empty package; no `xcursor_lib` name exists under `tests/` or `tools/`). Twelve importer files under `tests/` in total
+(`tests/test_apply_cursor.py` imports two of the moved modules).
+
+**Approach.** As in part 1/6: move, rewrite importer lines and bare
+references, retarget `mock.patch` strings, verify importers before each
+move. Known stays, already measured: `xcursor` (imported by `tools/` and
+file-identity tests) and `cursor_theme_fixtures` (imported by apply tests
+and a support module).
+
+**Files touched.** The five moved modules, their twelve importer files
+under `tests/`, any `mock.patch` target strings, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tests/support/apply/ tests/support/cursor/ tests/support/xcursor_lib/`
+  lists each `__init__.py` and the five moved modules, no
+  `tests/support/xcursor/` directory exists, and `tests/support/xcursor.py`
+  still exists with `support.xcursor` resolving to that file in the
+  `tests/test_xcursor*.py` imports;
+  `rg -n 'support\.(apply_target_cases|apply_theme_stubs|cursor_case|cursor_artifact_cases|xcursor_frames)'`
+  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
+  reference.
+- Every `mock.patch` string naming a moved module resolves, and the tests
+  that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Konsole colorscheme, part 2/2: select the shipped scheme in Konsole's default profile (planned 2026-11-21 by the plan role; "requires part 1/2 landed") — done 2026-11-21 by the feature role
 
 **Goal.** Point the profile at part 1/2's installed colorscheme so a new

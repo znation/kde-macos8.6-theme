@@ -20,7 +20,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.apply_target_cases import ApplyTargetMakeCases
+from support.apply.target_cases import ApplyTargetMakeCases
 from support.cli_fixtures import run_main_with_env
 from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import assert_failed, assert_succeeded

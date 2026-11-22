@@ -20,8 +20,8 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.apply_target_cases import ApplyTargetMakeCases
-from support.cursor_case import CursorTestCase
+from support.apply.target_cases import ApplyTargetMakeCases
+from support.apply.cursor_case import CursorTestCase
 from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_succeeded,

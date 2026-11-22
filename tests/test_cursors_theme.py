@@ -19,7 +19,7 @@ from unittest import mock
 
 from support import containment  # noqa: E402
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.cursor_artifact_cases import (  # noqa: E402
+from support.cursor.artifact_cases import (  # noqa: E402
     BLACK,
     CURSORS,
     HOTSPOTS,

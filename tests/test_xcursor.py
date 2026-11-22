@@ -9,7 +9,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import xcursor as xcursor_reader
 from support.error_assertions import assert_error_names  # noqa: E402
 from support.tmp_dir import make_tmp_dir  # noqa: E402
-from support.xcursor_frames import (  # noqa: E402
+from support.xcursor_lib.frames import (  # noqa: E402
     FILE_HEADER_SIZE,
     TOC_ENTRY_SIZE,
     frame_record,

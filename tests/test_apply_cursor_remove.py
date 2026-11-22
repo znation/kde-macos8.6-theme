@@ -8,7 +8,7 @@ kcminputrc reset note is printed while the file is left unedited (a FIFO
 included). The workflow and install arms stay in
 ``tests/test_apply_cursor.py``, the selector arms in
 ``tests/test_apply_cursor_selection.py``; the shared base is ``CursorTestCase`` in
-``tests/support/cursor_case.py``.
+``tests/support/apply/cursor_case.py``.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
-from support.cursor_case import CursorTestCase
+from support.apply.cursor_case import CursorTestCase
 from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_succeeded,

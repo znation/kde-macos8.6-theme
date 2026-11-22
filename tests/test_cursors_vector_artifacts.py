@@ -2,7 +2,7 @@
 
 import unittest
 
-from support.cursor_artifact_cases import (
+from support.cursor.artifact_cases import (
     BLACK,
     CURSORS,
     HOTSPOTS,

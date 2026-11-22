@@ -1,7 +1,7 @@
 """Direct tests for the optional-selection boundary in tools/apply_optional.
 
 This also covers the Kvantum data-home note, which drives
-``select_kvantum_theme`` through the stubs in ``support.apply_theme_stubs``.
+``select_kvantum_theme`` through the stubs in ``support.apply.theme_stubs``.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.apply_theme_stubs import ApplyStubTestCase
+from support.apply.theme_stubs import ApplyStubTestCase
 from support.executable_stubs import write_executable
 from support.tmp_dir import make_tmp_dir
 from tools import apply_optional, apply_theme
@@ -91,7 +91,7 @@ class TestKvantumDataHomeNote(ApplyStubTestCase):
     while the engine silently keeps drawing its built-in default theme. These
     drive ``apply_optional.select_kvantum_theme`` directly through the
     stubbed ``kvantummanager`` machinery in
-    ``support.apply_theme_stubs.ApplyStubTestCase``, one env shape per test, and
+    ``support.apply.theme_stubs.ApplyStubTestCase``, one env shape per test, and
     assert the selection argv and status never change with the note.
     """
 
