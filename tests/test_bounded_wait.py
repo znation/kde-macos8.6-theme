@@ -22,8 +22,10 @@ class TestWaitBounded(unittest.TestCase):
 
     def test_expired_wait_raises_naming_the_label_and_budget(self):
         process = spawn("import time; time.sleep(60)")
-        self.addCleanup(process.kill)
+        # Cleanups run last-in first-out: register wait first so kill runs
+        # before it, otherwise wait blocks until the child's 60 s sleep ends.
         self.addCleanup(process.wait)
+        self.addCleanup(process.kill)
         with self.assertRaises(bounded_wait.WaitExpired) as caught:
             bounded_wait.wait_bounded(process, 0.2, "client termination")
         message = str(caught.exception)
@@ -33,8 +35,9 @@ class TestWaitBounded(unittest.TestCase):
 
     def test_expired_wait_is_a_timeout_error_and_leaves_the_process_running(self):
         process = spawn("import time; time.sleep(60)")
-        self.addCleanup(process.kill)
+        # Same ordering as above: kill must run before wait.
         self.addCleanup(process.wait)
+        self.addCleanup(process.kill)
         with self.assertRaises(TimeoutError):
             bounded_wait.wait_bounded(process, 0.2, "splash settle")
         self.assertIsNone(process.poll())
