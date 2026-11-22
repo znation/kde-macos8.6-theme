@@ -6,7 +6,8 @@
 that the Makefile survives a `DESTDIR` or `XDG_DATA_HOME` that contains
 whitespace (its recipe words are quoted). The data-home fallback and the
 `FLOCK_TIMEOUT` guard live in ``test_theme_install_guards.py``. The make-level refusal of a value carrying shell
-syntax or a control byte lives in ``test_make_refusals.py`` and ``test_make_refusals_tools.py``, `make check`'s
+syntax or a control byte lives in ``test_make_refusals.py``, ``test_make_refusals_color_scheme.py`` and
+``test_make_refusals_tools.py``, `make check`'s
 variables in ``test_make_check.py`` and `make help` in ``test_make_help.py``.
 The pins of the shared install helpers in ``support/theme_install.py`` live in
 ``test_theme_install_support.py``.

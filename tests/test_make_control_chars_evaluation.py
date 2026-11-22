@@ -9,7 +9,7 @@ each guarded value, paying one process spawn per guard call on every make
 invocation; this test pins the one-spawn shape by counting awk invocations
 through a PATH shadow that records each run.
 
-``test_make_refusals`` and ``test_make_refusals_tools`` pin the refusals these guards report; this module
+``test_make_refusals``, ``test_make_refusals_color_scheme`` and ``test_make_refusals_tools`` pin the refusals these guards report; this module
 only pins the spawn count.
 """
 

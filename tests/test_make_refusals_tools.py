@@ -5,15 +5,16 @@
 own guard lines, not into double-quoted install paths. A value carrying recipe
 shell syntax or a control byte is refused at make level before any recipe runs,
 so each class pins the refusal and that the shell never executes (`CANARY`
-probes). The path, profile, color-scheme, theme-root and render-output refusals
-stay in ``test_make_refusals.py``, which also pins the control-byte refusals.
+probes). The path, profile, theme-root and render-output refusals stay in
+``test_make_refusals.py``, which also pins the control-byte refusals; the
+colour-scheme refusals live in ``test_make_refusals_color_scheme.py``.
 """
 
 import os
 import unittest
 
-import test_make_refusals as refusals
 from support import installed_paths, repo_root, theme_install
+from support.make_hostiles import HOSTILES
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -33,7 +34,7 @@ class TestShellUnsafePython(unittest.TestCase):
     """
 
     # The unquoted hostiles beyond the double-quoted four
-    # (`refusals.TestShellUnsafeInstallPaths.HOSTILES`): the make-argument form and
+    # (`HOSTILES`): the make-argument form and
     # the text the diagnostic must echo back. A `$` arrives doubled in the
     # make argument, as HOSTILES there documents; the double-quoted four are
     # driven in test_the_double_quoted_hostiles_are_refused too.
@@ -66,7 +67,7 @@ class TestShellUnsafePython(unittest.TestCase):
         # A value pasted into `set -- "$(PYTHON)"` (require_python) and into
         # the double-quoted echo of require_python_version needs the same
         # four refusals as the path variables.
-        for char, make_value, shown_value in refusals.TestShellUnsafeInstallPaths.HOSTILES:
+        for char, make_value, shown_value in HOSTILES:
             with self.subTest(char=char):
                 self._assert_refused(make_value, shown_value)
 
@@ -163,9 +164,9 @@ class TestShellUnsafeCheckPattern(unittest.TestCase):
     def test_each_metacharacter_is_refused(self):
         # The value is expanded into double-quoted recipe words, where each
         # of the four characters below is shell syntax. Same values as
-        # refusals.TestShellUnsafeInstallPaths.HOSTILES (`$` arrives doubled in the
+        # HOSTILES (`$` arrives doubled in the
         # make argument, the other three pass through verbatim).
-        for char, make_value, shown_value in refusals.TestShellUnsafeInstallPaths.HOSTILES:
+        for char, make_value, shown_value in HOSTILES:
             with self.subTest(char=char):
                 self._assert_refused(make_value, shown_value)
 
@@ -240,7 +241,7 @@ class TestShellUnsafeInstallPackages(unittest.TestCase):
 
     def test_the_double_quoted_hostiles_are_refused(self):
         # The unquoted paste inherits the double-quoted four as well.
-        for char, make_value, shown_value in refusals.TestShellUnsafeInstallPaths.HOSTILES:
+        for char, make_value, shown_value in HOSTILES:
             with self.subTest(char=char):
                 self._assert_refused(make_value, shown_value)
 
