@@ -502,8 +502,12 @@ class TestDesktopRender(unittest.TestCase):
         # face row below it (rows 1, 2 and 17), the two bottom rules (the
         # #999999/#000000 pair over the 514-pixel run, its one-shade-lighter
         # #9a9a9a/#020202 tail measured identical in both runs) and the flat
-        # desktop area below the bar (rows 20..399, the wallpaper staying
-        # out of the series as part 1/2 recorded).
+        # desktop field below the bar (rows 20..399): the wallpaper's
+        # #63639C field, which the session selects from the shipped package
+        # and which a consecutive pair of 2026-11-21 captures painted across
+        # every desktop pixel. The field is pinned as the desktop-field value
+        # sampled from the reference (tests/test_wallpaper.py), so a session
+        # that paints another colour fails here.
         for x in range(640):
             self.assert_pixel(x, 0, "#FFFFFF")
         for y in (1, 2, 17):
@@ -514,7 +518,7 @@ class TestDesktopRender(unittest.TestCase):
             self.assert_pixel(x, 19, "#000000" if x <= 513 else "#020202")
         for y in range(20, 400):
             for x in range(640):
-                self.assert_pixel(x, y, "#CCCCCC")
+                self.assert_pixel(x, y, "#63639C")
 
     def test_left_mark_is_the_raised_box(self):
         # The exact measured pixel map of the 14x10 raised box: a 1px black

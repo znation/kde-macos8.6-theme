@@ -165,8 +165,9 @@ one.
 ## Generating the wallpaper
 
 `python3 tools/make_wallpaper.py` rewrites the wallpaper package's images in
-theme/wallpapers/org.macos8.desktop/contents/images/ as a solid `#CCCCCC` tile, an original
-neutral placeholder rather than a crop of the reference desktop. The output is deterministic,
+theme/wallpapers/org.macos8.desktop/contents/images/ as a solid `#63639C` tile, the Platinum
+desktop field sampled from the lossless `macos8.6-screenshots/desktop_betawiki.png` reference
+(no screenshot artwork is shipped). The output is deterministic,
 so re-running it rewrites identical bytes. It refuses an images directory that resolves outside
 the repository — a checked-in symlink — so the generated images stay inside the wallpaper
 package. `PLACEHOLDERS.md` tracks this temporary artwork.

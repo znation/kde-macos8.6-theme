@@ -1,6 +1,8 @@
-"""Generate the Platinum wallpaper package's original neutral placeholder.
+"""Generate the Platinum wallpaper package's flat desktop field.
 
-The tool writes a 128x128 solid ``#CCCCCC`` tile tiled to full-screen PNGs,
+The tool writes a 128x128 solid ``#63639C`` tile tiled to full-screen PNGs. The
+colour is sampled from the lossless ``desktop_betawiki.png`` reference desktop
+strip (the same value the splash's field pins), not from any screenshot artwork.
 one per resolution, under the wallpaper package's ``contents/images/``. Plasma
 picks the image nearest the screen size, so a matching screen shows the tile 1:1.
 
@@ -53,7 +55,7 @@ RESOLUTIONS = (
 PACKAGE_DIR = "theme/wallpapers/org.macos8.desktop"
 
 
-TILE_RGB = bytes((0xCC, 0xCC, 0xCC)) * (TILE_SIZE * TILE_SIZE)
+TILE_RGB = bytes((0x63, 0x63, 0x9C)) * (TILE_SIZE * TILE_SIZE)
 
 
 def tiled_rgb(tile: bytes | bytearray, width: int, height: int) -> bytes:
@@ -97,7 +99,7 @@ def main(argv: list[str] | None = None) -> int:
     """
     parser = EscapingArgumentParser(
         prog=TOOL,
-        description="Regenerate the original neutral placeholder wallpaper images.",
+        description="Regenerate the Platinum desktop-field wallpaper images.",
         epilog=(
             "exit status: 0 when every image was written, "
             "2 on a usage or read/write error"

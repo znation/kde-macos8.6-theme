@@ -114,7 +114,7 @@ class ContainmentCase(WallpaperCase):
 
 
 class TestMain(WallpaperCase):
-    def test_writes_one_neutral_image_per_resolution_without_a_reference(self):
+    def test_writes_one_desktop_field_image_per_resolution_without_a_reference(self):
         width, height = X0 + TILE, Y0 + TILE
         status, err = self.run_main()
         self.assertEqual((status, err), (0, ""))
@@ -126,7 +126,7 @@ class TestMain(WallpaperCase):
             with self.subTest(size=(w, h)):
                 image = png.read_png(self.images / f"{w}x{h}.png")
                 self.assertEqual((image.width, image.height), (w, h))
-                self.assertEqual(image.rgb, bytes((204, 204, 204)) * w * h)
+                self.assertEqual(image.rgb, bytes((99, 99, 156)) * w * h)
 
     def test_rerun_rewrites_identical_bytes(self):
         self.write_reference(X0 + TILE, Y0 + TILE)

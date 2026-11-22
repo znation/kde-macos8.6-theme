@@ -99,24 +99,28 @@ class TestImages(unittest.TestCase):
                     image.rgb, make_wallpaper.tiled_rgb(tile, width, height)
                 )
 
-    def test_each_image_uses_the_reference_anchored_neutral_palette(self):
-        self.assertEqual(block(self.images[(1024, 768)], 0, 0)[:3], bytes((204, 204, 204)))
+    def test_each_image_is_the_flat_desktop_field(self):
+        self.assertEqual(block(self.images[(1024, 768)], 0, 0)[:3], bytes((99, 99, 156)))
         for image in self.images.values():
-            self.assertEqual(image.rgb, bytes((0xCC, 0xCC, 0xCC)) * image.width * image.height)
+            self.assertEqual(image.rgb, bytes((0x63, 0x63, 0x9C)) * image.width * image.height)
 
 
-class TestPlaceholderPalette(unittest.TestCase):
-    def test_neutral_tile_value_is_sampled_from_lossless_reference(self):
-        reference = os.path.join(
-            ROOT, "macos8.6-screenshots", "aboutsystem_betawiki.png"
-        )
+class TestDesktopFieldPalette(unittest.TestCase):
+    # The clean desktop-strip band of the reference: x=2..29 at y=384..413 is
+    # 840/840 pixels of one value. (Its neighbouring bands carry two stray
+    # pixels each, so the band is chosen for being uniform, not arbitrary.)
+    BAND = ((2, 30), (384, 414))
+
+    def test_desktop_field_is_sampled_from_lossless_reference(self):
+        reference = os.path.join(ROOT, "macos8.6-screenshots", "desktop_betawiki.png")
         try:
             image = read_shipped_png(reference)
         except png.PngError as exc:
             skip_unless_materialized(self, reference, exc)
-        sampled = png.pixel_at(image, 23, 29)
-        self.assertEqual(sampled, (204, 204, 204))
-        self.assertEqual(tuple(make_wallpaper.TILE_RGB[:3]), sampled)
+        (x0, x1), (y0, y1) = self.BAND
+        pixels = {png.pixel_at(image, x, y) for x in range(x0, x1) for y in range(y0, y1)}
+        self.assertEqual(pixels, {(99, 99, 156)})
+        self.assertEqual(tuple(make_wallpaper.TILE_RGB[:3]), (99, 99, 156))
 
 
 class TestImageReadContainment(unittest.TestCase):

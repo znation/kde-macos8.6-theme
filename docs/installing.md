@@ -38,7 +38,7 @@ and ten shared assets into `themes/org.macos8.desktop/`. The `ghostty` family
 installs the Platinum Ghostty theme file as `ghostty/themes/org.macos8.desktop/Platinum`;
 `make apply` and `make apply-ghostty` select it in the user's Ghostty config (see the Ghostty paragraph
 below). The `konsole` family installs the Platinum Konsole colorscheme as `konsole/MacOS8.colorscheme`, one flat file that Konsole lists under its data directory; the Konsole step of the apply selects it in the default profile as `[Appearance] ColorScheme=MacOS8` once the file is installed under the data home. Its base colors come from `[Colors:View]` in `MacOS8.colors` and its sixteen palette slots from the classic system table, since no reference screenshot shows a terminal. Its group and key names are the colorscheme keys of the installed Konsole 25.04.2 library (`libkonsoleprivate`), because no bundled system colorscheme file is installed to compare against; the file has no selection group, as that grammar has none. Applying the global
-theme selects the original neutral `#CCCCCC` wallpaper placeholder, shipped at
+theme selects the Platinum `#63639C` desktop-field wallpaper, shipped at
 fixed resolutions.
 
 The `org.macos8.desktop` Kvantum widget style is selected by the global theme
