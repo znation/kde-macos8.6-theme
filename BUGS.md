@@ -247,7 +247,7 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_draws_the_grid_field_top_edge (test_render_dialog_gates.TestIconDialogRender.test_draws_the_grid_field_top_edge)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
-**Needs review 2026-11-19 by bugfix: On recurrence, the failure will still show only the first mismatching pixel's coordinates and expected/observed colours. Read together with the sibling icon-dialog entries, the `#CCCCCC` value is the desktop face, so the capture likely ran before the `--geticon` dialog mapped (the icon render waits on a fixed `--settle` sleep in `tests/support/render_gates.py`). Confirming that needs the render's stderr tail and a check of whether the whole band is `#CCCCCC`, which the message does not print yet.**
+**Needs review 2026-11-19 by bugfix: On recurrence, the failure will still show only the first mismatching pixel's coordinates and expected/observed colours. Read together with the sibling icon-dialog entries, the `#CCCCCC` value is the desktop face, so the capture likely ran before the `--geticon` dialog mapped (the icon render waits on a fixed `--settle` sleep in `tests/support/render/gates.py`). Confirming that needs the render's stderr tail and a check of whether the whole band is `#CCCCCC`, which the message does not print yet.**
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
@@ -311,7 +311,7 @@ make: *** [Makefile:491: check] Error 1
 
 Progress 2026-11-19 by the director role: the quoted `AssertionError: '#CCCCCC' != '#000000'`
 cannot have come from this test or this class. `PixelPins.assert_pixel` and `assert_band`
-(tests/support/render_gates.py) call `assertEqual(expected, observed)`, so the message means
+(tests/support/render/gates.py) call `assertEqual(expected, observed)`, so the message means
 *expected* `#CCCCCC`, *observed* `#000000`. That is the reverse of the umbrella entry's
 "expected `#000000` but observed `#CCCCCC`". No `TestIconDialogRender` pin expects `#CCCCCC`:
 `assert_raised_frame`, `assert_push_button_recipe`, `assert_push_button_face_reaches_its_row`,
@@ -355,7 +355,7 @@ make: *** [Makefile:491: check] Error 1
 
 Progress 2026-11-19 by the director role: the recorded `AssertionError: '#CCCCCC' != '#000000'` is not
 this test's failure. `test_draws_the_search_field` asserts only through `PixelPins.assert_band`
-(tests/support/render_gates.py), which compares a whole row as two lists, so its mismatch reads
+(tests/support/render/gates.py), which compares a whole row as two lists, so its mismatch reads
 `Lists differ: [...] != [...]` inside a `row=` subTest, never a bare two-string message. Its expected
 rows hold only `#999999`, `#000000`, `#FFFFFF` and `#DDDDDD`, and `assertEqual(expected, observed)`
 means the quoted line expected `#CCCCCC`, so the "desktop face where the dark outline belongs"
@@ -392,7 +392,7 @@ non-zero exit is still unknown. Keep the entry open and parked until a recurrenc
 
 ### `test_writes_a_480x360_png (test_render_dialog_gates.TestIconDialogRender.test_writes_a_480x360_png)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
-**Needs review 2026-11-19 by bugfix: the next failure must show the unittest `FAIL:`/`ERROR:` line naming the failing test. The recorded excerpt's `'#CCCCCC' != '#000000'` is a pixel-colour assertion, which `test_writes_a_480x360_png` (`tests/support/render_gates.py:333`, a size-only check) cannot raise, so the test name here is likely mislabelled. Also record the render stderr and session log tail for that capture.**
+**Needs review 2026-11-19 by bugfix: the next failure must show the unittest `FAIL:`/`ERROR:` line naming the failing test. The recorded excerpt's `'#CCCCCC' != '#000000'` is a pixel-colour assertion, which `test_writes_a_480x360_png` (`tests/support/render/gates.py:333`, a size-only check) cannot raise, so the test name here is likely mislabelled. Also record the render stderr and session log tail for that capture.**
 
 **Needs review 2026-11-19 by director: decide, together with the sibling `test_draws_the_push_button_frame_and_cell` entry's identical question, whether to park all seven `TestIconDialogRender` quarantines until a recurrence records the icon render's stderr and session-log tail (recommended), or close them as unreproducible. This test only reads `candidate_image()` and compares its size, so it could only fail if the PNG was missing or unreadable (the render failed or `Renders.ensure` raised in `setUpClass`). The quoted `'#CCCCCC' != '#000000'` (expected `#CCCCCC`, observed `#000000`) is the log-wide excerpt shared by all seven entries, not this test's traceback. The bugfix role's change makes `PixelPins.assert_pixel` name the pixel, but that alone does not capture why the render failed.**
 
@@ -437,7 +437,7 @@ make: *** [Makefile:491: check] Error 1
 ~~~~
 
 Progress 2026-11-19 by the director role: the recorded `AssertionError: '#CCCCCC' != '#000000'` is not
-this test's failure. `test_exits_zero` (`DialogGate`, tests/support/render_gates.py) runs
+this test's failure. `test_exits_zero` (`DialogGate`, tests/support/render/gates.py) runs
 `self.assertEqual(0, self.returncode, self.stderr)`, so its failure reads `0 != <status> : <render stderr>`,
 never two colour strings; the excerpt is the same log-wide extract as its six siblings (tail in
 `test_xdg_homes`, two failed modules). The handoff's reading is also inverted: `PixelPins.assert_pixel`
