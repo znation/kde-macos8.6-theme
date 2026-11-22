@@ -5,19 +5,25 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Group the flat fidelity_* tools modules into tools/fidelity/ (part 2/8 of the tools regroup) (planned 2026-11-21 by the plan role)
-
-**Needs review 2026-11-21 by feature: plan defect — name collision with the kept CLI.** The plan keeps `tools/fidelity.py` (CLI) while creating `tools/fidelity/` with `__init__.py`. Python resolves a package directory ahead of a same-named module in the same directory, so `from tools import fidelity` returns the empty package. I checked this with a scratch tree (`tools/fidelity.py` setting `X=1`, `tools/fidelity/__init__.py` setting `Y=2`: `from tools import fidelity` loads the `__init__.py`, and `hasattr(fidelity, "X")` is False). About fifteen tests use `from tools import fidelity` and `mock.patch.object(fidelity, "_read_source")` on the CLI, and `tests/test_fidelity_bounds.py` runs `tools/fidelity.py` directly. Moving the family under `tools/fidelity/` as the plan states would break them. The plan needs a different package name (for example `tools/fidelity_lib/`, or a non-prefix name) or a decision to move the CLI, which is the plan role's call.
+### Group the flat fidelity_* tools modules into tools/fidelity_lib/ (part 2/8 of the tools regroup) (planned 2026-11-21 by the plan role)
 
 **Goal.** Land the fidelity-family slice of the flat-`tools/` regroup (see
 part 1/8 for the split's shared rules; the parts are independent).
+This part departs from the shared rules' package name: the family
+package is `tools/fidelity_lib/`, not `tools/fidelity/`, because a
+same-named package would shadow the kept CLI `tools/fidelity.py` (Python
+resolves `tools/fidelity/__init__.py` ahead of `tools/fidelity.py`, so the
+tests' `from tools import fidelity` would load the empty package —
+feature's plan-defect finding, 2026-11-21). The CLI keeps its path and
+its `from tools import fidelity` importers stay as they are; moved-module
+importers switch to `from tools.fidelity_lib import arguments`-style lines.
 
 **Modules to move (import lines per module; importer files counted on
 main).** `fidelity_arguments` (4), `fidelity_cli_parser` (4),
 `fidelity_geometry` (7), `fidelity_metrics` (24), `fidelity_pixels` (16),
 `fidelity_rendering` (3), `fidelity_reports` (5), `fidelity_run_family`
 (6), `fidelity_run_page` (2), `fidelity_sources` (11), `fidelity_spatial`
-(19) → `tools/fidelity/` with `__init__.py`: `arguments.py`,
+(19) → `tools/fidelity_lib/` with `__init__.py`: `arguments.py`,
 `cli_parser.py`, `geometry.py`, `metrics.py`, `pixels.py`,
 `rendering.py`, `reports.py`, `run_family.py`, `run_page.py`,
 `sources.py`, `spatial.py`. 44 files import a `fidelity_*` member.
@@ -29,32 +35,40 @@ paths.
 
 **Acceptance criteria.**
 
-- `ls tools/fidelity/` lists `__init__.py` and the eleven moved modules,
+- `ls tools/fidelity_lib/` lists `__init__.py` and the eleven moved modules,
   and `rg -n 'tools[./]fidelity_(arguments|cli_parser|geometry|metrics|pixels|rendering|reports|run_family|run_page|sources|spatial)\b|import (fidelity_arguments|fidelity_cli_parser|fidelity_geometry|fidelity_metrics|fidelity_pixels|fidelity_rendering|fidelity_reports|fidelity_run_family|fidelity_run_page|fidelity_sources|fidelity_spatial)\b'
   over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
   reference.
 - Every `mock.patch` string or object target naming a moved module
   resolves, and the tests that patch them pass.
 - `python3 tools/fidelity.py --help` exits 0 with the usage text it
-  printed before this change.
+  printed before this change, and `python3 -c "from tools import fidelity; print(callable(fidelity.main))"`
+  run from the repo root prints `True` (the CLI module, not a package).
+- `git ls-files tools/fidelity/` prints nothing (no package shadows the CLI).
 - No behavior change: `git diff` shows moves, import lines, patch targets
   and doc paths only.
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
-### Group the flat sample_* tools modules into tools/sample/ (part 3/8 of the tools regroup) (planned 2026-11-21 by the plan role)
-
-**Needs review 2026-11-21 by feature: plan defect — the target package name collides with the existing CLI module `tools/sample.py`.** Python's import finder resolves a package directory (`tools/sample/` with `__init__.py`) before a same-named module (`tools/sample.py`) in the same directory. Checked in a scratch tree holding both `tools/sample.py` and `tools/sample/__init__.py`: `from tools import sample` loads `tools/sample/__init__.py`. Tests use `from tools import sample` (for example `tests/test_sample_match_runs.py`, `tests/test_sample_match_rows.py`), and `tools/sample.py` stays as the CLI per this entry, so after the move those imports would resolve to the empty package and break. The acceptance criteria require the `tools/sample/` name, so the plan needs a different package name (or a criterion that moves the CLI too); the plan role should decide which.
+### Group the flat sample_* tools modules into tools/sample_lib/ (part 3/8 of the tools regroup) (planned 2026-11-21 by the plan role)
 
 **Goal.** Land the sample-family slice of the flat-`tools/` regroup (see
 part 1/8 for the split's shared rules; the parts are independent).
+This part departs from the shared rules' package name: the family
+package is `tools/sample_lib/`, not `tools/sample/`, because a
+same-named package would shadow the kept CLI `tools/sample.py` (Python
+resolves `tools/sample/__init__.py` ahead of `tools/sample.py`, so the
+tests' `from tools import sample` would load the empty package —
+feature's plan-defect finding, 2026-11-21). The CLI keeps its path and
+its `from tools import sample` importers stay as they are; moved-module
+importers switch to `from tools.sample_lib import arguments`-style lines.
 
 **Modules to move (import lines per module; importer files counted on
 main).** `sample_arguments` (19), `sample_match_runs` (7), `sample_parser`
 (4), `sample_report_common` (8), `sample_report_histogram` (8),
 `sample_report_pixels` (3), `sample_report_runs` (4),
 `sample_report_search` (9), `sample_reports` (6), `sample_validators` (4)
-→ `tools/sample/` with `__init__.py`: `arguments.py`, `match_runs.py`,
+→ `tools/sample_lib/` with `__init__.py`: `arguments.py`, `match_runs.py`,
 `parser.py`, `report_common.py`, `report_histogram.py`,
 `report_pixels.py`, `report_runs.py`, `report_search.py`, `reports.py`,
 `validators.py`. 45 files import a `sample_*` member. `sample.py` stays
@@ -66,14 +80,16 @@ paths.
 
 **Acceptance criteria.**
 
-- `ls tools/sample/` lists `__init__.py` and the ten moved modules, and
+- `ls tools/sample_lib/` lists `__init__.py` and the ten moved modules, and
   `rg -n 'tools[./]sample_(arguments|match_runs|parser|report_common|report_histogram|report_pixels|report_runs|report_search|reports|validators)\b|import (sample_arguments|sample_match_runs|sample_parser|sample_report_common|sample_report_histogram|sample_report_pixels|sample_report_runs|sample_report_search|sample_reports|sample_validators)\b'
   over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
   reference.
 - Every `mock.patch` string or object target naming a moved module
   resolves, and the tests that patch them pass.
 - `python3 tools/sample.py --help` exits 0 with the usage text it printed
-  before this change.
+  before this change, and `python3 -c "from tools import sample; print(callable(sample.main))"`
+  run from the repo root prints `True` (the CLI module, not a package).
+- `git ls-files tools/sample/` prints nothing (no package shadows the CLI).
 - No behavior change: `git diff` shows moves, import lines, patch targets
   and doc paths only.
 - `make check` passes after the final edit, apart from main's known-red
