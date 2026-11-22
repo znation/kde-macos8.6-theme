@@ -100,6 +100,8 @@ paths.
 
 ### Group the flat sample_* tools modules into tools/sample/ (part 3/8 of the tools regroup) (planned 2026-11-21 by the plan role)
 
+**Needs review 2026-11-21 by feature: plan defect — the target package name collides with the existing CLI module `tools/sample.py`.** Python's import finder resolves a package directory (`tools/sample/` with `__init__.py`) before a same-named module (`tools/sample.py`) in the same directory. Checked in a scratch tree holding both `tools/sample.py` and `tools/sample/__init__.py`: `from tools import sample` loads `tools/sample/__init__.py`. Tests use `from tools import sample` (for example `tests/test_sample_match_runs.py`, `tests/test_sample_match_rows.py`), and `tools/sample.py` stays as the CLI per this entry, so after the move those imports would resolve to the empty package and break. The acceptance criteria require the `tools/sample/` name, so the plan needs a different package name (or a criterion that moves the CLI too); the plan role should decide which.
+
 **Goal.** Land the sample-family slice of the flat-`tools/` regroup (see
 part 1/8 for the split's shared rules; the parts are independent).
 
