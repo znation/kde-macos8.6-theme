@@ -22,7 +22,7 @@ class TestGtkThemeOsdButtons(
         resource's stock ``button.osd`` and grouped ``.app-notification
         button, …, .osd button`` arms with the existing plain push-button
         recipe (the base ``button`` dictionary pinned by
-        ``support.gtk_rule_cases.py::GtkSheetRuleCases::test_button``):
+        ``support.gtk_shared_control_cases.py::GtkSharedControlCases::test_button``):
         the raised ``#DDDDDD`` face with its 1px black border and zero
         radius, ``BUTTON_BEVEL``, and black labels; the active and checked
         arms swap only ``box-shadow`` to ``INVERTED_BUTTON_BEVEL``; the

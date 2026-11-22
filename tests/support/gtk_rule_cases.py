@@ -23,8 +23,10 @@ alike in both, so their assertions take none.
 """
 
 from __future__ import annotations
+
 import re
 from pathlib import Path
+
 from support import gtk_css
 from support.colorscheme_fixtures import load_scheme
 from support.desktoptheme_paths import MENUBARITEM_SVG
@@ -85,8 +87,6 @@ from support.platinum_palette import (
 )
 from support.svg_case import parse_svg
 from svg_assertions import rect_geometry
-
-
 
 
 ROW_SELECTED_BUTTON_ARM_SIDEBAR = (

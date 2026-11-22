@@ -98,7 +98,7 @@
    translucent dark bubbles with white-on-dark text and icon shadows — are
    restated with the existing plain check and radio recipes (the CHECK and
    RADIO specs in tests/support/gtk_theme_spec.py, pinned by
-   tests/support/gtk_rule_cases.py::GtkSheetRuleCases::test_check_and_radio):
+   tests/support/gtk_shared_control_cases.py::GtkSharedControlCases::test_check_and_radio):
    the raised #DDDDDD check face with its etched bevel and square corners and
    the flat white round radio, black borders, the 14px minimums and 0 4px
    margins, the stock text and icon shadows cleared, and a black

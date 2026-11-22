@@ -28,7 +28,7 @@ class TestGtk4Scale(Gtk4SheetRuleCases, unittest.TestCase):
         sheet restates the toolkit resource's stock arms (probed from
         Default-light.css in libgtk-4 4.18.6) with the existing plain
         push-button recipe (the base ``button`` dictionary pinned by
-        ``support.gtk_rule_cases.py::GtkSheetRuleCases::test_button``).
+        ``support.gtk_shared_control_cases.py::GtkSharedControlCases::test_button``).
         The recipe is restated in full at each arm because this sheet has
         no restated ``.osd button.flat`` family: the stock
         ``.osd button``/``button.flat`` arms claim a transparent face and
