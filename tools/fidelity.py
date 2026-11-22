@@ -1,18 +1,18 @@
 """Command-line fidelity comparison for the Mac OS 8.6 Plasma theme.
 
 Compares a rendered PNG surface against a reference screenshot and reports the
-comparison metrics from the sibling ``tools/fidelity_metrics.py``: mean
+comparison metrics from the sibling ``tools/fidelity_lib/metrics.py``: mean
 absolute error, per-channel mean absolute error (R, G, B, A), RMSE, the worst
 per-channel delta and where it occurs, and the fraction of differing pixels.
 
 This entry point owns orchestration only: parsing and option validation
-via the sibling ``tools/fidelity_cli_parser.py``, the reads and
+via the sibling ``tools/fidelity_lib/cli_parser.py``, the reads and
 comparison, the scan selection for each requested report, and the
 exit-status selection. The report's data assembly and
-JSON/text rendering live in the sibling ``tools/fidelity_rendering.py``,
+JSON/text rendering live in the sibling ``tools/fidelity_lib/rendering.py``,
 the difference-run families' paging and filtering in
-``tools/fidelity_run_family.py``, and
-the metrics themselves in ``tools/fidelity_metrics.py``.
+``tools/fidelity_lib/run_family.py``, and
+the metrics themselves in ``tools/fidelity_lib/metrics.py``.
 
 Only PNG is read, so the harness crops a reference screenshot to a surface and
 saves it as PNG before comparing. The Plasma render step that produces the
@@ -38,44 +38,44 @@ from __future__ import annotations
 import sys
 
 if __package__:
-    from tools.fidelity_cli_parser import build_parser, validate_options
-    from tools.fidelity_sources import read_source as _read_source
+    from tools.fidelity_lib.cli_parser import build_parser, validate_options
+    from tools.fidelity_lib.sources import read_source as _read_source
     from tools.diagnostics import report_error
-    from tools.fidelity_geometry import FidelityError, crop
-    from tools.fidelity_metrics import compare
-    from tools.fidelity_pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from tools.fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_centroid
-    from tools.fidelity_run_family import (COLUMN_RUN_CALLS,
+    from tools.fidelity_lib.geometry import FidelityError, crop
+    from tools.fidelity_lib.metrics import compare
+    from tools.fidelity_lib.pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
+    from tools.fidelity_lib.spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_centroid
+    from tools.fidelity_lib.run_family import (COLUMN_RUN_CALLS,
                                            collect_run_family,
                                            HORIZONTAL_RUN_CALLS)
-    from tools.fidelity_reports import (
+    from tools.fidelity_lib.reports import (
         budget_verdict,
         delta_percentiles,
         explain_worst_pixel,
         locate_worst_pixels,
         report_data,
     )
-    from tools.fidelity_rendering import render_json, render_text
+    from tools.fidelity_lib.rendering import render_json, render_text
     from tools.png import PngError
 else:  # run directly: python3 tools/fidelity.py
-    from fidelity_cli_parser import build_parser, validate_options
-    from fidelity_sources import read_source as _read_source
+    from fidelity_lib.cli_parser import build_parser, validate_options
+    from fidelity_lib.sources import read_source as _read_source
     from diagnostics import report_error
-    from fidelity_geometry import FidelityError, crop
-    from fidelity_metrics import compare
-    from fidelity_pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
-    from fidelity_spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_centroid
-    from fidelity_run_family import (COLUMN_RUN_CALLS,
+    from fidelity_lib.geometry import FidelityError, crop
+    from fidelity_lib.metrics import compare
+    from fidelity_lib.pixels import channel_deltas, worst_pixels, channel_counts, channel_bias, channel_maxima, delta_histogram
+    from fidelity_lib.spatial import differing_flags, difference_rows, difference_columns, difference_row_bounds, difference_column_bounds, difference_centroid
+    from fidelity_lib.run_family import (COLUMN_RUN_CALLS,
                                      collect_run_family,
                                      HORIZONTAL_RUN_CALLS)
-    from fidelity_reports import (
+    from fidelity_lib.reports import (
         budget_verdict,
         delta_percentiles,
         explain_worst_pixel,
         locate_worst_pixels,
         report_data,
     )
-    from fidelity_rendering import render_json, render_text
+    from fidelity_lib.rendering import render_json, render_text
     from png import PngError
 
 
@@ -154,7 +154,7 @@ def main(argv: list[str] | None = None) -> int:
                                                   flags=flags)
                          if args.difference_column_bounds else None)
         # The horizontal and vertical difference-run families share one
-        # assembly recipe; the sibling tools/fidelity_run_family.py owns it.
+        # assembly recipe; the sibling tools/fidelity_lib/run_family.py owns it.
         horizontal = collect_run_family(
             candidate, reference, args.tolerance, flags, HORIZONTAL_RUN_CALLS,
             enabled=args.difference_runs,

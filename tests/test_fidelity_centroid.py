@@ -10,7 +10,7 @@ from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase
 from support.png_fixtures import make_png
 from tools import fidelity
-from tools.fidelity_spatial import difference_centroid
+from tools.fidelity_lib.spatial import difference_centroid
 from tools.png import Image
 
 

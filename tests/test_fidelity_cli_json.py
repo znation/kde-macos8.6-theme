@@ -11,8 +11,7 @@ from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase
 from support.png_fixtures import control_named_png, make_png, rgb_image, solid_rgb
 from support.symlink_fixtures import symlinked_repo
-from tools import fidelity_sources
-
+from tools.fidelity_lib import sources as fidelity_sources
 KEYS = {"candidate", "reference", "candidate_crop", "reference_crop", "thresholds", "metrics",
         "candidate_difference_bounds", "reference_difference_bounds", "passed"}
 

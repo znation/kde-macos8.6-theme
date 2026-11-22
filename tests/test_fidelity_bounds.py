@@ -10,7 +10,7 @@ import unittest
 from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import make_png, rgb_image  # noqa: E402
-from tools.fidelity_metrics import Image, compare  # noqa: E402
+from tools.fidelity_lib.metrics import Image, compare  # noqa: E402
 
 
 def _mask_changes(width, height, mask):

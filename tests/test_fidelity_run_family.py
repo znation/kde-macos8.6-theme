@@ -1,6 +1,6 @@
 """One shared assembly recipe drives both difference-run families.
 
-``tools/fidelity_run_family.py::collect_run_family`` routes one family's
+``tools/fidelity_lib/run_family.py::collect_run_family`` routes one family's
 option values to its scans: a count cap pages the lazy scan, an uncapped
 enabled family scans once and filters its list, and the count and longest
 pick read the page or the list when either exists, else scan on their own.
@@ -14,7 +14,7 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401
-from tools.fidelity_run_family import (
+from tools.fidelity_lib.run_family import (
     COLUMN_RUN_CALLS,
     HORIZONTAL_RUN_CALLS,
     collect_run_family,

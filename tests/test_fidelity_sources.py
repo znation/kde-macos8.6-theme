@@ -15,7 +15,8 @@ from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.png_fixtures import rgb_image
 from support.repo_root import ROOT
 from support import snippet_child
-from tools import fidelity_sources, jpeg_convert, png
+from tools import jpeg_convert, png
+from tools.fidelity_lib import sources as fidelity_sources
 
 
 class TestFidelitySources(unittest.TestCase):

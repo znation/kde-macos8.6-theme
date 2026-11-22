@@ -12,9 +12,9 @@ from support.fidelity_cli_case import (  # noqa: E402
     patched_horizontal_calls,
 )
 from support.png_fixtures import make_png  # noqa: E402
-from tools.fidelity_spatial import difference_runs  # noqa: E402
-from tools.fidelity_spatial import difference_column_runs  # noqa: E402
-from tools.fidelity_metrics import compare  # noqa: E402
+from tools.fidelity_lib.spatial import difference_runs  # noqa: E402
+from tools.fidelity_lib.spatial import difference_column_runs  # noqa: E402
+from tools.fidelity_lib.metrics import compare  # noqa: E402
 from tools.png import Image  # noqa: E402
 
 

@@ -6,7 +6,7 @@ import unittest
 
 from support import repo_root  # noqa: F401
 
-from tools.fidelity_run_page import collect_run_page
+from tools.fidelity_lib.run_page import collect_run_page
 
 
 class TrackedRun(dict):

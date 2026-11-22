@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.ints import is_plain_int
     from tools.png import Image
 else:  # imported from a directly run tool

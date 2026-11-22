@@ -26,7 +26,8 @@ from support.repo_root import ROOT  # noqa: F401  (puts root on sys.path)
 from support.fidelity_cli_case import FidelityCliTestCase
 from support.jpeg_sampler_fixture import QUILT_HEIGHT, QUILT_JPEG, QUILT_WIDTH
 from support.png_fixtures import solid_rgb
-from tools import fidelity_sources, jpeg_convert
+from tools import jpeg_convert
+from tools.fidelity_lib import sources as fidelity_sources
 
 
 class TestJpegFidelity(FidelityCliTestCase):

@@ -6,7 +6,7 @@ JSON report object. Every entry point receives the
 already-computed values -- images, crop rectangles, metrics, thresholds and
 the optional records -- as explicit arguments, so this module performs no
 image reads and no comparison work. Text and JSON rendering live in
-``tools/fidelity_rendering.py``; CLI orchestration, argument handling and
+``tools/fidelity_lib/rendering.py``; CLI orchestration, argument handling and
 exit-status selection stay in ``tools/fidelity.py``.
 """
 
@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.png import pixel_at
 else:  # imported as a top-level module through tools/fidelity.py's direct run
     from png import pixel_at
@@ -51,7 +51,7 @@ def budget_verdict(metrics, max_mae: float | None = None,
 def locate_worst_pixels(records, candidate_crop, reference_crop):
     """Add each crop-relative record's candidate and reference positions.
 
-    *records* come from ``tools/fidelity_pixels.py::worst_pixels``, whose
+    *records* come from ``tools/fidelity_lib/pixels.py::worst_pixels``, whose
     ``x``/``y`` are relative to the compared, cropped surfaces; this appends
     the ``candidate_position`` and ``reference_position`` keys that point
     into the original images by adding each crop's origin (an omitted crop
@@ -203,4 +203,4 @@ def delta_percentiles(histogram):
 __all__ = ["budget_verdict", "delta_percentiles", "explain_worst_pixel",
            "locate_worst_pixels", "report_data", "source_bounds"]
 
-# The JSON and text serializers are owned by fidelity_rendering.
+# The JSON and text serializers are owned by fidelity_lib.rendering.

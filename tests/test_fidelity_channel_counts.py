@@ -9,8 +9,8 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import make_png, rgb_image  # noqa: E402
-from tools.fidelity_metrics import Image  # noqa: E402
-from tools.fidelity_pixels import channel_counts  # noqa: E402
+from tools.fidelity_lib.metrics import Image  # noqa: E402
+from tools.fidelity_lib.pixels import channel_counts  # noqa: E402
 from tools import fidelity  # noqa: E402
 
 COUNT_LINE = "channel differing pixels (R, G, B, A): "

@@ -15,10 +15,8 @@ from support.error_assertions import (  # noqa: E402
     error_message,
 )
 from support.png_fixtures import rgb_image, solid_rgb  # noqa: E402
-from tools import fidelity_metrics
-from tools import fidelity_geometry
-
-
+from tools.fidelity_lib import metrics as fidelity_metrics
+from tools.fidelity_lib import geometry as fidelity_geometry
 class TestGeometryExports(unittest.TestCase):
     """Test public crop-geometry re-exports from metrics."""
     def test_metrics_module_reexports_crop_geometry(self):

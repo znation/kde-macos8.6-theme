@@ -11,7 +11,7 @@ pixels whose worst channel differs by more than a tolerance.
 
 PNG decoding lives in the sibling ``tools/png`` package and the command-line
 entry point in ``tools/fidelity.py``; this module holds the comparison math.
-The crop geometry lives in :mod:`tools.fidelity_geometry`; its public names
+The crop geometry lives in :mod:`tools.fidelity_lib.geometry`; its public names
 are re-exported here for existing callers. The packed byte-lane arithmetic it
 measures with lives in the sibling :mod:`tools.byte_lanes` module. It uses
 only the Python standard library, keeping the check self-contained and
@@ -22,11 +22,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.byte_lanes import abs_diff, max_byte_index, sum_squares
     from tools.ints import is_plain_int
     from tools.png import Image
-    from tools.fidelity_geometry import (
+    from tools.fidelity_lib.geometry import (
         FidelityError,
         crop_rect_problem,
         crop,
@@ -35,7 +35,7 @@ else:  # imported from a directly run tool
     from byte_lanes import abs_diff, max_byte_index, sum_squares
     from ints import is_plain_int
     from png import Image
-    from fidelity_geometry import FidelityError, crop_rect_problem, crop
+    from fidelity_lib.geometry import FidelityError, crop_rect_problem, crop
 
 __all__ = [
     "FidelityError",
@@ -105,7 +105,7 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0,
     that uses the comparison directly.
 
     The keyword-only *deltas* parameter shares the per-channel
-    absolute-delta byte strings that :func:`tools.fidelity_pixels.channel_deltas`
+    absolute-delta byte strings that :func:`tools.fidelity_lib.pixels.channel_deltas`
     derives, so a run that also wants the pixels or spatial reports pays one
     derivation instead of this function's own identical pass. ``None`` (the
     default) keeps deriving them here, the behavior a caller driving only

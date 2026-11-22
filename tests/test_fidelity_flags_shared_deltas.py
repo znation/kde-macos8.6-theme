@@ -19,9 +19,9 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.fidelity_delta_fixtures import RGB_PAIR, RGBA_PAIR  # noqa: E402
 from tools import fidelity  # noqa: E402
-from tools import fidelity_pixels  # noqa: E402
-from tools.fidelity_pixels import channel_deltas  # noqa: E402
-from tools.fidelity_spatial import differing_flags  # noqa: E402
+from tools.fidelity_lib import pixels as fidelity_pixels  # noqa: E402
+from tools.fidelity_lib.pixels import channel_deltas  # noqa: E402
+from tools.fidelity_lib.spatial import differing_flags  # noqa: E402
 
 
 class TestSharedDeltasFlags(unittest.TestCase):

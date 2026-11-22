@@ -10,8 +10,8 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401
 from tools import fidelity
-from tools import fidelity_arguments
-from tools.fidelity_cli_parser import build_parser
+from tools.fidelity_lib import arguments as fidelity_arguments
+from tools.fidelity_lib.cli_parser import build_parser
 
 
 class TestFidelityCliParser(unittest.TestCase):

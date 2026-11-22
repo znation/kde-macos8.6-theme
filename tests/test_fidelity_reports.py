@@ -1,8 +1,8 @@
 """Tests for fidelity report assembly and rendering.
 
 The report's shape -- the budget-to-verdict rule and the
-source-position translation -- lives in ``tools/fidelity_reports.py``,
-its text and JSON rendering in ``tools/fidelity_rendering.py``, while
+source-position translation -- lives in ``tools/fidelity_lib/reports.py``,
+its text and JSON rendering in ``tools/fidelity_lib/rendering.py``, while
 ``tools/fidelity.py`` reads and compares. These tests drive the report
 functions with explicit values (metrics records, hand-built worst records,
 images built by the fixtures), so each pins one rendering decision without
@@ -17,14 +17,14 @@ import unittest
 
 from support import repo_root  # noqa: F401
 from support.png_fixtures import solid_rgb  # noqa: E402
-from tools.fidelity_metrics import Image, Metrics, compare  # noqa: E402
-from tools.fidelity_reports import (  # noqa: E402
+from tools.fidelity_lib.metrics import Image, Metrics, compare  # noqa: E402
+from tools.fidelity_lib.reports import (  # noqa: E402
     budget_verdict,
     locate_worst_pixels,
     report_data,
     source_bounds,
 )
-from tools.fidelity_rendering import render_json, render_text  # noqa: E402
+from tools.fidelity_lib.rendering import render_json, render_text  # noqa: E402
 
 
 def _metrics(**overrides) -> Metrics:

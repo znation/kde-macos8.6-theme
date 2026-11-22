@@ -9,9 +9,9 @@ from support.fidelity_cli_case import (  # noqa: E402
     FidelityCliTestCase,
     patched_horizontal_calls,
 )
-from tools.fidelity_run_family import HORIZONTAL_RUN_CALLS  # noqa: E402
+from tools.fidelity_lib.run_family import HORIZONTAL_RUN_CALLS  # noqa: E402
 from support.png_fixtures import make_png  # noqa: E402
-from tools.fidelity_spatial import difference_run_count  # noqa: E402
+from tools.fidelity_lib.spatial import difference_run_count  # noqa: E402
 from tools.png import Image  # noqa: E402
 
 

@@ -1,7 +1,7 @@
 """Pixel diagnostics for fidelity surfaces.
 
 Every diagnostic reads the same per-channel absolute-delta byte
-strings that :func:`tools.fidelity_metrics.compare` builds -- a strided
+strings that :func:`tools.fidelity_lib.metrics.compare` builds -- a strided
 RGB channel slice per channel through ``tools.byte_lanes.abs_diff``, plus
 an alpha string whenever the planes differ in presence or content -- and
 then folds them with ``tools.byte_lanes.byte_max`` into one maximum-delta
@@ -14,13 +14,13 @@ from __future__ import annotations
 
 from collections import Counter
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.byte_lanes import abs_diff, byte_max, max_byte_index
-    from tools.fidelity_metrics import over_table
+    from tools.fidelity_lib.metrics import over_table
     from tools.png import Image
 else:  # imported by a directly run CLI
     from byte_lanes import abs_diff, byte_max, max_byte_index
-    from fidelity_metrics import over_table
+    from fidelity_lib.metrics import over_table
     from png import Image
 
 
@@ -38,7 +38,7 @@ def channel_deltas(candidate: Image, reference: Image) -> list[bytes]:
     like the image-local pixel index.  A plane without an image alpha
     channel is fully opaque; when both alpha sides are opaque -- present or
     absent -- every pixel's alpha delta is zero and the string is omitted,
-    the opaque-plane skip :func:`tools.fidelity_metrics.compare` makes, and
+    the opaque-plane skip :func:`tools.fidelity_lib.metrics.compare` makes, and
     diagnostics that would have counted a zero alpha contribution simply
     read that zero from the absent string.
     """

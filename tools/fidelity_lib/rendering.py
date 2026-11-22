@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.terminal import escape_controls
 else:  # imported as a top-level module through tools/fidelity.py's direct run
     from terminal import escape_controls

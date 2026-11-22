@@ -1,9 +1,9 @@
 """Spatially indexed pixel diagnostics for fidelity surfaces.
 
 Every scan derives one 0/1 flag byte per pixel with the byte-level
-arithmetic :func:`tools.fidelity_metrics.compare` uses for its
+arithmetic :func:`tools.fidelity_lib.metrics.compare` uses for its
 differing metric -- the shared per-channel absolute-delta byte strings
-:func:`tools.fidelity_pixels.channel_deltas` returns, each translated
+:func:`tools.fidelity_lib.pixels.channel_deltas` returns, each translated
 to a flag byte by a tolerance table, and the per-pixel channel flags
 ORed as one big integer -- instead of re-deriving per-pixel RGBA
 deltas in Python, which dominated a screenshot-sized spatial report.
@@ -19,13 +19,13 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable, Iterator
 
-if __package__:
-    from tools.fidelity_metrics import over_table
-    from tools.fidelity_pixels import channel_deltas
+if __package__.startswith("tools"):
+    from tools.fidelity_lib.metrics import over_table
+    from tools.fidelity_lib.pixels import channel_deltas
     from tools.png import Image
 else:  # imported as the top-level package by a directly run CLI
-    from fidelity_metrics import over_table
-    from fidelity_pixels import channel_deltas
+    from fidelity_lib.metrics import over_table
+    from fidelity_lib.pixels import channel_deltas
     from png import Image
 
 _RUN = re.compile(b"\x01+")
@@ -42,7 +42,7 @@ def differing_flags(
     including beneath transparency, and a missing alpha plane counts every
     pixel as opaque 255 -- the same union the CLI's ``compare`` call
     computes. The derivation reads the shared per-channel absolute-delta
-    byte strings :func:`tools.fidelity_pixels.channel_deltas` returns --
+    byte strings :func:`tools.fidelity_lib.pixels.channel_deltas` returns --
     the same list the pixel reports read -- translates each channel to a
     flag byte through *tolerance*'s table, and ORs the channel flags per
     pixel as one big integer.

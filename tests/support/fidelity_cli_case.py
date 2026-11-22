@@ -18,7 +18,8 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import CliTestCase  # noqa: E402
 from support.png_fixtures import make_png, rgb_image, solid_rgb  # noqa: E402
-from tools import fidelity, fidelity_run_family  # noqa: E402
+from tools import fidelity  # noqa: E402
+from tools.fidelity_lib import run_family as fidelity_run_family  # noqa: E402
 
 
 def patched_horizontal_calls(**replacement):

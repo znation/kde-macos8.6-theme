@@ -21,8 +21,8 @@ from support.fidelity_delta_fixtures import (
     RGBA_PAIR,
 )  # noqa: E402
 from tools import fidelity  # noqa: E402
-from tools.fidelity_metrics import compare  # noqa: E402
-from tools.fidelity_spatial import (  # noqa: E402
+from tools.fidelity_lib.metrics import compare  # noqa: E402
+from tools.fidelity_lib.spatial import (  # noqa: E402
     difference_centroid,
     difference_column_bounds,
     difference_column_run_count,

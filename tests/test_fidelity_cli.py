@@ -27,7 +27,8 @@ from support.png_fixtures import (  # noqa: E402
     solid_rgb,
 )
 from support.symlink_fixtures import symlinked_repo  # noqa: E402
-from tools import fidelity, fidelity_sources  # noqa: E402
+from tools import fidelity  # noqa: E402
+from tools.fidelity_lib import sources as fidelity_sources  # noqa: E402
 
 
 class TestCli(FidelityCliTestCase):

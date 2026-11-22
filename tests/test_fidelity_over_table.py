@@ -14,9 +14,7 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import fidelity_metrics
-
-
+from tools.fidelity_lib import metrics as fidelity_metrics
 class TestOverTable(unittest.TestCase):
     """Test per-byte delta counts across tolerance thresholds."""
     def test_one_entry_per_byte_delta(self):

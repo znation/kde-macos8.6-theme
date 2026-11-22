@@ -7,9 +7,9 @@ combinations before any image read.
 
 from __future__ import annotations
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.argument_parsing import EscapingArgumentParser, positive_int
-    from tools.fidelity_arguments import (
+    from tools.fidelity_lib.arguments import (
         max_delta,
         max_differing,
         max_frac,
@@ -24,7 +24,7 @@ if __package__:
     )
 else:  # run directly: python3 tools/fidelity.py
     from argument_parsing import EscapingArgumentParser, positive_int
-    from fidelity_arguments import (
+    from fidelity_lib.arguments import (
         max_delta,
         max_differing,
         max_frac,

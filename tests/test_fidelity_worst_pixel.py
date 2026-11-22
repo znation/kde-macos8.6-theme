@@ -10,8 +10,8 @@ import unittest
 from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import make_png, rgb_image  # noqa: E402
-from tools.fidelity_reports import explain_worst_pixel
-from tools.fidelity_metrics import Image, compare  # noqa: E402
+from tools.fidelity_lib.reports import explain_worst_pixel
+from tools.fidelity_lib.metrics import Image, compare  # noqa: E402
 
 
 class TestWorstPixel(FidelityCliTestCase):
@@ -53,7 +53,7 @@ class TestWorstPixel(FidelityCliTestCase):
         self.assertNotIn("worst pixel:", self._run_png_pair(candidate, reference).stdout)
 
     def test_offset_without_worst_pixels_is_refused_before_reads(self):
-        # The parser's last cross-check (tools/fidelity_cli_parser.py):
+        # The parser's last cross-check (tools/fidelity_lib/cli_parser.py):
         # --worst-pixel-offset pages a --worst-pixels report, so the offset
         # without its count cap is refused as a usage error that names the
         # cap. The input files do not exist, so any image read would produce

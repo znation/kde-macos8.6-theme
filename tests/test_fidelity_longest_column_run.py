@@ -9,7 +9,7 @@ from support.fidelity_cli_case import (
     patched_column_calls,
 )
 from support.png_fixtures import make_png
-from tools.fidelity_spatial import longest_difference_column_run
+from tools.fidelity_lib.spatial import longest_difference_column_run
 from tools.png import Image
 
 

@@ -11,9 +11,9 @@ from __future__ import annotations
 
 import os
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.containment import open_regular_binary, require_within_repo
-    from tools.fidelity_geometry import FidelityError
+    from tools.fidelity_lib.geometry import FidelityError
     from tools.jpeg_convert import (
         JpegDecodeError, decoded_png, is_jpeg, rewrite_temp_png_error,
     )
@@ -21,7 +21,7 @@ if __package__:
     from tools.repo_root import ROOT
 else:  # imported by direct execution of tools/fidelity.py
     from containment import open_regular_binary, require_within_repo
-    from fidelity_geometry import FidelityError
+    from fidelity_lib.geometry import FidelityError
     from jpeg_convert import JpegDecodeError, decoded_png, is_jpeg, rewrite_temp_png_error
     from png import PngError, read_png
     from repo_root import ROOT

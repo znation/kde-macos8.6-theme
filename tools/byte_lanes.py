@@ -1,6 +1,6 @@
 """Packed-integer byte-lane arithmetic for the fidelity tooling.
 
-``tools/fidelity_metrics.py`` compares two images by turning each channel's
+``tools/fidelity_lib/metrics.py`` compares two images by turning each channel's
 byte string into that channel's absolute per-byte deltas, then summing and
 locating maxima over those byte strings.  Doing that with a Python loop per
 byte dominated runtime on screenshot-sized inputs, so the operations here pack

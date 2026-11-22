@@ -37,7 +37,7 @@ from support.render.gates import (
     probe_gate_skip,
     software_renderer_skip_reason,
 )
-from tools.fidelity_metrics import compare, crop  # noqa: E402
+from tools.fidelity_lib.metrics import compare, crop  # noqa: E402
 from tools.png import Image, PngError, pixel_at, read_png  # noqa: E402
 
 

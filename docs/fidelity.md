@@ -159,7 +159,7 @@ reports.
 
 Add `--json` to emit the paths, crop rectangles, thresholds, full precision metrics and verdict
 as one JSON object (for example, `python3 tools/fidelity.py render.png reference.png --json`).
-The `metrics` object uses the field names from `tools/fidelity_metrics.py::Metrics`; crop-relative
+The `metrics` object uses the field names from `tools/fidelity_lib/metrics.py::Metrics`; crop-relative
 dimensions, worst-delta coordinates, and `difference_bounds` describe the compared surfaces.
 The bounds are `(x, y, width, height)` for the smallest rectangle containing pixels whose
 maximum channel delta exceeds tolerance, or `null`/`none` when no pixel exceeds it.
@@ -170,7 +170,7 @@ Text output prints the same two source rectangles after the local bounds line.
 A candidate or reference path inside the repository that resolves outside it (a checked-in
 symlink) is refused by name before it is read, so a comparison cannot probe a private image;
 a path outside the repository is read as before. Guarded PNG reads and crop-bounded row decoding
-are handled by `tools/fidelity_sources.py`, called by the CLI in `tools/fidelity.py`.
+are handled by `tools/fidelity_lib/sources.py`, called by the CLI in `tools/fidelity.py`.
 Add `--quiet` to suppress the report and use only the exit status (0 pass, 1 comparison failure,
 2 usage or read error) in a scripted gate. It can be combined with comparison diagnostics, which
 are still calculated but not printed; `--quiet` and `--json` are mutually exclusive.

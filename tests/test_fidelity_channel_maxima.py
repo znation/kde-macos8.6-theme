@@ -9,7 +9,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import make_png  # noqa: E402
-from tools.fidelity_pixels import channel_maxima  # noqa: E402
+from tools.fidelity_lib.pixels import channel_maxima  # noqa: E402
 from tools.png import Image  # noqa: E402
 from tools import fidelity  # noqa: E402
 

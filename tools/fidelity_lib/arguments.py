@@ -1,7 +1,7 @@
 """Crop and comparison argument types for the fidelity CLI.
 
 Validate CLI text using the shared numeric grammar and metric rectangle checks.
-Parser construction lives in ``tools/fidelity_cli_parser.py``; image loading
+Parser construction lives in ``tools/fidelity_lib/cli_parser.py``; image loading
 and reporting live in ``tools/fidelity.py``.
 """
 
@@ -11,12 +11,12 @@ import argparse
 import math
 from typing import TypeVar
 
-if __package__:
+if __package__.startswith("tools"):
     from tools.argument_parsing import is_plain_ascii_number, plain_number
-    from tools.fidelity_geometry import crop_rect_problem
+    from tools.fidelity_lib.geometry import crop_rect_problem
 else:  # imported from a directly run tool
     from argument_parsing import is_plain_ascii_number, plain_number
-    from fidelity_geometry import crop_rect_problem
+    from fidelity_lib.geometry import crop_rect_problem
 
 
 def parse_crop(value: str) -> tuple[int, int, int, int]:

@@ -6,7 +6,7 @@ shape — the run list, the eligible count omitted by its page, the run count
 and the longest run — and one assembly recipe:
 
 * when a count cap is given, page the lazy scan through
-  ``tools/fidelity_run_page.py::collect_run_page``;
+  ``tools/fidelity_lib/run_page.py::collect_run_page``;
 * otherwise scan once for the full run list;
 * derive the run count and longest pick from the page or the list when they
   exist, else pay for a full scan of their own;
@@ -16,16 +16,16 @@ The two families differ only in their option values, which the caller reads
 from the parsed arguments, and in the four scan callables they use, which
 :class:`RunFamilyCalls` bundles. ``main`` in ``tools/fidelity.py`` calls
 :func:`collect_run_family` once per family and passes the resulting
-:class:`RunFamilyReport` fields into ``tools/fidelity_reports.py``.
+:class:`RunFamilyReport` fields into ``tools/fidelity_lib/reports.py``.
 """
 
 from __future__ import annotations
 
 from typing import Callable, NamedTuple
 
-if __package__:
-    from tools.fidelity_run_page import collect_run_page
-    from tools.fidelity_spatial import (
+if __package__.startswith("tools"):
+    from tools.fidelity_lib.run_page import collect_run_page
+    from tools.fidelity_lib.spatial import (
         difference_column_run_count,
         difference_column_runs,
         difference_run_count,
@@ -37,8 +37,8 @@ if __package__:
         select_longest_run,
     )
 else:  # run directly: python3 tools/fidelity.py
-    from fidelity_run_page import collect_run_page
-    from fidelity_spatial import (
+    from fidelity_lib.run_page import collect_run_page
+    from fidelity_lib.spatial import (
         difference_column_run_count,
         difference_column_runs,
         difference_run_count,

@@ -5,51 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Group the flat fidelity_* tools modules into tools/fidelity_lib/ (part 2/8 of the tools regroup) (planned 2026-11-21 by the plan role)
-
-**Goal.** Land the fidelity-family slice of the flat-`tools/` regroup (see
-part 1/8 for the split's shared rules; the parts are independent).
-This part departs from the shared rules' package name: the family
-package is `tools/fidelity_lib/`, not `tools/fidelity/`, because a
-same-named package would shadow the kept CLI `tools/fidelity.py` (Python
-resolves `tools/fidelity/__init__.py` ahead of `tools/fidelity.py`, so the
-tests' `from tools import fidelity` would load the empty package —
-feature's plan-defect finding, 2026-11-21). The CLI keeps its path and
-its `from tools import fidelity` importers stay as they are; moved-module
-importers switch to `from tools.fidelity_lib import arguments`-style lines.
-
-**Modules to move (import lines per module; importer files counted on
-main).** `fidelity_arguments` (4), `fidelity_cli_parser` (4),
-`fidelity_geometry` (7), `fidelity_metrics` (24), `fidelity_pixels` (16),
-`fidelity_rendering` (3), `fidelity_reports` (5), `fidelity_run_family`
-(6), `fidelity_run_page` (2), `fidelity_sources` (11), `fidelity_spatial`
-(19) → `tools/fidelity_lib/` with `__init__.py`: `arguments.py`,
-`cli_parser.py`, `geometry.py`, `metrics.py`, `pixels.py`,
-`rendering.py`, `reports.py`, `run_family.py`, `run_page.py`,
-`sources.py`, `spatial.py`. 44 files import a `fidelity_*` member.
-`fidelity.py` stays (CLI).
-
-**Files touched.** The eleven moved modules, their 44 importer files under
-`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
-paths.
-
-**Acceptance criteria.**
-
-- `ls tools/fidelity_lib/` lists `__init__.py` and the eleven moved modules,
-  and `rg -n 'tools[./]fidelity_(arguments|cli_parser|geometry|metrics|pixels|rendering|reports|run_family|run_page|sources|spatial)\b|import (fidelity_arguments|fidelity_cli_parser|fidelity_geometry|fidelity_metrics|fidelity_pixels|fidelity_rendering|fidelity_reports|fidelity_run_family|fidelity_run_page|fidelity_sources|fidelity_spatial)\b'
-  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
-  reference.
-- Every `mock.patch` string or object target naming a moved module
-  resolves, and the tests that patch them pass.
-- `python3 tools/fidelity.py --help` exits 0 with the usage text it
-  printed before this change, and `python3 -c "from tools import fidelity; print(callable(fidelity.main))"`
-  run from the repo root prints `True` (the CLI module, not a package).
-- `git ls-files tools/fidelity/` prints nothing (no package shadows the CLI).
-- No behavior change: `git diff` shows moves, import lines, patch targets
-  and doc paths only.
-- `make check` passes after the final edit, apart from main's known-red
-  tests.
-
 ### Group the tests/support fidelity and kvantum modules into subpackages (part 3/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
 
 **Needs review 2026-11-21 by feature: too large for one run**

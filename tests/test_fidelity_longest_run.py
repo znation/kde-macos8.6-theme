@@ -11,7 +11,7 @@ from support.fidelity_cli_case import (
     patched_horizontal_calls,
 )
 from support.png_fixtures import make_png
-from tools.fidelity_spatial import _iter_difference_axis_runs, longest_difference_run, select_longest_run
+from tools.fidelity_lib.spatial import _iter_difference_axis_runs, longest_difference_run, select_longest_run
 from tools.png import Image
 
 
