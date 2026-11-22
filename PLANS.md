@@ -5,55 +5,283 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Group the flat tools/ modules into per-subsystem packages (planned 2026-11-19 by the organize role)
+### Group the flat render_* tools modules into tools/render/ (part 1/8 of the tools regroup) (planned 2026-11-21 by the plan role)
 
-**Needs review 2026-11-19 by feature: too large for one run.** Measured in this checkout (2026-11-21): 106 flat `tools/*.py` modules, 199 files under `tools/` and `tests/` that import a prefixed flat module (grep `from tools.<family>_` / `import <family>_`), 172 test files that call `mock.patch`, and 11 markdown/Makefile files naming flat modules. One change touching all of these, with per-module patch-target ownership decisions and the `tools/render_workflow.py` anchor (absent; its successor is not found by `git log --follow`), exceeds one run's budget. Suggest the plan role split it into one subsystem family per entry (e.g. `render_` first), each landing its own package and its importers together.
+**Goal.** Land the render-family slice of the flat-`tools/` regroup, split
+from the single regroup entry after feature parked it as too large for one
+run. The regroup moves 59 modules into eight packages; this part carries the
+split's shared rules (the later parts cite them) and lands the render family.
+The parts are independent: each lands its own package and its importers
+together, in its own change.
 
-**Goal.** `tools/` holds 106 flat modules with no grouping beyond their name
-prefixes: `render_` (12), `fidelity_` (12), `sample_` (11), `cursor_` (10),
-`check_` (7), `firefox_` (5), `apply_` (5), `uninstall_` (4), `gtk_` (4), plus
-single files for other subsystems. A reader cannot see subsystem boundaries from
-the directory listing, and 199 files import these modules by their flat names.
-Regroup them into subpackages, following the existing `tools/png/` package.
+**Shared rules (cited by parts 2/8–8/8).** One subpackage per subsystem,
+each with `__init__.py`; a moved module loses its family prefix
+(`tools/render_session.py` becomes `tools/render/session.py`), and importers
+switch to `from tools.render import session` / `from tools.render.session
+import X` — the style already used for `tools/png`. The CLI entry points
+stay at the top of `tools/` and keep their paths (the Makefile, `docs/*.md`
+and the help text run `python3 tools/sample.py`, `tools/fidelity.py` and
+similar commands there), as do their flat private helpers
+(`apply_optional.py`, `apply_konsole_font.py`, `kvantum_selection.py`,
+`local_hook.py`, `install_firefox.py`) and the shared modules
+(`atomic_write`, `text_lines`, `process_group`, `repo_root`,
+`diagnostics`, ...). Modules serving two families get one owner and the
+other family imports it. Retarget both patch styles — string
+`mock.patch("tools.<old>.…")` targets and
+`mock.patch.object(<old_module>, …)` object targets — to the module whose
+global the caller resolves. Grep
+every old flat name over `tools/`, `tests/`, `docs/`, `Makefile` and
+`README.md` before `make check`; `BUGS.md` and the `PLANS-DONE.md` /
+`BUGS-FIXED.md` archives are exempt — they quote the flat paths as history.
 
-**Cost today.** Evidence: `ls tools/*.py | wc -l` gives 106 modules; `rg -l` finds 199
-files that import a prefixed flat module; `render_` names appear in 123 files
-(code, tests and docs). Nothing marks which `render_*` modules form the render
-subsystem, so a change to one family is found by grepping names, not by path.
+**Modules to move (import lines per module; importer files counted on
+main).** `render_applet` (2), `render_clients` (6), `render_dialogs` (8),
+`render_output` (6), `render_session` (14), `render_session_script` (2),
+`render_setup` (12), `render_splash_client` (3), `render_surface_options`
+(3), `render_window_rules` (7), `render_workflow` (19) → `tools/render/`
+with `__init__.py`: `applet.py`, `clients.py`, `dialogs.py`, `output.py`,
+`session.py`, `session_script.py`, `setup.py`, `splash_client.py`,
+`surface_options.py`, `window_rules.py`, `workflow.py`. 37 files import a
+`render_*` member. `render_surface.py` stays (CLI).
 
-**Target structure.** One subpackage per subsystem, each with `__init__.py`:
-`tools/render/`, `tools/fidelity/`, `tools/sample/`, `tools/cursor/`,
-`tools/firefox/`, `tools/uninstall/`, `tools/gtk/`, `tools/check/`. The module
-names lose their prefix inside the package (`tools/render_workflow.py` becomes
-`tools/render/workflow.py`). The CLI entry points stay in `tools/` and keep their
-paths, because the Makefile, `docs/*.md` and the help text run
-`python3 tools/sample.py`, `tools/fidelity.py` and similar commands. Shared
-modules (`atomic_write`, `text_lines`, `process_group`, `repo_root`, ...) stay at
-the top of `tools/`. Modules that serve two families are assigned to one owner,
-and the other family imports it.
-
-**Files touched.** Every moved module; every importer in `tools/` and `tests/`
-(about 199 files); every `mock.patch` target string (retarget each moved name to
-the module whose global the caller resolves, per the L4 lesson); the Makefile;
-`docs/*.md`, README, `docs/invariants.md`, and the rendered help text.
-
-**Approach.** Land the whole move in one change so the tree never sits between
-two layouts. Order: create the packages, move modules with `git mv`, rewrite
-imports, retarget `mock.patch` strings, then grep every old flat name across
-source, tests and markdown before running `make check`.
+**Files touched.** The eleven moved modules, their 37 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
 
 **Acceptance criteria.**
 
-- `ls tools/*.py` lists only the CLI entry points and shared top-level modules;
-  each subsystem family lives in its own package directory.
-- A grep for every old flat name (`render_workflow`, `fidelity_metrics`, ...) over
-  `*.py`, `*.md` and `Makefile` finds no stale reference.
-- Every `mock.patch` string that names a moved module resolves; the tests that patch
-  them still pass.
-- The CLI entry points run unchanged: `python3 tools/sample.py --help` and
-  `python3 tools/fidelity.py --help` exit 0 and print the same usage text as before.
-- `make check` passes after the final edit.
-- No behavior change: `git diff` shows moves, import lines and patch targets only.
+- `ls tools/render/` lists `__init__.py` and the eleven moved modules, and
+  `rg -n 'tools[./]render_(applet|clients|dialogs|output|session|session_script|setup|splash_client|surface_options|window_rules|workflow)\b|import (render_applet|render_clients|render_dialogs|render_output|render_session|render_session_script|render_setup|render_splash_client|render_surface_options|render_window_rules|render_workflow)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the flat fidelity_* tools modules into tools/fidelity/ (part 2/8 of the tools regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the fidelity-family slice of the flat-`tools/` regroup (see
+part 1/8 for the split's shared rules; the parts are independent).
+
+**Modules to move (import lines per module; importer files counted on
+main).** `fidelity_arguments` (4), `fidelity_cli_parser` (4),
+`fidelity_geometry` (7), `fidelity_metrics` (24), `fidelity_pixels` (16),
+`fidelity_rendering` (3), `fidelity_reports` (5), `fidelity_run_family`
+(6), `fidelity_run_page` (2), `fidelity_sources` (11), `fidelity_spatial`
+(19) → `tools/fidelity/` with `__init__.py`: `arguments.py`,
+`cli_parser.py`, `geometry.py`, `metrics.py`, `pixels.py`,
+`rendering.py`, `reports.py`, `run_family.py`, `run_page.py`,
+`sources.py`, `spatial.py`. 44 files import a `fidelity_*` member.
+`fidelity.py` stays (CLI).
+
+**Files touched.** The eleven moved modules, their 44 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tools/fidelity/` lists `__init__.py` and the eleven moved modules,
+  and `rg -n 'tools[./]fidelity_(arguments|cli_parser|geometry|metrics|pixels|rendering|reports|run_family|run_page|sources|spatial)\b|import (fidelity_arguments|fidelity_cli_parser|fidelity_geometry|fidelity_metrics|fidelity_pixels|fidelity_rendering|fidelity_reports|fidelity_run_family|fidelity_run_page|fidelity_sources|fidelity_spatial)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- `python3 tools/fidelity.py --help` exits 0 with the usage text it
+  printed before this change.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the flat sample_* tools modules into tools/sample/ (part 3/8 of the tools regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the sample-family slice of the flat-`tools/` regroup (see
+part 1/8 for the split's shared rules; the parts are independent).
+
+**Modules to move (import lines per module; importer files counted on
+main).** `sample_arguments` (19), `sample_match_runs` (7), `sample_parser`
+(4), `sample_report_common` (8), `sample_report_histogram` (8),
+`sample_report_pixels` (3), `sample_report_runs` (4),
+`sample_report_search` (9), `sample_reports` (6), `sample_validators` (4)
+→ `tools/sample/` with `__init__.py`: `arguments.py`, `match_runs.py`,
+`parser.py`, `report_common.py`, `report_histogram.py`,
+`report_pixels.py`, `report_runs.py`, `report_search.py`, `reports.py`,
+`validators.py`. 45 files import a `sample_*` member. `sample.py` stays
+(CLI).
+
+**Files touched.** The ten moved modules, their 45 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tools/sample/` lists `__init__.py` and the ten moved modules, and
+  `rg -n 'tools[./]sample_(arguments|match_runs|parser|report_common|report_histogram|report_pixels|report_runs|report_search|reports|validators)\b|import (sample_arguments|sample_match_runs|sample_parser|sample_report_common|sample_report_histogram|sample_report_pixels|sample_report_runs|sample_report_search|sample_reports|sample_validators)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- `python3 tools/sample.py --help` exits 0 with the usage text it printed
+  before this change.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the flat cursor_* tools modules into tools/cursor/ (part 4/8 of the tools regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the cursor-family slice of the flat-`tools/` regroup (see
+part 1/8 for the split's shared rules; the parts are independent).
+
+**Modules to move (import lines per module; importer files counted on
+main).** `cursor_art` (11), `cursor_art_drag` (2), `cursor_art_pointers`
+(6), `cursor_art_resize` (2), `cursor_checks` (6), `cursor_config` (6),
+`cursor_link` (8), `cursor_selection` (9), `cursor_vector` (12),
+`cursor_workflow` (5) → `tools/cursor/` with `__init__.py`: `art.py`,
+`art_drag.py`, `art_pointers.py`, `art_resize.py`, `checks.py`,
+`config.py`, `link.py`, `selection.py`, `vector.py`, `workflow.py`. 19
+files import a `cursor_*` member. The family has no CLI driver of its own;
+`tools/make_cursors.py` and `tools/apply_cursor.py` (make_/apply_-prefixed
+drivers that stay) rewrite their import lines in this change.
+
+**Files touched.** The ten moved modules, their 19 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tools/cursor/` lists `__init__.py` and the ten moved modules, and
+  `rg -n 'tools[./]cursor_(art|art_drag|art_pointers|art_resize|checks|config|link|selection|vector|workflow)\b|import (cursor_art|cursor_art_drag|cursor_art_pointers|cursor_art_resize|cursor_checks|cursor_config|cursor_link|cursor_selection|cursor_vector|cursor_workflow)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the flat check_* tools modules into tools/check/ (part 5/8 of the tools regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the check-family slice of the flat-`tools/` regroup (see
+part 1/8 for the split's shared rules; the parts are independent).
+
+**Modules to move (import lines per module; importer files counted on
+main).** `check_parallel_discovery` (2), `check_parallel_order` (4),
+`check_parallel_results` (7), `check_parallel_workers` (8),
+`check_references_selftest` (3) → `tools/check/` with `__init__.py`:
+`parallel_discovery.py`, `parallel_order.py`, `parallel_results.py`,
+`parallel_workers.py`, `references_selftest.py`. 12 files import a
+`check_*` mover. `check_parallel.py` and `check_references.py` stay (CLI).
+
+**Files touched.** The five moved modules, their 12 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tools/check/` lists `__init__.py` and the five moved modules, and
+  `rg -n 'tools[./]check_(parallel_discovery|parallel_order|parallel_results|parallel_workers|references_selftest)\b|import (check_parallel_discovery|check_parallel_order|check_parallel_results|check_parallel_workers|check_references_selftest)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- `python3 tools/check_parallel.py --help` and
+  `python3 tools/check_references.py --help` exit 0 with the usage text
+  they printed before this change.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the flat firefox_* tools modules into tools/firefox/ (part 6/8 of the tools regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the firefox-family slice of the flat-`tools/` regroup (see
+part 1/8 for the split's shared rules; the parts are independent).
+
+**Modules to move (import lines per module; importer files counted on
+main).** `firefox_profile` (7), `firefox_profile_actions` (11),
+`firefox_transaction` (4), `firefox_user_files` (12), `firefox_user_js`
+(4) → `tools/firefox/` with `__init__.py`: `profile.py`,
+`profile_actions.py`, `transaction.py`, `user_files.py`, `user_js.py`. 10
+files import a `firefox_*` member. `install_firefox.py` stays (CLI).
+
+**Files touched.** The five moved modules, their 10 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tools/firefox/` lists `__init__.py` and the five moved modules, and
+  `rg -n 'tools[./]firefox_(profile|profile_actions|transaction|user_files|user_js)\b|import (firefox_profile|firefox_profile_actions|firefox_transaction|firefox_user_files|firefox_user_js)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the flat uninstall_* tools modules into tools/uninstall/ (part 7/8 of the tools regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the uninstall-family slice of the flat-`tools/` regroup
+(see part 1/8 for the split's shared rules; the parts are independent).
+
+**Modules to move (import lines per module; importer files counted on
+main).** `uninstall_config` (10), `uninstall_defaults_diagnostics` (3),
+`uninstall_live_diagnostics` (4) → `tools/uninstall/` with `__init__.py`:
+`config.py`, `defaults_diagnostics.py`, `live_diagnostics.py`. 11 files
+import a mover. `uninstall_diagnostics.py` stays (CLI).
+
+**Files touched.** The three moved modules, their 11 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tools/uninstall/` lists `__init__.py` and the three moved modules,
+  and `rg -n 'tools[./]uninstall_(config|defaults_diagnostics|live_diagnostics)\b|import (uninstall_config|uninstall_defaults_diagnostics|uninstall_live_diagnostics)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the flat gtk_* tools modules into tools/gtk/ (part 8/8 of the tools regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the gtk-family slice of the flat-`tools/` regroup (see
+part 1/8 for the split's shared rules; the parts are independent).
+
+**Modules to move (import lines per module; importer files counted on
+main).** `gtk_selection` (12), `gtk_settings` (5), `gtk_staging` (6),
+`gtk_user_files` (20) → `tools/gtk/` with `__init__.py`: `selection.py`,
+`settings.py`, `staging.py`, `user_files.py`. 21 files import a `gtk_*`
+member. `apply_gtk.py` and `kvantum_selection.py` stay (CLI and its flat
+helper) and rewrite their import lines in this change.
+
+**Files touched.** The four moved modules, their 21 importer files under
+`tools/` and `tests/`, any `mock.patch` targets, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tools/gtk/` lists `__init__.py` and the four moved modules, and
+  `rg -n 'tools[./]gtk_(selection|settings|staging|user_files)\b|import (gtk_selection|gtk_settings|gtk_staging|gtk_user_files)\b'
+  over `tools/ tests/ docs/ Makefile README.md` finds no stale flat
+  reference.
+- Every `mock.patch` string or object target naming a moved module
+  resolves, and the tests that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
 
 ### PNG read suite extraction: move the size-read tests into their own module (planned 2026-11-21 by the plan role)
 
