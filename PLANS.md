@@ -174,13 +174,13 @@ desktoptheme, kvantum and render tests).
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
-### Group the tests/support apply, cursor, xcursor, splash, icon and desktoptheme modules into subpackages (part 5/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
+### Group the tests/support apply, cursor and xcursor modules into subpackages (part 5/6, slice A of the tests/support regroup) (planned 2026-11-21 by the plan role)
 
-**Needs review 2026-11-21 by feature: too large for one run**
-
-**Goal.** Land the six small single-family slices of the tests/support
-regroup (see part 1/6 for the split's counts and rules; the parts are
-independent).
+**Goal.** Land the apply-, cursor- and xcursor-family slices of the
+tests/support regroup (see part 1/6 for the split's counts and rules;
+the parts are independent). Split from the single part 5/6 entry after
+feature parked it as too large for one run; slice B carries the splash,
+icon and desktoptheme slices and neither slice depends on the other.
 
 **Modules to move (importer files counted on main).** `apply_target_cases`
 (2), `apply_theme_stubs` (2), `cursor_case` (3; all importers are apply
@@ -188,27 +188,64 @@ tests) → `tests/support/apply/` with `__init__.py`: `target_cases.py`,
 `theme_stubs.py`, `cursor_case.py`. `cursor_artifact_cases` (3) →
 `tests/support/cursor/` with `__init__.py`: `artifact_cases.py`.
 `xcursor_frames` (2) → `tests/support/xcursor/` with `__init__.py`:
-`frames.py`. `splash_fixtures` (3) → `tests/support/splash/` with
-`__init__.py`: `fixtures.py`. `icon_theme_inventory` (2) →
-`tests/support/icon/` with `__init__.py`: `theme_inventory.py`.
-`raised_face_case` (2), `thumb_fixtures` (3) → `tests/support/desktoptheme/`
-with `__init__.py`: `raised_face_case.py`, `thumb_fixtures.py`.
+`frames.py`. Twelve importer files under `tests/` in total
+(`tests/test_apply_cursor.py` imports two of the moved modules).
 
 **Approach.** As in part 1/6: move, rewrite importer lines and bare
 references, retarget `mock.patch` strings, verify importers before each
 move. Known stays, already measured: `xcursor` (imported by `tools/` and
-file-identity tests), `cursor_theme_fixtures` (imported by apply tests and
-a support module), `firstboot_lineedit`, `sunken_field_reference` and
-`reference_button` (each spans two families).
+file-identity tests) and `cursor_theme_fixtures` (imported by apply tests
+and a support module).
 
-**Files touched.** The nine moved modules, their importer files under
-`tests/`, any `mock.patch` target strings, and docs naming the old paths.
+**Files touched.** The five moved modules, their twelve importer files
+under `tests/`, any `mock.patch` target strings, and docs naming the old
+paths.
 
 **Acceptance criteria.**
 
-- `ls tests/support/{apply,cursor,xcursor,splash,icon,desktoptheme}/`
-  lists each `__init__.py` and the nine moved modules;
-  `rg -n 'support\.(apply_target_cases|apply_theme_stubs|cursor_case|cursor_artifact_cases|xcursor_frames|splash_fixtures|icon_theme_inventory|raised_face_case|thumb_fixtures)'`
+- `ls tests/support/apply/ tests/support/cursor/ tests/support/xcursor/`
+  lists each `__init__.py` and the five moved modules;
+  `rg -n 'support\.(apply_target_cases|apply_theme_stubs|cursor_case|cursor_artifact_cases|xcursor_frames)'`
+  over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
+  reference.
+- Every `mock.patch` string naming a moved module resolves, and the tests
+  that patch them pass.
+- No behavior change: `git diff` shows moves, import lines, patch targets
+  and doc paths only.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
+### Group the tests/support splash, icon and desktoptheme modules into subpackages (part 5/6, slice B of the tests/support regroup) (planned 2026-11-21 by the plan role)
+
+**Goal.** Land the splash-, icon- and desktoptheme-family slices of the
+tests/support regroup (see part 1/6 for the split's counts and rules;
+the parts are independent). Split from the single part 5/6 entry after
+feature parked it as too large for one run; slice A carries the apply,
+cursor and xcursor slices and neither slice depends on the other.
+
+**Modules to move (importer files counted on main).** `splash_fixtures`
+(3) → `tests/support/splash/` with `__init__.py`: `fixtures.py`.
+`icon_theme_inventory` (2) → `tests/support/icon/` with `__init__.py`:
+`theme_inventory.py`. `raised_face_case` (2), `thumb_fixtures` (3) →
+`tests/support/desktoptheme/` with `__init__.py`: `raised_face_case.py`,
+`thumb_fixtures.py`. Ten importer files under `tests/` in total.
+
+**Approach.** As in part 1/6: move, rewrite importer lines and bare
+references, retarget `mock.patch` strings, verify importers before each
+move. Known stays, already measured: `firstboot_lineedit`,
+`sunken_field_reference` and `reference_button` (each spans two
+families).
+
+**Files touched.** The four moved modules, their ten importer files
+under `tests/`, any `mock.patch` target strings, and docs naming the old
+paths.
+
+**Acceptance criteria.**
+
+- `ls tests/support/splash/ tests/support/icon/
+  tests/support/desktoptheme/` lists each `__init__.py` and the four
+  moved modules;
+  `rg -n 'support\.(splash_fixtures|icon_theme_inventory|raised_face_case|thumb_fixtures)'`
   over `tests/`, `tools/`, `Makefile`, `docs/` and `*.md` finds no stale
   reference.
 - Every `mock.patch` string naming a moved module resolves, and the tests
