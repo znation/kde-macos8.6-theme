@@ -641,6 +641,8 @@ check: 549 modules, 2 modules failed
 make: *** [Makefile:497: check] Error 1
 ~~~~
 
+### The private browsing window in Firefox has weird looking UI controls (I think because it uses a differnt background color). See /home/zach/Pictures/Screenshots/Screenshot_20261123_023358.png. (reported by the user 2026-11-23)
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
