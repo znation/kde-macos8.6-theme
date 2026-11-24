@@ -77,7 +77,7 @@ class TestPatchedRoot(unittest.TestCase):
         # A wrong depth lands in some other module's namespace -- most lack
         # ROOT and raise AttributeError, while the helper module itself (which
         # does have ROOT) would be silently patched instead -- so this
-        # assertion fails either way.
+        # test fails either way.
         fixture = object()
         with patched_root(fixture):
             self.assertIs(ROOT, fixture)
