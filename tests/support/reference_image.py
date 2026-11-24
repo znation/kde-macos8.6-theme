@@ -16,6 +16,7 @@ from __future__ import annotations
 import os
 
 from support import containment
+from support import reference_decode_cache
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.repo_root import ROOT
 
@@ -73,7 +74,12 @@ def read_reference(path, **kwargs):
     unfiltered once, not once per bound. A request that needs more rows
     re-decodes and replaces the entry. The ``alpha`` mode is part of the cache
     key because it changes the returned planes: an RGB-only decode cannot
-    answer a request for transparency. An invalid ``max_rows`` or ``max_cols``
+    answer a request for transparency. Decodes are also stored in a shared
+    on-disk cache (``support/reference_decode_cache.py``), so the first
+    ``make check`` worker to decode a reference serves its planes to the other
+    workers without re-decoding; a cache read can only return what a fresh
+    decode of the same file and shape produces, and any bad cache state falls
+    back to the decode. An invalid ``max_rows`` or ``max_cols``
     (not a positive plain int) is reported as an error whether or not a decode
     is cached. A path that resolves outside the repository (a checked-in
     symlink escape) is refused before the cache is consulted, so a swapped
@@ -108,7 +114,13 @@ def read_reference(path, **kwargs):
         ):
             return _bounded(image, max_rows), None
     try:
-        image = png.read_png(path, **kwargs)
+        image = reference_decode_cache.load(
+            path,
+            alpha=bool(kwargs.get("alpha", False)),
+            max_rows=max_rows,
+            max_cols=max_cols,
+            decode=lambda: png.read_png(path, **kwargs),
+        )
     except png.PngError as exc:
         _DECODED_REFERENCES[key] = (max_rows, None, exc)
         return None, exc
