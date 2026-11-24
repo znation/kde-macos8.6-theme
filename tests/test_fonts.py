@@ -23,6 +23,7 @@ from support.installed_paths import (
     installed_font_package,
     installed_fonts_dir,
 )
+from support.pin_registries import assert_registries_name_each_key_once
 from support.process_assertions import assert_succeeded
 from support.repo_root import ROOT
 from support.theme_install import (
@@ -292,6 +293,24 @@ class TestFontsInstall(InstallLifecycleCases, unittest.TestCase):
             )
             self.assertTrue(os.path.isdir(sibling), sibling)
             self.assertTrue(os.path.isfile(marker), marker)
+
+
+class TestDigestRegistry(unittest.TestCase):
+    """Guard the DIGESTS pin registry against a repeated key.
+
+    The registry's keys are module-level name constants (``REGULAR``,
+    ``JBM_BOLD``, ...), so a pasted duplicate key is legal Python that
+    silently keeps the last digest and stops asserting the discarded font
+    file's pins. The guard compares the names by their spelling, no
+    evaluation needed.
+    """
+
+    def test_the_digest_registry_names_each_key_exactly_once(self):
+        assert_registries_name_each_key_once(
+            self,
+            os.path.abspath(__file__),
+            ("DIGESTS",),
+        )
 
 
 if __name__ == "__main__":

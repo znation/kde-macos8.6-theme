@@ -58,8 +58,46 @@ class TestPinRegistriesGuard(unittest.TestCase):
         self.assertIn("R has a non-literal key", message)
 
     def test_a_computed_key_is_rejected(self):
-        message = self._guard_against('K = "k"\nR = {K: 1, "b": 2}\n', ("R",))
+        message = self._guard_against('R = {"b"[0]: 1, "b": 2}\n', ("R",))
         self.assertIn("R has a non-literal key", message)
+
+    def test_a_name_aliased_to_a_literal_key_stays_invisible_to_the_static_read(self):
+        # The guard compares name keys by spelling, never evaluating them, so
+        # K = "k" paired with the literal "k" is not seen as a repeat; the
+        # registry's docstring records that blind spot.
+        with tempfile.TemporaryDirectory() as root:
+            module_path = os.path.join(root, "registry_module.py")
+            with open(module_path, "w", encoding="utf-8") as module:
+                module.write('K = "k"\nR = {K: 1, "k": 2}\n')
+            assert_registries_name_each_key_once(self, module_path, ("R",), root)
+
+    def test_a_repeated_name_key_is_rejected_by_name(self):
+        # A registry whose keys name module-level constants (the DIGESTS
+        # shape) repeats a row when the same constant is named twice; the
+        # names need no evaluation to compare.
+        message = self._guard_against(
+            'K1 = "a"\nK2 = "b"\nR = {K1: 1, K2: 2, K1: 3}\n', ("R",)
+        )
+        self.assertIn("R repeats the key(s) ['K1']", message)
+
+    def test_a_clean_name_keyed_registry_is_accepted(self):
+        with tempfile.TemporaryDirectory() as root:
+            module_path = os.path.join(root, "registry_module.py")
+            with open(module_path, "w", encoding="utf-8") as module:
+                module.write('K1 = "a"\nK2 = "b"\nR = {K1: 1, K2: {"p": 2}}\n')
+            assert_registries_name_each_key_once(self, module_path, ("R",), root)
+
+    def test_a_name_keyed_registry_rejects_a_computed_key(self):
+        message = self._guard_against(
+            'K1 = "a"\nR = {K1: 1, "b"[0]: 2}\n', ("R",)
+        )
+        self.assertIn("R has a non-literal key", message)
+
+    def test_a_name_keyed_registry_names_nested_duplicates_by_the_key_name(self):
+        message = self._guard_against(
+            'K1 = "a"\nR = {K1: {"p": 1, "p": 2}}\n', ("R",)
+        )
+        self.assertIn("R.K1 repeats the key(s) ['p']", message)
 
     def test_a_missing_registry_is_rejected_by_name(self):
         message = self._guard_against('R = {"a": 1}\n', ("S",))

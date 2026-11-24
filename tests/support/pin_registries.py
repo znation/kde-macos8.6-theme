@@ -7,11 +7,15 @@ with a changed value -- is legal Python: the second entry silently replaces
 the first, and every pin the discarded row carried stops being asserted
 while the suite stays green. :func:`assert_registries_name_each_key_once`
 parses the test file's own AST and fails when any named registry repeats a
-literal string key, its nested dict values included.
+literal string key or module-level name, its nested dict values included.
 
 Plain string keys need no evaluation, so the guard reads them without
-executing the module; a registry that grows a computed key must extend the
-guard first.
+executing the module; a key that names a module-level constant (for example
+``DIGESTS = {REGULAR: ..., BOLD: ...}``) is read by that name alone, so two
+rows naming the same constant fail without evaluating anything. A key whose
+value is computed at run time, or a name bound to a value shared with a
+string literal key (``K = "a"`` and ``{K: 1, "a": 2}``), stays invisible to
+the static read: such a registry must extend the guard first.
 
 Only ``tree.body``'s assignments count: a same-named dict inside a function
 or class body is not the registry, and letting the walk see it would let a
@@ -59,15 +63,19 @@ def assert_registries_name_each_key_once(case, module_path, registry_names, root
 def _assert_keys_distinct(case, node, label):
     """Assert the dict literal *node*, and its dict values, repeat no key."""
     names = []
+    spellings = []
     for key in node.keys:
-        if key is None or not isinstance(key, ast.Constant) or not isinstance(
-            key.value, str
-        ):
+        if isinstance(key, ast.Constant) and isinstance(key.value, str):
+            names.append(key.value)
+            spellings.append(key.value)
+        elif isinstance(key, ast.Name):
+            names.append(key.id)
+            spellings.append(key.id)
+        else:
             case.fail(f"{label} has a non-literal key; extend the registry guard")
             return
-        names.append(key.value)
     repeats = sorted(name for name in set(names) if names.count(name) > 1)
     case.assertEqual(repeats, [], f"{label} repeats the key(s) {repeats}")
-    for key, value in zip(node.keys, node.values):
+    for key, spelling, value in zip(node.keys, spellings, node.values):
         if isinstance(value, ast.Dict):
-            _assert_keys_distinct(case, value, f"{label}.{key.value}")
+            _assert_keys_distinct(case, value, f"{label}.{spelling}")
