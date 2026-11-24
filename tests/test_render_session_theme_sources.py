@@ -109,6 +109,23 @@ class TestSessionThemeSources(unittest.TestCase):
                 (session.config / "plasmarc").read_text(encoding="utf-8"),
             )
 
+    def test_write_desktop_selection_joins_a_file_without_a_trailing_newline(self):
+        # The existing config's last line can be un-terminated (a truncated
+        # write, a hand edit), and the appended selection must still start
+        # on its own line: without the joiner, the LookAndFeelPackage group
+        # would extend the previous line and the desktop theme name the
+        # shell reads would become unresolvable instead of staying intact.
+        with render_session.Session.create() as session:
+            (session.config / "plasmarc").write_text(
+                "[Theme]\nname=org.macos8.desktop", encoding="utf-8"
+            )
+            render_setup.write_desktop_selection(session)
+            self.assertEqual(
+                "[Theme]\nname=org.macos8.desktop\n"
+                "[KDE]\nLookAndFeelPackage=org.macos8.desktop\n",
+                (session.config / "plasmarc").read_text(encoding="utf-8"),
+            )
+
     def test_write_kvantum_selection_overwrites_a_stale_selection(self):
         # The scratch config home starts empty, but the function still has to
         # cope with an existing Kvantum directory and file in one call, so a
