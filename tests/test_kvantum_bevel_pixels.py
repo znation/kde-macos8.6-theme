@@ -9,9 +9,11 @@ fails here.
 
 from __future__ import annotations
 
+import os
 import unittest
 
 from support.kvantum_fixtures import SVG
+from support.pin_registries import assert_registries_name_each_key_once
 from support.platinum_palette import (
     FACE,
     SELECTION,
@@ -292,6 +294,22 @@ class TestSurfaceBevelPixels(unittest.TestCase):
             assert_slice_pixels(
                 self, self.slices, f"{prefix}-{name}", colours
             )
+
+
+class TestRegistryKeys(unittest.TestCase):
+    """Guard the pin registries against a merge that repeats a key.
+
+    Each registry's consumer iterates ``.items()`` or indexes by key, so a
+    duplicated key literal is legal Python that silently keeps the last pin
+    and stops asserting the discarded entry's pins.
+    """
+
+    def test_the_pin_registries_name_each_key_exactly_once(self):
+        assert_registries_name_each_key_once(
+            self,
+            os.path.abspath(__file__),
+            ("BUTTON_BEVELS", "SURFACE_STATES", "SURFACE_SLICE_SIZES", "LINEEDIT_COLOURS"),
+        )
 
 
 if __name__ == "__main__":

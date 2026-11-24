@@ -9,9 +9,11 @@ other ids, shapes, palette and safety guards stay in `tests/test_kvantum_svg.py`
 
 from __future__ import annotations
 
+import os
 import unittest
 
 from support.kvantum_fixtures import SVG
+from support.pin_registries import assert_registries_name_each_key_once
 from support.svg_case import parse_svg
 from svg_assertions import (
     attribute_values,
@@ -97,6 +99,22 @@ class TestSvgArrows(unittest.TestCase):
 
     def test_branch_arrows_draw_the_pinned_triangle_and_fill(self):
         self._assert_arrow_paths_painted(BRANCH_ARROW_PATH_D, "shape")
+
+
+class TestRegistryKeys(unittest.TestCase):
+    """Guard the pin registries against a merge that repeats a key.
+
+    Each registry's consumer iterates ``.items()`` or indexes by state, so a
+    duplicated key literal is legal Python that silently keeps the last pin
+    and stops asserting the discarded entry's pins.
+    """
+
+    def test_the_pin_registries_name_each_key_exactly_once(self):
+        assert_registries_name_each_key_once(
+            self,
+            os.path.abspath(__file__),
+            ("ARROW_PATH_D", "ARROW_FILL", "BRANCH_ARROW_PATH_D"),
+        )
 
 
 if __name__ == "__main__":
