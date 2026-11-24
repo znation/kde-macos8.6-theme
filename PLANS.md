@@ -206,6 +206,145 @@ choice.
   `make check` after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw PKIX certificate revocation lists with an original `application-pkix-crl` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A certificate revocation list (`*.crl`, as the file manager
+identifies it) currently draws nothing: no theme on the machine ships
+art for it. Ship one original placeholder icon, `application-pkix-crl`,
+at 16x16, 22x22 and 32x32, in the same mimetype-item series as the
+landed `application-pkix-cert` certificate and `application-pgp-keys`
+key. Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/pkix-crl` ("Certificate revocation list") with no `<icon>`
+element, no `<generic-icon>` element, no `<alias>` element and no
+`<sub-class-of>` element, the single glob `<glob pattern="*.crl">` at
+the default weight 50 and owned by no other MIME type, and one
+`<magic>` at priority 50 holding the offset-0 string matcher
+`-----BEGIN X509 CRL-----`; the string `application-pkix-crl` occurs 0
+times in the database (`str.count` is 0 — `grep -c` counts lines, not
+matches). With no icon element the type asks its literal name; the
+theme's `index.theme` declares `Inherits=breeze`, so the lookup falls
+through to Breeze — which ships no such file: `find` over
+`/usr/share/icons` for `application-pkix-crl*` returns no match, and a
+per-size existence loop over `/usr/share/icons/breeze/mimetypes/` finds
+none at 16, 22, 24, 32, 48 or 64. Planning-time probe on 2026-11-24
+with `kiconfinder6`, the theme installed into scratch XDG homes
+(`make install XDG_DATA_HOME=<scratch>/data DESTDIR=<scratch>/root
+INSTALL_PACKAGES=icon-theme`, `XDG_DATA_HOME=<scratch>/root<data`
+naming `/usr/share` beside it in `XDG_DATA_DIRS`,
+`[Icons] Theme=org.macos8.desktop` in the scratch `kdeglobals`,
+`QT_QPA_PLATFORM=offscreen`, no `DISPLAY`): `application-pkix-crl`
+printed nothing and exited 1 — the type resolves to no icon at all —
+while `text-x-generic` resolved to the theme's own 32x32 file. The gap
+is real: today a `.crl` file shows no item icon. No reference
+screenshot shows a CRL item icon, so no reference pixels are used and
+the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/application-pkix-crl.svg` under `16x16`, `22x22` and
+  `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme`
+  already declares the three MimeTypes directories. Give each file the
+  XML declaration, the comment `<!-- PLACEHOLDER: original certificate
+  revocation list illustration pending user-approved artwork. -->`, a
+  short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art shares the generic document's page
+  (the page outline, white page and folded-corner flap matching the
+  `application-json.svg` pin's first three elements) and holds a
+  revocation list — grey entry rows struck through by a stepped black
+  diagonal — an original mark distinct from the certificate's black
+  band with white award seal and ribbon tails, the PGP key's silhouette,
+  the JSON document's curly braces, the shell script's `>_` prompt, the
+  NZB index's dot-and-bars groups and the crash core's square ring:
+  - 32x32: the three shared page elements; then three grey bars
+    (`#999999`) `rect x="10" width="12" height="2"` at `y="11"`,
+    `y="15"` and `y="19"`; then the strike-out, five black 2x2 cells
+    stepping two pixels right and two pixels down: `rect x="10" y="12"`,
+    `x="12" y="14"`, `x="14" y="16"`, `x="16" y="18"` and `x="18"
+    y="20"`, each `width="2" height="2" fill="#000000"`, drawn after the
+    bars so the diagonal reads on top. Every element sits inside the
+    white page and clears the folded corner.
+  - 22x22: the three shared page elements; then three grey bars
+    (`#999999`) `rect x="7" width="8" height="1"` at `y="9"`, `y="12"`
+    and `y="15"`; then the strike-out, six black 1x1 cells stepping one
+    pixel right and one pixel down: `rect x="7" y="10"`, `x="8" y="11"`,
+    `x="9" y="12"`, `x="10" y="13"`, `x="11" y="14"` and `x="12"
+    y="15"`, each `width="1" height="1" fill="#000000"`, drawn after the
+    bars. Every element sits inside the white page and clears the
+    folded corner.
+  - 16x16: the three shared page elements; then three grey bars
+    (`#999999`) `rect x="5" width="6" height="1"` at `y="6"`, `y="8"`
+    and `y="10"`; then the strike-out, four black 1x1 cells stepping one
+    pixel right and one pixel down: `rect x="5" y="7"`, `x="6" y="8"`,
+    `x="7" y="9"` and `x="8" y="10"`, each `width="1" height="1"
+    fill="#000000"`, drawn after the bars. Every element sits inside the
+    white page and clears the folded corner (the flap reaches `y="5"`
+    at `x="9"`).
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the certificate row,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings
+  in `PINS` from the lists above (the three shared page elements in
+  document order, then the bars in row order, then the strike-out cells
+  in stepping order).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-pkix-crl` in the last cell, as the
+  `application-pkix-cert` sentence there does.
+- `docs/installing.md`: add the certificate revocation list icon to the
+  sentence listing the icon theme's placeholder illustrations and their
+  sizes.
+- The in-flight mimetype-icon entries ahead of this one edit the same
+  inventory block, `PINS` registry, invariants row and installing.md
+  sentence; this entry sits behind them in the queue, so rebase on
+  whatever they have landed when picking this up, keeping one row per
+  icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the three shared page
+  elements matching the `application-json.svg` pin's first three
+  elements, then the bars and the strike-out), carries a placeholder
+  marker and has a `PLACEHOLDERS.md` row; the existing inventory,
+  palette, geometry and placeholder-register tests cover all three.
+- Changing one bar's or cell's position, size or fill, or the element
+  order, in one file makes the geometry test fail; dropping a file
+  while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The `#000000`, `#FFFFFF`, `#DDDDDD` and `#999999` fills stay inside
+  `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch `XDG_DATA_HOME`, use a scratch `HOME`,
+  `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset
+  `DISPLAY` and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `application-pkix-crl` resolves to the theme's 32x32
+  `mimetypes/application-pkix-crl.svg` (at planning time, before this
+  change, it resolved to nothing — no output, exit 1), and
+  `text-x-generic` still resolves to the theme's own file. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 
 ---
 
