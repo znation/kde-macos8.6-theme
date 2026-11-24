@@ -214,6 +214,145 @@ pixels are used and the drawing is this theme's own choice.
   `make check` after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw Flatpak repository references with an original `application-vnd.flatpak.ref` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** KIO requests an `application/vnd.flatpak.ref` item's icon
+under the shared MIME database's type-spelled name
+`application-vnd.flatpak.ref`, and on this host that exact name draws
+Breeze's art even though the database's `generic-icon` for the type is
+the theme's own shipped `package-x-generic` file: ship one original
+placeholder icon, `application-vnd.flatpak.ref`, at 16x16, 22x22 and
+32x32, in the same mimetype-item package series as the landed
+`application-vnd.rar`, `application-gzip` and `application-x-arj`
+entries. Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/vnd.flatpak.ref` ("Flatpak repository reference") with
+`generic-icon name="package-x-generic"` and no `<icon>` element; it
+has `<sub-class-of type="text/plain"/>`, one `<magic>` matcher
+(`value="[Flatpak Ref]"` at `offset="0:256"`), one `<glob
+pattern="*.flatpakref">` at the default weight, no `<alias>` element,
+and the string `flatpakref` occurs exactly once in the whole database
+(that glob — the string `vnd.flatpak.ref` occurs once, the type name
+itself), so one file covers exactly its own name: no alias file and no
+per-type fallback are in play. Breeze ships the exact name under
+`mimetypes/` — at 16, 22, 24, 32 and 64 in `breeze`, and at 16, 22, 32
+and 64 in `breeze-dark` (`breeze-dark` has no 24 rendition) — and the
+theme's `index.theme` declares `Inherits=breeze`, so Breeze's
+exact-name file beats the theme's generic-icon fallback and a
+`*.flatpakref` item draws Breeze's art unless the theme ships the
+name. Planning-time probe on 2026-11-24 with the headless Gio check
+(`Gio.content_type_guess` then `Gio.content_type_get_icon` on a
+scratch-named `*.flatpakref` file): the file resolves to
+`application/vnd.flatpak.ref` and the icon chain asks the exact
+dash-form name `application-vnd.flatpak.ref` first, before
+`package-x-generic` — no GUI probe needed to show the request order.
+No reference screenshot shows a Flatpak repository reference item
+icon, so no reference pixels are used and the drawing is this theme's
+own choice. Out of scope, on checked evidence: `application/vnd.flatpak.repo`
+(`*.flatpakrepo`, one `vnd.flatpak.repo` occurrence in the database,
+a separate type) — Breeze ships no `application-vnd.flatpak.repo`
+exact-name file, so its icon chain falls through to the theme's own
+shipped `package-x-generic` drawing already, and this entry ships
+nothing for it.
+
+**Approach.**
+
+- Add `mimetypes/application-vnd.flatpak.ref.svg` under `16x16`,
+  `22x22` and `32x32` of `theme/icons/org.macos8.desktop/`.
+  `index.theme` already declares the three MimeTypes directories. Give
+  each file the XML declaration, the comment `<!-- PLACEHOLDER:
+  original Flatpak repository-reference illustration pending
+  user-approved artwork. -->`, a short comment saying it is our own
+  drawing in the Platinum palette, not traced from anyone's artwork,
+  and a root with matching `width`, `height` and `viewBox`. The art
+  shares the sealed package box (the `_SEALED_PACKAGE_*` tuple) and
+  holds an original repository-reference mark on the white face: a
+  three-cell arrow-head bar, a one-cell shaft dropping from it, and an
+  open crate under the shaft (a one-cell lip at each end sitting on a
+  wider one-row floor) — a reference dropping into a depot, distinct
+  from gzip's filled two-cell funnel shaft, tar's T, 7z's stepped 7,
+  rar's stepped diamond, zip's zipper slider, deb's hollow capital D,
+  cpio's capital C, xz's stair-stepped X and the QCOW disc's hollow Q
+  with its tail. Every element is an axis-aligned rect in `#000000`;
+  the cells below were verified by script at planning time to sit on
+  the white face, clear of the grey tape stripe, and not to overlap:
+  - 32x32: the `_SEALED_PACKAGE_32` box elements, then `x=9 y=14
+    3×1`, `x=9 y=15 3×1` (head bar), `x=10 y=16 1×1` (shaft tip),
+    `x=10 y=17 1×5` (shaft), `x=7 y=22 1×1` and `x=13 y=22 1×1`
+    (lips), `x=7 y=23 7×1` (floor).
+  - 22x22: the `_SEALED_PACKAGE_22` box elements, then `x=6 y=10
+    3×1`, `x=6 y=11 3×1` (head bar), `x=7 y=12 1×1` (shaft tip),
+    `x=7 y=13 1×4` (shaft), `x=5 y=16 1×1` and `x=9 y=16 1×1`
+    (lips), `x=5 y=17 5×1` (floor).
+  - 16x16: the `_SEALED_PACKAGE_16` box elements, then `x=3 y=7
+    3×1` (head bar), `x=4 y=8 1×3` (shaft), `x=3 y=11 1×1` and
+    `x=5 y=11 1×1` (lips), `x=3 y=12 3×1` (floor).
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the `application-vnd.rar`
+  rows, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`, and extend the
+  package-series comment above them to name the Flatpak
+  repository-reference file.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three
+  drawings in `PINS` from the lists above (the `_SEALED_PACKAGE_*`
+  tuple, then the head bar, shaft and open crate).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-vnd.flatpak.ref` in the last cell, as the
+  `application-vnd.rar` sentence there does.
+- `docs/installing.md`: add the Flatpak repository-reference icon to
+  the sentence listing the icon theme's placeholder illustrations and
+  their sizes.
+- The Flatpak work shares the inventory block, `PINS` registry,
+  invariants row and installing.md sentence with the waiting mimetype
+  entries (the epub, PKCS#12, Ogg-container, Ogg-audio, ARJ and
+  AppImage plans); this entry sits behind them in the queue, so rebase
+  on whatever they have landed when picking this up, keeping one row
+  per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the `_SEALED_PACKAGE_*`
+  box elements, in the same order, then the head bar, shaft tip,
+  shaft, lips and floor), carries a placeholder marker and has a
+  `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing one mark cell's position, size or fill, or the element
+  order, in one file makes the geometry test fail; dropping a file
+  while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The `#000000` fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch data root and use the scratch-homes recipe the goal
+  paragraph records (scratch `HOME`, `XDG_DATA_HOME`,
+  `XDG_DATA_DIRS` naming the installed data root, `XDG_CONFIG_HOME`
+  with `[Icons] Theme=org.macos8.desktop` in `kdeglobals`, scratch
+  `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, `QT_QPA_PLATFORM=offscreen`,
+  no `DISPLAY` or `WAYLAND_DISPLAY`). `application-vnd.flatpak.ref`
+  resolves to the theme's 32x32
+  `mimetypes/application-vnd.flatpak.ref.svg` (at planning time it
+  resolved to Breeze's exact-name file) and `package-x-generic` still
+  resolves to the theme's own file. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ## Done
 
 ### Platinum icon theme: draw detached OpenPGP signatures with an original `application-pgp-signature` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
