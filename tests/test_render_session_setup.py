@@ -122,6 +122,7 @@ class TestSessionSetup(unittest.TestCase):
             "DISPLAY": ":9",
             "DESTDIR": "/stage",
             "MAKEFLAGS": "-- DESTDIR=/stage",
+            "MAKEFILES": "Makefile.ambient",
             "XDG_CONFIG_DIRS": "/ambient",
         }
         with mock.patch.dict(os.environ, ambient):
