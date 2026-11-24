@@ -28,7 +28,12 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # the shared-library `application-x-sharedlib` icon at all three sizes
 # (our own drawing of that window holding a two-bar stack; the name is
 # the type-spelled `application/x-sharedlib` MIME type in the installed
-# shared MIME database), the backup-file `application-x-trash` icon at
+# shared MIME database), the Python-bytecode `application-x-python-bytecode`
+# icon at all three sizes (our own drawing of that window holding a black
+# chip; the name is the type-spelled `application/x-python-bytecode` MIME
+# type in the installed shared MIME database, where the `*.pyc` and
+# `*.pyo` globs both map),
+# the backup-file `application-x-trash` icon at
 # all three sizes (our own drawing of that window holding a black tilde;
 # the name is the canonical `application/x-trash` MIME type in the
 # installed shared MIME database, where the `.bak`, `.old`, `.sik`, `~`
@@ -297,6 +302,16 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-sharedlib.svg"),
     os.path.join("16x16", "mimetypes", "application-x-sharedlib.svg"),
     os.path.join("22x22", "mimetypes", "application-x-sharedlib.svg"),
+    # The Python-bytecode `application-x-python-bytecode` icon at all three
+    # sizes (our own drawing of that window holding a black chip; the name
+    # is the type-spelled `application/x-python-bytecode` MIME type in the
+    # installed shared MIME database, whose `*.pyc` and `*.pyo` globs map
+    # here and which declares no `generic-icon`, no aliases and no per-type
+    # fallback; at the exact name Breeze's own file beat the theme's
+    # otherwise-missing fallback).
+    os.path.join("32x32", "mimetypes", "application-x-python-bytecode.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-python-bytecode.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-python-bytecode.svg"),
     # The backup-file `application-x-trash` icon at all three sizes (our
     # own drawing of that window holding a black tilde; the name is the
     # canonical `application/x-trash` MIME type in the installed shared

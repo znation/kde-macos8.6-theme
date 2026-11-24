@@ -179,7 +179,9 @@ folder, document, Trash and full-Trash icons, drawn at 32x32 with 16x16 and
 same three sizes), a program icon for program files (the
 `application-x-executable` name at the same three sizes), a shared-library
 icon for shared-library files (the `application-x-sharedlib` name at the
-same three sizes), a backup-file icon for backup files (the
+same three sizes), a Python-bytecode icon for Python bytecode files (the
+`application-x-python-bytecode` name at the same three sizes), a
+backup-file icon for backup files (the
 `application-x-trash` name at the same three sizes), a PGP-key icon for
 PGP key files (the `application-pgp-keys` name at the same three sizes), a shell-script icon
 for script files (the `application-x-shellscript` name at the same three
