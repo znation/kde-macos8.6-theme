@@ -517,8 +517,7 @@ class DiagnosticsRootSteering:
     the probe seeded and a concurrent run's live diagnostics directory is
     never touched. Mix it in before ``unittest.TestCase`` and start the
     subclass's ``setUp`` with ``super().setUp()``; the probe then reads
-    :attr:`root` (the path :func:`diagnostics_root` returns) and may use
-    :attr:`parent` to build the capture directories it seeds.
+    :attr:`root` (the path :func:`diagnostics_root` returns).
     """
 
     def setUp(self):
@@ -527,7 +526,6 @@ class DiagnosticsRootSteering:
         patcher = mock.patch.dict(os.environ, {"TMPDIR": parent})
         patcher.start()
         self.addCleanup(patcher.stop)
-        self.parent = parent
         self.root = diagnostics_root()
 
 
