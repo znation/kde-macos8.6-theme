@@ -104,7 +104,8 @@ def assert_read_refused_in_child(case, fifo, code, *args, cwd, timeout=10):
     reader guards), ``test_theme_defaults``, ``test_desktoptheme_provenance``,
     ``test_readme_theme_files`` and ``test_containment`` (through its two-reader
     wrapper). The ``assert_fifo_refused`` suites (``test_fidelity_sources``,
-    ``test_remove_firefox``, ``test_apply_gtk_unreadable_config``) pin the
+    ``test_remove_firefox``, ``test_firefox_profile_ini_errors``,
+    ``test_apply_gtk_unreadable_config``) pin the
     stronger exit-status-2 contract and run their own children, and
     ``test_aurorae_frame``'s guard drives two readers in one test under
     ``subTest``, where a :func:`make_fifo` skip would report wrongly, so both
