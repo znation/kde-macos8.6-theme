@@ -73,7 +73,7 @@ def write_file(path, body):
     test_remove_firefox_rollback.py and test_firefox_profile.py bind ``_write`` as an
     import alias, ApplyGtkTestCase.write and test_gtk_install._write delegate
     their bodies here, and test_gtk_user_files.py's two ``css()`` helpers call
-    it directly, test_invariants.py's ``_write``/``_register``,
+    it directly, invariants_register_case.py's ``_write``/``_register``,
     test_no_unused_imports.py's ``_write``, test_remove_kvantum.py's
     ``write`` and ApplyGtkTestCase.install_sheet delegate to it,
     support/kde_config.py's ``write`` (the ``kdeglobals`` seeder) fixes only
@@ -86,7 +86,7 @@ def write_file(path, body):
     ``write_bytes`` delegate too. Deliberately left: the
     containment-refusal fixtures write raw bytes, not UTF-8 text, the
     kdedefaults suites' one-line direct
-    ``write_file`` call sites are already shared, not duplicated, test_invariants.py's
+    ``write_file`` call sites are already shared, not duplicated, test_invariants_cross_check.py's
     ``test_cross_check_rejects_a_non_utf8_register`` writes and reads bytes
     that must not survive a UTF-8 decode, and
     tools/check/references_selftest.py stages inline in ``tools`` rather

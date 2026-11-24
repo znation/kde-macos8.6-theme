@@ -136,7 +136,7 @@ NO_FAKE_REPRODUCTIONS = (
     Reproduction(
         "invariants-symlinked-register",
         ("reads a symlinked register bare",),
-        "tests/test_invariants.py::TestHelpers"
+        "tests/test_invariants_cross_check.py::TestCrossCheck"
         "::test_cross_check_refuses_a_symlinked_register_that_escapes",
     ),
     Reproduction(
@@ -172,7 +172,7 @@ NO_FAKE_REPRODUCTIONS = (
     Reproduction(
         "invariants-unreadable-register",
         ("`tests/invariants.py`'s `cross_check` lets an unreadable register",),
-        "tests/test_invariants.py::TestHelpers"
+        "tests/test_invariants_cross_check.py::TestCrossCheck"
         "::test_cross_check_rejects_an_unreadable_register",
     ),
     Reproduction(

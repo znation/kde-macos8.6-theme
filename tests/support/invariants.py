@@ -11,7 +11,7 @@ method that does not exist, when a row names a method that is not a test, when a
 row names a file that defines no test case, when a row names no test, or when a
 guarantee or provenance-exception cell is blank.
 
-``tests/test_invariants.py`` drives these checks.
+``tests/test_invariants.py`` and ``tests/test_invariants_cross_check.py`` drive these checks.
 """
 
 from __future__ import annotations
