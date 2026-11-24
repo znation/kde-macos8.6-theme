@@ -67,6 +67,27 @@ def _read_entire(fd: int, source_path: str) -> bytes:
         position += len(chunk)
 
 
+def _sample_png_path(args, path: str, *, alpha: bool = False) -> int:
+    """Read the PNG at *path* and dispatch its report.
+
+    The one sampling pipeline both entry paths share: read the size,
+    refuse a region outside it, load the region's rows, then print the
+    image header and the report. Raises :class:`PngError` when the PNG
+    cannot be read, for the caller to report under the operator's path
+    (the JPEG path scrubs it through :func:`rewrite_temp_png_error`,
+    the direct path names the path the operator gave).
+    """
+    width, height = read_png_size(path)
+    message = region_error(args, width, height)
+    if message is not None:
+        return report_error("sample", message)
+    image = read_png(path, max_rows=args.y + args.height,
+                     **({"alpha": True} if alpha else {}))
+    header = format_image_header(args.image, width, height)
+    report(args, image, width, height, header)
+    return 0
+
+
 def _sample_jpeg(args, fd: int) -> int:
     """Decode a JPEG input into a private temporary PNG and sample it.
 
@@ -80,7 +101,7 @@ def _sample_jpeg(args, fd: int) -> int:
     input_bytes = _read_entire(fd, args.image)
     try:
         with decoded_png(input_bytes, "sample-jpeg-") as temp_png:
-            return _sample_temp_png(args, temp_png)
+            return _sample_png_path(args, str(temp_png))
     except JpegDecodeError as problem:
         return report_error(
             "sample", f"cannot decode {args.image}: {problem}"
@@ -91,22 +112,6 @@ def _sample_jpeg(args, fd: int) -> int:
         return report_error(
             "sample", rewrite_temp_png_error(exc, temp_png, args.image)
         )
-
-
-def _sample_temp_png(args, temp_png) -> int:
-    """Report the sample from the converted PNG at *temp_png*.
-
-    Raises :class:`PngError` when the converted PNG cannot be read; the
-    caller reports it under the operator's path.
-    """
-    width, height = read_png_size(str(temp_png))
-    message = region_error(args, width, height)
-    if message is not None:
-        return report_error("sample", message)
-    image = read_png(str(temp_png), max_rows=args.y + args.height)
-    header = format_image_header(args.image, width, height)
-    report(args, image, width, height, header)
-    return 0
 
 
 def _jpeg_alpha_refusal(args) -> str | None:
@@ -172,12 +177,9 @@ def main(argv: list[str] | None = None) -> int:
             jpeg_result = _jpeg_report(args, fd)
             if jpeg_result is not None:
                 return jpeg_result
-            width, height = read_png_size(opened_path)
-            message = region_error(args, width, height)
-            if message is not None:
-                return report_error("sample", message)
-            image = read_png(opened_path, max_rows=args.y + args.height,
-                             **({"alpha": True} if args.alpha or args.match_alpha is not None else {}))
+            return _sample_png_path(
+                args, opened_path,
+                alpha=bool(args.alpha or args.match_alpha is not None))
         finally:
             os.close(fd)
     except OSError as exc:
@@ -192,9 +194,6 @@ def main(argv: list[str] | None = None) -> int:
             # like the read and containment refusals above.
             message = message.replace(opened_path, args.image)
         return report_error("sample", message)
-    header = format_image_header(args.image, width, height)
-    report(args, image, width, height, header)
-    return 0
 
 
 if __name__ == "__main__":
