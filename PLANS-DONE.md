@@ -5,6 +5,98 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw shell scripts with an original `application-x-shellscript` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** A shell script (a `*.sh` file) in the file manager or an open or
+save dialog is drawn with Breeze's art beside the Platinum document and
+folders. Ship one original placeholder icon, `application-x-shellscript`, at
+16x16, 22x22 and 32x32. The name is the icon name of the
+`application/x-shellscript` MIME type in the installed shared MIME database
+(`xdg-mime query filetype` on a `.sh` file returns the type, and
+`/usr/share/mime/globs` maps `*.sh` to it).
+
+Planning-time probe with `kiconfinder6` and a copy of the theme selected
+through scratch XDG homes: `application-x-shellscript` resolved to Breeze;
+after `application-x-shellscript.svg` was added to the copy's three
+`mimetypes` directories, it resolved to the copy's 32x32 file, while
+`application-x-perl`, `application-x-sharedlib`, `application-x-executable`
+and `application-x-executable-script` still resolved to Breeze (the icon
+loader reduces a MIME name to its `x-generic` fallback, which this theme
+does not ship, so the new file covers only its own name). Ship no alias
+files and no `application-x-generic`; `text-x-python` keeps resolving to the
+document icon as it does today.
+
+**Approach.**
+
+- Add `mimetypes/application-x-shellscript.svg` under `16x16`, `22x22` and
+  `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme` already
+  declares the three directories. Give each file the XML declaration, the
+  comment
+  `<!-- PLACEHOLDER: original shell-script illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette, not
+  traced from anyone's artwork, and a root with matching `width`, `height`
+  and `viewBox`. The art is the matching size's document drawing (black
+  outline, white page, folded corner) with the text lines replaced by a
+  black terminal band holding a white `>_` prompt. Each file holds these
+  elements in order, the paths written `d fill` and the rects written
+  `x,y width×height fill`:
+  - 32x32: `M6 3 h14 l6 6 v20 H6 Z #000000`; `M7 4 h12 l6 6 v18 H7 Z
+    #FFFFFF`; `M19 4 L25 4 L25 10 Z #DDDDDD`; then `10,15 12×7 #000000`;
+    then, all `#FFFFFF`, `12,17 1×1`; `13,18 1×1`; `12,19 1×1`;
+    `15,19 3×1`.
+  - 22x22: `M4 1 h10 l4 4 v15 H4 Z #000000`; `M5 2 h8 l4 4 v13 H5 Z
+    #FFFFFF`; `M13 2 L17 2 L17 6 Z #DDDDDD`; then `7,10 8×5 #000000`; then,
+    all `#FFFFFF`, `8,11 1×1`; `9,12 1×1`; `8,13 1×1`; `11,13 2×1`.
+  - 16x16: `M3 1 h7 l3 3 v10 H3 Z #000000`; `M4 2 h5 l3 3 v8 H4 Z #FFFFFF`;
+    `M9 2 L12 2 L12 5 Z #DDDDDD`; then `5,6 6×5 #000000`; then, all
+    `#FFFFFF`, `6,7 1×1`; `7,8 1×1`; `6,9 1×1`; `9,9 1×1`.
+
+  These were rendered at planning time and read as a document with a
+  terminal prompt at each size.
+- `PLACEHOLDERS.md`: one row per file beside that size's `text-x-generic`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `mimetypes` paths, and name the
+  shell-script icon in the comment above it.
+- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-x-shellscript` in the last cell: no reference
+  pixels were used, the name is the icon of the `application/x-shellscript`
+  MIME type in the installed shared MIME database, and the drawing is this
+  theme's own choice.
+- `docs/installing.md`: add the shell-script icon to the sentence listing
+  the icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and has a
+  `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing a rectangle's position, size or fill, or the element order, in
+  one file makes the geometry test fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts the
+  three files in the installed theme, and uninstalling removes them (the
+  existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `application-x-shellscript` resolves to the
+  theme's file, and `application-x-perl`, `application-x-sharedlib`,
+  `application-x-executable` and `application-x-executable-script` stay on
+  Breeze. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw programs with an original `application-x-executable` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A program file in the file manager is drawn with Breeze's art
