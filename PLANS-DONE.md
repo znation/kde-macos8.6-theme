@@ -5,6 +5,96 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw batteries with an original `battery` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** A battery device is drawn with Breeze's art beside the Platinum
+placeholders. Ship one original placeholder icon, `battery`, at 16x16,
+22x22 and 32x32, in the same devices series as the landed `computer`,
+`font-x-generic`, `text-x-generic-template` and the waiting mouse,
+keyboard, printer and phone entries.
+Provenance: the installed `libKF6Solid.so.6` carries the bare `battery`
+literal (`strings -e l`, checked at planning time), so Solid Battery
+devices report this name. The level variants (`battery-good`,
+`battery-caution`, ...) are Status-context names, and this theme declares
+no Status directory, so they stay out of scope here, as do
+`video-display`, `camera-photo`, `phone` and `network-wireless`. No
+reference screenshot shows a battery device icon: no reference pixels
+are used, and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `devices/battery.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original battery illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is an upright Platinum battery: a
+  #000000 terminal cap above a raised #DDDDDD body with the 1px #000000
+  outline and the #FFFFFF/#999999 bevel, a white glint and a #999999
+  charge bar at the foot of the cell. Each file holds these elements in
+  order, written `x,y width×height fill` for rects:
+  - 32x32: `13,2 6×2 #000000`; `12,4 8×26 #000000`; `13,5 6×24
+    #DDDDDD`; `13,5 6×1 #FFFFFF`; `13,5 1×24 #FFFFFF`; `18,5 1×24
+    #999999`; `13,28 6×1 #999999`; `14,7 2×1 #FFFFFF`; `14,22 4×6
+    #999999`.
+  - 22x22: `9,1 4×2 #000000`; `8,3 6×17 #000000`; `9,4 4×15 #DDDDDD`;
+    `9,4 4×1 #FFFFFF`; `9,4 1×15 #FFFFFF`; `12,4 1×15 #999999`; `9,18
+    4×1 #999999`; `10,6 1×1 #FFFFFF`; `10,14 2×4 #999999`.
+  - 16x16: `6,1 4×1 #000000`; `5,2 6×13 #000000`; `6,3 4×11 #DDDDDD`;
+    `6,3 4×1 #FFFFFF`; `6,3 1×11 #FFFFFF`; `9,3 1×11 #999999`; `6,13
+    4×1 #999999`; `7,10 2×3 #999999`.
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px rects, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside that size's `drive-harddisk`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `devices` paths, and name the battery
+  in the comment above it.
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `battery` in the last cell: no reference pixels were
+  used, the name is a KDE-required value read from `libKF6Solid.so.6`,
+  and the terminal-over-cell drawing is this theme's own choice.
+- `docs/installing.md`: add the battery icon to the sentence listing the
+  icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and has
+  a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing an element's position, size, fill or order, the charge bar's
+  position or size, or the glint's position or size, in one file makes
+  `test_each_icon_draws_its_pinned_artwork` fail; dropping a file while
+  leaving it shipped makes `test_the_geometry_registry_covers_every_shipped_icon`
+  fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `battery` resolves to the theme's 32x32
+  file, and `video-display`, `camera-photo` and `phone` stay on Breeze.
+  Also record what `battery-good` resolves to, without pinning it.
+  Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw phones with an original `phone` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** The `phone` device name is what KDE's device views draw for

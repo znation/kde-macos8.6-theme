@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original battery illustration pending user-approved artwork. -->
+<!-- Platinum battery icon, 22x22.
+
+     Our own 22x22 drawing in the Platinum palette: a black terminal
+     cap above the raised body with a black outline, a white and
+     #999999 bevel, a white glint, and a grey charge bar at the foot
+     of the cell. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <rect x="9" y="1" width="4" height="2" fill="#000000"/>
+  <rect x="8" y="3" width="6" height="17" fill="#000000"/>
+  <rect x="9" y="4" width="4" height="15" fill="#DDDDDD"/>
+  <rect x="9" y="4" width="4" height="1" fill="#FFFFFF"/>
+  <rect x="9" y="4" width="1" height="15" fill="#FFFFFF"/>
+  <rect x="12" y="4" width="1" height="15" fill="#999999"/>
+  <rect x="9" y="18" width="4" height="1" fill="#999999"/>
+  <rect x="10" y="6" width="1" height="1" fill="#FFFFFF"/>
+  <rect x="10" y="14" width="2" height="4" fill="#999999"/>
+</svg>
