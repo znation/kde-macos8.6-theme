@@ -209,6 +209,11 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "places", "network-server.svg"),
     os.path.join("16x16", "places", "network-server.svg"),
     os.path.join("22x22", "places", "network-server.svg"),
+    # The display icon (the name is the plugin icon of the five installed
+    # KInfoCenter information modules: EDID, GLX, EGL, OpenCL and Vulkan).
+    os.path.join("32x32", "devices", "video-display.svg"),
+    os.path.join("16x16", "devices", "video-display.svg"),
+    os.path.join("22x22", "devices", "video-display.svg"),
     os.path.join("32x32", "places", "folder.svg"),
     os.path.join("32x32", "places", "inode-directory.svg"),
     os.path.join("32x32", "places", "user-home.svg"),

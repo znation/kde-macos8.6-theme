@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original display illustration pending user-approved artwork. -->
+<!-- Platinum video-display icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: a monitor with a
+     black outlined housing, a white and #999999 bevel around a #DDDDDD
+     face, a black screen with white and grey glints and a black
+     two-part stand under the housing. Drawn for this theme, not traced
+     from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <rect x="3" y="3" width="26" height="22" fill="#000000"/>
+  <rect x="4" y="4" width="24" height="20" fill="#DDDDDD"/>
+  <rect x="4" y="4" width="24" height="2" fill="#FFFFFF"/>
+  <rect x="4" y="4" width="1" height="20" fill="#FFFFFF"/>
+  <rect x="4" y="22" width="24" height="2" fill="#999999"/>
+  <rect x="27" y="4" width="1" height="20" fill="#999999"/>
+  <rect x="7" y="7" width="18" height="13" fill="#000000"/>
+  <rect x="9" y="9" width="7" height="2" fill="#FFFFFF"/>
+  <rect x="9" y="15" width="5" height="1" fill="#999999"/>
+  <rect x="14" y="25" width="4" height="2" fill="#000000"/>
+  <rect x="10" y="27" width="12" height="3" fill="#000000"/>
+</svg>
