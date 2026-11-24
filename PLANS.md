@@ -65,7 +65,7 @@ this host that exact name draws Breeze's art even though the database's
 `package-x-generic` file: ship one original placeholder icon,
 `application-gzip`, at 16x16, 22x22 and 32x32, in the same
 mimetype-item series as the landed `application-octet-stream` and
-`text-html` files and the pending `application-pdf`, `application-zip`
+`text-html` files and the landed `application-pdf`, `application-zip`
 and `application-x-7z-compressed` plans. Provenance: the installed
 shared MIME database (`/usr/share/mime/packages/freedesktop.org.xml`)
 declares the type `application/gzip` with `generic-icon
