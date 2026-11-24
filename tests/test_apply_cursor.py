@@ -27,6 +27,7 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.tmp_dir import make_tmp_dir
+from support.unlink_failure import readlink_failing_for
 from tools.cursor import config as cursor_config, link as cursor_link, selection as cursor_selection
 from tools import apply_cursor
 
@@ -152,14 +153,7 @@ class TestInstall(CursorTestCase):
         self.stub_selector()
         self.link.parent.mkdir()
         os.symlink(str(self.installed), str(self.link))
-        real_readlink = os.readlink
-
-        def failing_readlink(path, *args, **kwargs):
-            if Path(path) == self.link:
-                raise PermissionError("simulated readlink failure")
-            return real_readlink(path, *args, **kwargs)
-
-        with mock.patch.object(apply_cursor.os, "readlink", failing_readlink):
+        with readlink_failing_for(self.link, "simulated readlink failure"):
             result = self.run_tool()
 
         assert_exit_2_without_traceback(self, result)

@@ -26,8 +26,7 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.theme_install import write_file
-from support.unlink_failure import unlink_failing_for
-from tools import apply_cursor
+from support.unlink_failure import readlink_failing_for, unlink_failing_for
 
 
 class TestRemove(CursorTestCase):
@@ -152,21 +151,14 @@ class TestRemove(CursorTestCase):
         # traceback) and leave the link in place: an unread link is never
         # assumed to be ours and unlinked.
         self.make_our_link()
-        real_readlink = os.readlink
-
-        def failing_readlink(path, *args, **kwargs):
-            if Path(path) == self.link:
-                raise PermissionError("simulated readlink failure")
-            return real_readlink(path, *args, **kwargs)
-
-        with mock.patch.object(apply_cursor.os, "readlink", failing_readlink):
+        with readlink_failing_for(self.link, "simulated readlink failure"):
             result = self.run_tool("--remove")
 
         assert_exit_2_without_traceback(self, result)
         self.assertIn("cannot read symlink", result.stderr)
         self.assertIn(str(self.link), result.stderr)
         self.assertTrue(self.link.is_symlink())
-        self.assertEqual(str(self.installed), real_readlink(self.link))
+        self.assertEqual(str(self.installed), os.readlink(self.link))
 
     def test_kcminputrc_note_names_the_reset_only_when_our_theme_is_selected(self):
         self.make_our_link()
