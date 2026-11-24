@@ -37,6 +37,26 @@ _PAGE_32 = (
     _shape("path", d="M19 4 L25 4 L25 10 Z", fill="#DDDDDD"),
 )
 
+def _raised_panel(x, y, w, h):
+    """Return the six shapes of one raised panel: the recipe the devices
+    pins repeat for every case, bezel and plate they draw. A black outline
+    rect at ``x, y, w, h`` carries a ``#DDDDDD`` face one pixel in, the
+    face's top and left rows stay ``#FFFFFF`` and its bottom and right rows
+    ``#999999``, in that element order; spreading the returned tuple into a
+    pin keeps the pin's element list exactly what the shipped SVG draws.
+    Panels whose bevel deviates from this recipe (thicker highlight rows,
+    different shadow geometry) keep their explicit shapes.
+    """
+    return (
+        _shape("rect", x=str(x), y=str(y), width=str(w), height=str(h), fill="#000000"),
+        _shape("rect", x=str(x + 1), y=str(y + 1), width=str(w - 2), height=str(h - 2), fill="#DDDDDD"),
+        _shape("rect", x=str(x + 1), y=str(y + 1), width=str(w - 2), height="1", fill="#FFFFFF"),
+        _shape("rect", x=str(x + 1), y=str(y + 1), width="1", height=str(h - 2), fill="#FFFFFF"),
+        _shape("rect", x=str(x + 1), y=str(y + h - 2), width=str(w - 2), height="1", fill="#999999"),
+        _shape("rect", x=str(x + w - 2), y=str(y + 1), width="1", height=str(h - 2), fill="#999999"),
+    )
+
+
 # The trash body: the lid and can the empty and full Trash draw in common,
 # one tuple per size. Each Trash pin below is its own head (the empty one's
 # lid-top rects, the full one's waste-bag paths) followed by this body, so a
