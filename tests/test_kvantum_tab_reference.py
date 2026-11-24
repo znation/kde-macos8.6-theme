@@ -21,11 +21,10 @@ from __future__ import annotations
 import unittest
 
 from support.aurorae_fixtures import PROFILER_REFERENCE, PROFILER_ROWS
-from support.invariants import registry_key_conflicts
 from support.kvantum_fixtures import SVG
+from support.pin_registries import assert_registries_name_each_key_once
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
-from support.repo_root import ROOT
 from support.svg_case import parse_svg
 from svg_assertions import edge_map, pixel_map, render_slices
 
@@ -73,11 +72,8 @@ class TestTabReference(ReferenceScreenshotMixin, unittest.TestCase):
         # slip when two anchors are added together) silently keeps the last
         # anchor and the dropped colour's pin drifts unobserved. Parse this
         # module's literals and require distinct keys.
-        self.assertEqual(
-            {},
-            registry_key_conflicts(
-                __file__, ROOT, {"UNSELECTED_ANCHORS", "SELECTED_ANCHORS"}
-            ),
+        assert_registries_name_each_key_once(
+            self, __file__, ("UNSELECTED_ANCHORS", "SELECTED_ANCHORS")
         )
 
     def test_unselected_tab_is_the_cccccc_palette(self):

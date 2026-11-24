@@ -20,9 +20,8 @@ from __future__ import annotations
 import unittest
 
 from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
-from support.invariants import registry_key_conflicts
 from support.kvantum_fixtures import SVG
-from support.repo_root import ROOT
+from support.pin_registries import assert_registries_name_each_key_once
 from support.reference_image import ReferenceScreenshotMixin
 from support.sunken_field_reference import (
     ShippedSunkenFieldMixin,
@@ -115,7 +114,7 @@ class TestItemViewReference(
         # together) silently keeps the last anchor and the dropped colour's
         # pin drifts unobserved. Parse this module's literal and require
         # distinct keys.
-        self.assertEqual({}, registry_key_conflicts(__file__, ROOT, {"FIELD_ANCHORS"}))
+        assert_registries_name_each_key_once(self, __file__, ("FIELD_ANCHORS",))
 
 
 if __name__ == "__main__":

@@ -20,10 +20,9 @@ import unittest
 
 from support.aurorae_fixtures import REFERENCE, REFERENCE_ROWS
 from support.kde_config import read as read_kde_config
-from support.invariants import registry_key_conflicts
 from support.kvantum_config_spec import _resolved
 from support.kvantum_fixtures import SVG, KVCONFIG
-from support.repo_root import ROOT
+from support.pin_registries import assert_registries_name_each_key_once
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
@@ -115,9 +114,7 @@ class TestCheckBoxReference(ReferenceScreenshotMixin, unittest.TestCase):
         # added together) silently keeps the last anchor and the dropped
         # colour's pin drifts unobserved. Parse this module's literal and
         # require distinct keys.
-        self.assertEqual(
-            {}, registry_key_conflicts(__file__, ROOT, {"_REFERENCE_ANCHORS"})
-        )
+        assert_registries_name_each_key_once(self, __file__, ("_REFERENCE_ANCHORS",))
 
     def test_reference_box_is_the_raised_arrangement(self):
         # Derive the colours from one pixel each, then require the whole 12x12
