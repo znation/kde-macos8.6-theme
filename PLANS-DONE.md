@@ -108,7 +108,7 @@ treats an imported base as a test case only when its name ends in `TestCase`
 (`tests/support/invariants.py` `_defined_names`), and the shorter name failed the
 reference check for `TestHelpers` and `TestCrossCheck`. The base also holds
 `_register`, `_table`, `_valid_register` and `assert_cross_check_rejects`, not
-only the fixture: the `parse_rows` tests and part 2/2's tests still call them, so
+only the fixture: part 2/2's `cross_check` tests, still in `TestHelpers`, call them, so
 they cannot stay with `TestCrossCheck` alone. The new module imports `unittest`
 only for its `unittest.main()` guard; it has no `unittest` use in test code.
 `theme_install.py` comments are retargeted to the new names.
