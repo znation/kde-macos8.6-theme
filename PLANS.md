@@ -120,7 +120,7 @@ of scope; this plan shares no drawing with them.
   in the comment above it (the comment already records which
   `generic-icon` groups the shipped mimetype names cover — give the 14
   video types there).
-- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
   `ICON_SHAPES` from the lists above (translate each list to `_shape`
   calls: rects keep their attributes, the triangle is
   `_shape("path", d="M13 11 L23 17 L13 23 Z", fill="#000000")` and kin);
@@ -139,8 +139,9 @@ of scope; this plan shares no drawing with them.
   icon theme's placeholder illustrations and their sizes.
 
 **Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
-`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
-`docs/invariants.md`, `docs/installing.md`.
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`tests/test_icon_theme_geometry.py`, `docs/invariants.md`,
+`docs/installing.md`.
 
 **Acceptance criteria.**
 
@@ -210,7 +211,7 @@ waiting entry ships this icon.
   name captures the audio MIME types by type-spelling fallback and is the
   `generic-icon` of the playlist, lossless-audio and SMAF audio types in
   the installed shared MIME database.
-- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
   `ICON_SHAPES` from the lists above.
 - `docs/invariants.md`: in the row anchored to
   `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
@@ -222,8 +223,9 @@ waiting entry ships this icon.
   icon theme's placeholder illustrations and their sizes.
 
 **Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
-`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
-`docs/invariants.md`, `docs/installing.md`.
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`tests/test_icon_theme_geometry.py`, `docs/invariants.md`,
+`docs/installing.md`.
 
 **Acceptance criteria.**
 
