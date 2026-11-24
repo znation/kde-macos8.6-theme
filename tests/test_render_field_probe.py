@@ -20,7 +20,7 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.render.field_probe import TOOL, USAGE, main  # noqa: E402
+from tools.render.field_probe import main  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
 
 FIELD_COLOR = "63639C"
@@ -119,7 +119,14 @@ class TestFieldProbe(unittest.TestCase):
                 status, stderr, stdout = run_probe(argv)
                 self.assertEqual(2, status)
                 self.assertEqual("", stdout)
-                self.assertEqual(f"{TOOL}: {USAGE}\n", stderr)
+                # The literal is the usage line the tool's docstring
+                # documents, pinned here so a drift in the constant the
+                # probe composes its diagnostic from cannot slip through.
+                self.assertEqual(
+                    "field_probe: usage: python3 tools/render/field_probe.py"
+                    " <png> <RRGGBB> <x> <y>\n",
+                    stderr,
+                )
 
     def test_non_integer_coordinates_exits_2_naming_them(self):
         # The coordinates are read as integers, so a stray decimal or word
