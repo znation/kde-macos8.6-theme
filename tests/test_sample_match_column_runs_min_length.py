@@ -80,16 +80,9 @@ class TestSampleMatchColumnRunsMinLength(CliTestCase):
         ).min_match_column_run_length)
 
     def test_invalid_values_and_help(self):
-        for value in ("0", "-1", "1.5", "１", "nope"):
-            with self.subTest(value=value):
-                result = self._run("missing.png", "0", "0", "--find-color", "010203",
-                                   "--match-column-runs", "--min-match-column-run-length", value)
-                self.assertEqual(result.returncode, 2)
-                self.assertEqual(result.stdout, "")
-        missing = self._run("missing.png", "0", "0", "--find-color", "010203",
-                            "--match-column-runs", "--min-match-column-run-length")
-        self.assertEqual(missing.returncode, 2)
-        self.assertEqual(missing.stdout, "")
+        self.assert_flag_rejects_values(
+            ("missing.png", "0", "0", "--find-color", "010203", "--match-column-runs"),
+            "--min-match-column-run-length", "0", "-1", "1.5", "１", "nope")
         help_result = self._run("--help")
         self.assertEqual(help_result.returncode, 0)
         self.assertIn("--min-match-column-run-length N", help_result.stdout)

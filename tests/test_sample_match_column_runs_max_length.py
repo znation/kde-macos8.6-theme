@@ -73,13 +73,9 @@ class TestSampleMatchColumnRunsMaxLength(CliTestCase):
         direct = self._run_script(*base, "--max-match-column-run-length", "2", "--json")
         self._assert_success(direct)
         self.assertEqual(direct.stdout, empty.stdout)
-        for value in ("0", "-1", "1.5", "１", "bad"):
-            result = self._run("missing.png", "0", "0", "--find-color", "010203",
-                               "--match-column-runs", "--max-match-column-run-length", value)
-            self.assertEqual((result.returncode, result.stdout), (2, ""))
-        missing = self._run("missing.png", "0", "0", "--find-color", "010203",
-                            "--match-column-runs", "--max-match-column-run-length")
-        self.assertEqual((missing.returncode, missing.stdout), (2, ""))
+        self.assert_flag_rejects_values(
+            ("missing.png", "0", "0", "--find-color", "010203", "--match-column-runs"),
+            "--max-match-column-run-length", "0", "-1", "1.5", "１", "bad")
         help_result = self._run("--help")
         self.assertIn("--max-match-column-run-length N", help_result.stdout)
 

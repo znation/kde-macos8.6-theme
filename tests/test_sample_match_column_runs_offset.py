@@ -99,10 +99,9 @@ class TestSampleMatchColumnRunsOffset(CliTestCase):
         self.assertNotIn("column_run_offset", json.loads(default.stdout)["match"])
         self.assertEqual(json.loads(direct.stdout)["match"]["column_runs"],
                          json.loads(self._run(*text_args, "--json").stdout)["match"]["column_runs"])
-        for value in ("-1", "1.5", "bad", "１"):
-            invalid = self._run("missing.png", "0", "0", "--match-column-runs",
-                                "--max-match-column-runs", "1", "--match-column-run-offset", value)
-            self.assertEqual((invalid.returncode, invalid.stdout), (2, ""))
+        self.assert_flag_rejects_values(
+            ("missing.png", "0", "0", "--match-column-runs", "--max-match-column-runs", "1"),
+            "--match-column-run-offset", "-1", "1.5", "bad", "１")
         dependency = self._run("missing.png", "0", "0", "--match-column-run-offset", "0")
         self.assertEqual(dependency.returncode, 2)
         self.assertIn("--match-column-run-offset requires --max-match-column-runs", dependency.stderr)

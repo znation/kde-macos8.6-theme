@@ -81,13 +81,9 @@ class TestSampleMatchRunsLimit(CliTestCase):
         self.assertEqual(json.loads(direct.stdout)["match"], json.loads(empty.stdout)["match"])
         self.assertIn("matching runs: []\nomitted matching runs: 0", text.stdout)
         self.assertNotIn("omitted matching runs:", self._run(*args).stdout)
-        for value in ("0", "-1", "1.5", "nope", "１"):
-            result = self._run("missing.png", "0", "0", "--find-color", "010203",
-                               "--match-runs", "--max-match-runs", value)
-            self.assertEqual((result.returncode, result.stdout), (2, ""))
-        missing = self._run("missing.png", "0", "0", "--find-color", "010203",
-                            "--match-runs", "--max-match-runs")
-        self.assertEqual((missing.returncode, missing.stdout), (2, ""))
+        self.assert_flag_rejects_values(
+            ("missing.png", "0", "0", "--find-color", "010203", "--match-runs"),
+            "--max-match-runs", "0", "-1", "1.5", "nope", "１")
         dependency = self._run("missing.png", "0", "0", "--find-color", "010203",
                                "--max-match-runs", "1")
         self.assertEqual(dependency.returncode, 2)

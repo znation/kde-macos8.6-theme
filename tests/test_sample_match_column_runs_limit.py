@@ -104,13 +104,9 @@ class TestSampleMatchColumnRunsLimit(CliTestCase):
             ("image.png", "0", "0", "--find-color", "010203")
         ).max_match_column_runs)
 
-        for value in ("0", "-1", "1.5", "bad", "１"):
-            invalid = self._run("missing.png", "0", "0", "--find-color", "010203",
-                                "--match-column-runs", "--max-match-column-runs", value)
-            self.assertEqual((invalid.returncode, invalid.stdout), (2, ""))
-        missing_value = self._run("missing.png", "0", "0", "--find-color", "010203",
-                                  "--match-column-runs", "--max-match-column-runs")
-        self.assertEqual((missing_value.returncode, missing_value.stdout), (2, ""))
+        self.assert_flag_rejects_values(
+            ("missing.png", "0", "0", "--find-color", "010203", "--match-column-runs"),
+            "--max-match-column-runs", "0", "-1", "1.5", "bad", "１")
         misplaced = self._run("missing.png", "0", "0", "--find-color", "010203",
                               "--max-match-column-runs", "1")
         self._assert_usage_error(misplaced, "--max-match-column-runs requires --match-column-runs")
@@ -211,13 +207,9 @@ class TestSampleMatchColumnRunsLimit(CliTestCase):
         self.assertEqual(dependency.stdout, "")
         self.assertIn("--max-match-column-runs requires --match-column-runs",
                       dependency.stderr)
-        for value in ("0", "-1", "1.5", "1e2", " 1", "1_0", "１", "nope"):
-            result = self._run("missing.png", "0", "0", "--find-color", "010203",
-                               "--match-column-runs", "--max-match-column-runs", value)
-            self.assertEqual((result.returncode, result.stdout), (2, ""))
-        missing = self._run("missing.png", "0", "0", "--find-color", "010203",
-                            "--match-column-runs", "--max-match-column-runs")
-        self.assertEqual((missing.returncode, missing.stdout), (2, ""))
+        self.assert_flag_rejects_values(
+            ("missing.png", "0", "0", "--find-color", "010203", "--match-column-runs"),
+            "--max-match-column-runs", "0", "-1", "1.5", "1e2", " 1", "1_0", "１", "nope")
         help_result = self._run("--help")
         self.assertIn("--max-match-column-runs N", help_result.stdout)
         _, encoded = rgb_image(1, 2, lambda x, y: (1, 2, 3))

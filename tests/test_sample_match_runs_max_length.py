@@ -69,15 +69,9 @@ class TestSampleMatchRunsMaxLength(CliTestCase):
         self.assertEqual(json.loads(direct.stdout)["match"]["runs"], bounded["runs"])
 
     def test_validation_and_help(self):
-        for value in ("0", "-1", "1.5", "1e2", " 1", "1_0", "１", "nope"):
-            with self.subTest(value=value):
-                result = self._run("missing.png", "0", "0", "--find-color", "010203",
-                                   "--match-runs", "--max-match-run-length", value)
-                self.assertEqual(result.returncode, 2)
-                self.assertEqual(result.stdout, "")
-        missing = self._run("missing.png", "0", "0", "--find-color", "010203",
-                            "--match-runs", "--max-match-run-length")
-        self.assertEqual(missing.returncode, 2)
+        self.assert_flag_rejects_values(
+            ("missing.png", "0", "0", "--find-color", "010203", "--match-runs"),
+            "--max-match-run-length", "0", "-1", "1.5", "1e2", " 1", "1_0", "１", "nope")
         help_result = self._run("--help")
         self.assertEqual(help_result.returncode, 0)
         self.assertIn("--max-match-run-length N", help_result.stdout)

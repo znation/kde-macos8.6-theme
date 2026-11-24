@@ -78,13 +78,9 @@ class TestSampleMatchRunsOffset(CliTestCase):
         self.assertEqual(json.loads(direct.stdout)["match"]["runs"],
                          json.loads(self._run(*self.base, "--max-match-runs", "2",
                                                "--match-run-offset", "2").stdout)["match"]["runs"])
-        for value in ("-1", "1.5", "bad", "１"):
-            invalid = self._run("missing.png", "0", "0", "--match-runs", "--max-match-runs", "1",
-                                "--match-run-offset", value)
-            self.assertEqual((invalid.returncode, invalid.stdout), (2, ""))
-        missing = self._run("missing.png", "0", "0", "--match-runs", "--max-match-runs", "1",
-                            "--match-run-offset")
-        self.assertEqual((missing.returncode, missing.stdout), (2, ""))
+        self.assert_flag_rejects_values(
+            ("missing.png", "0", "0", "--match-runs", "--max-match-runs", "1"),
+            "--match-run-offset", "-1", "1.5", "bad", "１")
         dependency = self._run("missing.png", "0", "0", "--match-run-offset", "0")
         self.assertEqual(dependency.returncode, 2)
         self.assertIn("--match-run-offset requires --max-match-runs", dependency.stderr)

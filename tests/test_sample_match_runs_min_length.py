@@ -93,15 +93,9 @@ class TestSampleMatchRunsMinLength(CliTestCase):
                          [{"x": 0, "y": 0, "length": 2}])
 
     def test_invalid_values_and_help(self):
-        for value in ("0", "-1", "１", "nope"):
-            with self.subTest(value=value):
-                result = self._run("missing.png", "0", "0", "--find-color", "010203",
-                                   "--match-runs", "--min-match-run-length", value)
-                self.assertEqual(result.returncode, 2)
-                self.assertEqual(result.stdout, "")
-        missing = self._run("missing.png", "0", "0", "--find-color", "010203",
-                            "--match-runs", "--min-match-run-length")
-        self.assertEqual(missing.returncode, 2)
+        self.assert_flag_rejects_values(
+            ("missing.png", "0", "0", "--find-color", "010203", "--match-runs"),
+            "--min-match-run-length", "0", "-1", "１", "nope")
         help_result = self._run("--help")
         self.assertEqual(help_result.returncode, 0)
         self.assertIn("--min-match-run-length N", help_result.stdout)

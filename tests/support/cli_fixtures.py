@@ -162,6 +162,23 @@ class CliTestCase(unittest.TestCase):
         self.assertEqual(json.loads(result.stdout)["image"], path)
         self.assertNotIn("\x1b", result.stdout)
 
+    def assert_flag_rejects_values(self, base, flag, *values):
+        """Pin an integer flag's refusals for invalid and absent values.
+
+        Each *value* is passed to *flag* after the *base* arguments; every
+        run must refuse with exit 2 and print nothing on stdout. Passing
+        *flag* without a value must refuse the same way. Each value is
+        asserted in its own ``subTest`` so a failure names the offending
+        value. The eight ``test_sample_match_*`` suites with a
+        ``missing.png``-based validation test share this helper.
+        """
+        for value in values:
+            with self.subTest(value=value):
+                result = self._run(*base, flag, value)
+                self.assertEqual((result.returncode, result.stdout), (2, ""))
+        missing = self._run(*base, flag)
+        self.assertEqual((missing.returncode, missing.stdout), (2, ""))
+
     def _tmp_dir(self) -> Path:
         """Return a fresh temp dir that is removed when the test ends."""
         return make_tmp_dir(self)
