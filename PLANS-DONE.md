@@ -69,7 +69,7 @@ drawing is this theme's own choice.
     every white pixel inside the grey face (the tail's centre is
     at distance ≈1.4 from the disc centre — its far corner ≈2.8, and
     the ring's farthest reach
-    ≈9.3 from it, all under the face radius 12).
+    ≈9.2 from it, all under the face radius 13).
   - 22x22: `circle cx="11" cy="11" r="10"` `#000000`, `circle
     cx="11" cy="11" r="9"` `#DDDDDD`; then, all `#FFFFFF`, the ring
     `circle cx="9" cy="9" r="4"` and `#DDDDDD` `circle cx="9" cy="9"
