@@ -202,6 +202,154 @@ is this theme's own choice.
   `make check` after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw Ogg audio files with an original `audio-ogg` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** An Ogg audio file (`*.oga`, `*.ogg` or `*.opus`, as the
+file manager identifies it) draws Breeze's art beside the Platinum
+documents and folders. Ship one original placeholder icon,
+`audio-ogg`, at 16x16, 22x22 and 32x32, in the same mimetype-item
+series as the `application-x-generic` blank page and the queued
+`application-ogg` container mark — the type this entry's MIME type is
+a declared subclass of, so the two marks must stay distinct.
+Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`audio/ogg` ("Ogg audio") with no `<icon>` element, no
+`<generic-icon>` element, the three globs `<glob pattern="*.oga">`,
+`<glob pattern="*.ogg">` and `<glob pattern="*.opus">` at the default
+weight 50 owned by no other MIME type, the `<magic>` match
+`OggS` at offset 0 at the default priority, `<sub-class-of
+type="application/ogg">` and `<alias type="audio/x-ogg">`; no other
+MIME type in the database declares any of those three globs, and the
+dash-form alias `audio-x-ogg` occurs 0 times in the database
+(`str.count` is 0 — `grep -c` counts lines, not matches). With no
+icon element the type asks its literal dash-form name; the theme's
+`index.theme` declares `Inherits=breeze` and the theme ships no
+`audio-ogg.svg` (its only audio mimetype file per size is
+`audio-x-generic.svg`), while Breeze ships the exact-name
+`audio-ogg.svg` at 16, 22, 24, 32 and 64 (`find` over
+`/usr/share/icons` lists it under both `breeze` and `breeze-dark`),
+so the lookup falls through to Breeze's file. No scratch-theme
+`kiconfinder6` probe was run at planning time: on this machine
+steering the probe at the scratch-installed theme has not been
+reproducible (see the offline wiki-archive entry's probe note), and
+the static evidence above pins the gap — today an `.oga`, `.ogg` or
+`.opus` file shows Breeze's audio art, not this theme's own. No
+reference screenshot shows an Ogg audio item icon, so no reference
+pixels are used and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/audio-ogg.svg` under `16x16`, `22x22` and `32x32`
+  of `theme/icons/org.macos8.desktop/`. `index.theme` already
+  declares the three MimeTypes directories. Give each file the XML
+  declaration, the comment `<!-- PLACEHOLDER: original Ogg audio
+  illustration pending user-approved artwork. -->`, a short comment
+  saying it is our own drawing in the Platinum palette, not traced
+  from anyone's artwork, and a root with matching `width`, `height`
+  and `viewBox`. The art shares the generic document's page (the page
+  outline, white page and folded-corner flap of the `_PAGE_*` shapes
+  the `shape_pins/_shared.py` registry keeps) and holds an equalizer
+  — four `#000000` vertical bars of rising-then-falling height,
+  bottom-aligned on one baseline, a sound-level mark distinct from
+  the beamed note pair the standalone `audio-x-generic.svg` draws (no
+  note heads, no stems, no beam, page-backed), from the queued
+  `application-ogg` container's film-strip band (separate bars, not
+  one solid band with white sprocket holes and a window), and from
+  the NZB index's dot-and-bars groups (vertical black bars, not
+  horizontal grey lines beside black dots):
+  - 32x32: the three `_PAGE_32` page elements; then the bars — `rect
+    x="10" y="18" width="2" height="5" fill="#000000"`, `rect
+    x="13" y="15" width="2" height="8" fill="#000000"`, `rect
+    x="16" y="12" width="2" height="11" fill="#000000"` and `rect
+    x="19" y="16" width="2" height="7" fill="#000000"`, drawn in that
+    order (shortest to tallest, then the falling fourth), all
+    bottom-aligned at row 23. A script run at planning time checked
+    every cell of every bar inside the white page polygon and clear
+    of the folded corner.
+  - 22x22: the three `_PAGE_22` page elements; then the bars — `rect
+    x="7" y="13" width="1" height="4" fill="#000000"`, `rect x="9"
+    y="11" width="1" height="6" fill="#000000"`, `rect x="11" y="9"
+    width="1" height="8" fill="#000000"` and `rect x="13" y="12"
+    width="1" height="5" fill="#000000"`, drawn in that order, all
+    bottom-aligned at row 17. Every cell sits inside the white page
+    and clears the folded corner (checked by the same script).
+  - 16x16: the three `_PAGE_16` page elements; then the bars — `rect
+    x="5" y="8" width="1" height="3" fill="#000000"`, `rect x="7"
+    y="7" width="1" height="4" fill="#000000"`, `rect x="9" y="6"
+    width="1" height="5" fill="#000000"` and `rect x="11" y="9"
+    width="1" height="2" fill="#000000"`, drawn in that order, all
+    bottom-aligned at row 11. Every cell sits inside the white page
+    and clears the folded corner (the flap reaches `y="5"` at
+    `x="12"`), checked by the same script.
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the Squashfs rows,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three
+  drawings in `PINS` from the lists above (the three `_PAGE_*`
+  elements spread as the prefix, then the four bars in the order
+  listed).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `audio-ogg` in the last cell, as the
+  `application-vnd.squashfs` sentence there does.
+- `docs/installing.md`: add the Ogg audio icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes
+  (the one naming the `application-vnd.squashfs` files).
+- The queued mimetype-icon entries ahead of this one (the PKCS#12
+  certificate bundle on main and the pending `application-ogg`
+  container plan) edit the same inventory block, `PINS` registry,
+  invariants row and installing.md sentence; this entry sits behind
+  them in the queue, so rebase on whatever they have landed when
+  picking this up, keeping one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the three `_PAGE_*`
+  elements matching the blank-document pins, then the four bars),
+  carries a placeholder marker and has a `PLACEHOLDERS.md` row; the
+  existing inventory, palette, geometry and placeholder-register
+  tests cover all three.
+- Changing one bar's position, size or fill, or the element order,
+  in one file makes the geometry test fail; dropping a file while
+  leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The `#000000` and `#FFFFFF` fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- The equalizer shares no drawing element with the standalone
+  `audio-x-generic.svg` (no note head, no stem, no beam) and none
+  with the queued `application-ogg` film-strip band (four separate
+  bars, no white sprocket cells, no window), so both siblings stay
+  visually distinct.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch `XDG_DATA_HOME`, use a scratch `HOME`,
+  `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset
+  `DISPLAY` and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `audio-ogg` resolves to the theme's 32x32
+  `mimetypes/audio-ogg.svg` (at planning time the theme ships no such
+  file, so the name fell through to Breeze's), and `text-x-generic`
+  still resolves to the theme's own file. Report the output in
+  VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ## Done
 
 ### Platinum icon theme: draw detached OpenPGP signatures with an original `application-pgp-signature` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
