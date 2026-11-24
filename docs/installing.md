@@ -213,7 +213,8 @@ LZMA-compressed-tar icon for LZMA-compressed tar archive files (the
 cpio-archive icon for cpio archive files (the `application-x-cpio` name
 at the same three sizes), an
 ISO disc-image icon for disc-image files (the `application-vnd.efi.iso`
-name at the same three sizes), a
+name at the same three sizes), a JSON-document icon for JSON files (the
+`application-json` name at the same three sizes), a
 flash-media card
 icon for
 memory cards (the `media-flash` name at the same three sizes), a floppy-disk

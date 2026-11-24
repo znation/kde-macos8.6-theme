@@ -278,6 +278,15 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "text-x-script.svg"),
     os.path.join("16x16", "mimetypes", "text-x-script.svg"),
     os.path.join("22x22", "mimetypes", "text-x-script.svg"),
+    # The JSON-document `application-json` icon at all three sizes (our own
+    # drawing of the generic document's page with a pair of black curly
+    # braces; the name is the type-spelled icon name of the
+    # `application/json` MIME type in the installed shared MIME database,
+    # whose `generic-icon` is the shipped `text-x-script`, and at the exact
+    # name Breeze's own file beats the theme's generic-icon fallback).
+    os.path.join("32x32", "mimetypes", "application-json.svg"),
+    os.path.join("16x16", "mimetypes", "application-json.svg"),
+    os.path.join("22x22", "mimetypes", "application-json.svg"),
     os.path.join("32x32", "mimetypes", "package-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "package-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "package-x-generic.svg"),
