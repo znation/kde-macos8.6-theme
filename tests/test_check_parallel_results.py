@@ -159,6 +159,37 @@ class TestPrintResults(unittest.TestCase):
         )
         self.assertIn("check: 1 module, 1 module failed", output.getvalue())
 
+    def test_exit_five_without_the_summary_is_failure_not_no_tests(self):
+        log_path = make_tmp_dir(self) / "worker.log"
+        # A worker that exits 5 but leaves a log cut before unittest's
+        # summary (killed mid-write, or a crash before the runner reported)
+        # must count as a failed module, not as "ran no tests": without the
+        # summary the log proves nothing about which tests the worker ran.
+        log_path.write_text(
+            "test_example\nok\nworker died before the runner reported\n",
+            encoding="utf-8",
+        )
+        output = StringIO()
+        with redirect_stdout(output):
+            status = print_results(
+                ["test_ok"], {"test_ok": 5}, {"test_ok": str(log_path)}, 10
+            )
+        self.assertEqual(1, status)
+        self.assertIn(
+            "===== test_ok: exit 5 but the log shows no unittest "
+            "NO TESTS RAN summary =====",
+            output.getvalue(),
+        )
+        self.assertIn(
+            "worker died before the runner reported", output.getvalue()
+        )
+        self.assertIn(
+            "check: test_ok: exit 5 but the log shows no unittest "
+            "NO TESTS RAN summary",
+            output.getvalue(),
+        )
+        self.assertIn("1 module failed", output.getvalue())
+
     def test_missing_worker_log_fails_even_when_worker_exited_zero(self):
         output = StringIO()
         with redirect_stdout(output):
