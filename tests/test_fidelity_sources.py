@@ -273,6 +273,17 @@ class TestWholeFileRead(unittest.TestCase):
             path.write_bytes(payload)
             self.assertEqual(fidelity_sources._read_bytes(str(path), -1), payload)
 
+    def test_negative_count_reads_a_file_of_exactly_the_cap_whole(self):
+        # Both cap checks in _read_capped_whole are strict "larger than":
+        # a file of exactly _MAX_JPEG_BYTES is accepted whole, not refused
+        # with the over-cap diagnostic.
+        payload = bytes(range(8))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "atcap.bin"
+            path.write_bytes(payload)
+            with mock.patch.object(fidelity_sources, "_MAX_JPEG_BYTES", 8):
+                self.assertEqual(fidelity_sources._read_bytes(str(path), -1), payload)
+
     def test_negative_count_refuses_an_oversized_file_before_reading(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "oversized.jpg"
