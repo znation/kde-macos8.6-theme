@@ -21,15 +21,12 @@ from pathlib import Path
 
 if __package__:
     from tools.diagnostics import report_note, require_path
+    from tools.image_format import JPEG_MAGIC
     from tools.process_group import run_logged_split
 else:  # imported as a plain module by the direct-run path
     from diagnostics import report_note, require_path
+    from image_format import JPEG_MAGIC
     from process_group import run_logged_split
-
-# JPEGs start with the SOI marker FF D8; the third byte is the marker that
-# follows, FF by standard. Three bytes are enough to refuse while the bytes
-# are still in the caller's buffer.
-JPEG_MAGIC = bytes((0xFF, 0xD8, 0xFF))
 
 _CONVERT_TIMEOUT = 60.0
 
@@ -40,7 +37,13 @@ _MAX_LOG_BYTES = 4096
 
 
 def is_jpeg(head: bytes) -> bool:
-    """Return whether the leading bytes *head* start a JPEG stream."""
+    """Return whether the leading bytes *head* start a JPEG stream.
+
+    Reads the shared ``JPEG_MAGIC`` from ``tools/image_format.py``: a JPEG
+    starts with the SOI marker FF D8 and the marker that follows it, FF by
+    standard, so three bytes are enough to refuse while the bytes are still
+    in the caller's buffer.
+    """
     return head.startswith(JPEG_MAGIC)
 
 

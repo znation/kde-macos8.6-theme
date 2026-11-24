@@ -17,7 +17,7 @@ from pathlib import Path
 from unittest import mock
 
 from support.repo_root import ROOT  # noqa: F401  (puts root on sys.path)
-from tools import jpeg_convert
+from tools import image_format, jpeg_convert
 
 
 class TestIsJpeg(unittest.TestCase):
@@ -25,6 +25,9 @@ class TestIsJpeg(unittest.TestCase):
 
     def test_full_magic_head_is_jpeg(self):
         self.assertTrue(jpeg_convert.is_jpeg(bytes((0xFF, 0xD8, 0xFF, 0xE0))))
+
+    def test_magic_is_the_shared_signature_constant(self):
+        self.assertEqual(jpeg_convert.JPEG_MAGIC, image_format.JPEG_MAGIC)
 
     def test_shorter_and_foreign_heads_are_not_jpeg(self):
         for head in (
