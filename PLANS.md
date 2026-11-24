@@ -262,6 +262,89 @@ of scope; this plan shares no drawing with them.
   test_placeholders test_invariants'` passes, and so does full `make check`
   after the final edit, apart from main's known-red tests.
 
+### Platinum icon theme: draw audio with an original `audio-x-generic` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A music or sound file in the file manager is drawn with
+Breeze's art beside the Platinum documents. Ship one original placeholder
+icon, `audio-x-generic`, at 16x16, 22x22 and 32x32.
+
+Planning-time probe this run of the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`): exactly three MIME
+types carry `generic-icon name="audio-x-generic"` (`application/xspf+xml`,
+`application/x-shorten`, `application/vnd.smaf`); the `audio/*` types
+(`audio/mpeg`, `audio/mp4`, `audio/flac` and their kin) carry no
+`generic-icon` element, so KIO resolves their icon names by type spelling
+(`audio-mpeg`) and its per-type fallback to `audio-x-generic`. An earlier
+probe (recorded with the `image-x-generic` plan, done 2026-11-24) showed
+`audio-mpeg` and `audio-x-generic` resolving to Breeze files under this
+theme, so audio draws Breeze art today. The done `image-x-generic`,
+`video-x-generic` and `x-office-*` plans each scope audio out: no
+waiting entry ships this icon.
+
+**Approach.**
+
+- Add `mimetypes/audio-x-generic.svg` under `16x16`, `22x22` and `32x32`
+  of `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original audio illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette, not
+  traced from anyone's artwork, and a root with matching `width`, `height`
+  and `viewBox`. The art is a beamed pair of eighth notes: two note heads,
+  two stems and one flat beam. Each file holds these `rect` elements in
+  order, written `x,y width×height fill`:
+  - 32x32: `6,23 7×4 #000000`; `11,6 2×21 #000000`; `18,21 7×4 #000000`;
+    `23,6 2×19 #000000`; `11,6 14×5 #000000`.
+  - 22x22: `4,16 5×3 #000000`; `8,4 2×15 #000000`; `12,14 5×3 #000000`;
+    `15,4 2×13 #000000`; `8,4 9×3 #000000`.
+  - 16x16: `2,11 4×2 #000000`; `5,3 1×10 #000000`; `9,10 4×2 #000000`;
+    `12,3 1×9 #000000`; `5,3 8×2 #000000`.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `image-x-generic` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `mimetypes` paths, name the audio icon
+  in the inventory comment above them, and say in the comment that the
+  name captures the audio MIME types by type-spelling fallback and is the
+  `generic-icon` of the playlist, lossless-audio and SMAF audio types in
+  the installed shared MIME database.
+- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `audio-x-generic` in the last cell: no reference pixels
+  were used, the name is the `generic-icon` of the playlist, lossless-audio
+  and SMAF audio types in the installed shared MIME database and the
+  beamed-notes drawing is this theme's own choice.
+- `docs/installing.md`: add the audio icon to the sentence listing the
+  icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the rectangles listed for that size, carries a placeholder marker and
+  comment and has a `PLACEHOLDERS.md` row; the existing inventory, palette,
+  geometry and placeholder-register tests cover all three.
+- Changing a rectangle's position, size or fill, or the element order, in
+  one file makes the geometry pin fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `audio-mpeg`, `audio-x-generic`,
+  `application/xspf+xml` and `application/x-shorten` resolve to the
+  theme's file, and `image-png` and `video-mp4` stay on their shipped
+  theme files. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
