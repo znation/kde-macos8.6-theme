@@ -251,6 +251,50 @@ class TestGeneratorValidation(unittest.TestCase):
                         (image.hotspot_x, image.hotspot_y), expected
                     )
 
+    def test_the_scaled_pixels_follow_the_documented_nearest_neighbour_mapping(
+        self,
+    ):
+        # Every committed-cursor check compares the shipped files with a
+        # fresh generator run, and the glyph-shape pins draw at the 16x16
+        # grid size, where the mapping is the identity: a change to
+        # render_rgba's own scaling would only move the artifacts. This
+        # re-derives every pixel from the documented contract -- the
+        # nearest-neighbour mapping that sends destination pixel ``d`` to
+        # source pixel ``d * 16 // size`` (``_scaled_hotspot``'s docstring
+        # states it to stay on the drawn glyph) -- at sizes above and below
+        # the grid, on a grid whose cell at (x, y) differs from the one at
+        # (y, x), so a transposed read or a swapped axis cannot hide behind
+        # a symmetric drawing. At the smaller sizes the downscale skips
+        # source pixels entirely, so a rounded or ceilinged index cannot
+        # agree with the floor mapping either.
+        glyphs = "#. "
+        grid = tuple(
+            "".join(
+                glyphs[(x + 2 * y) % 3] for x in range(cursor_art.GRID_SIZE)
+            )
+            for y in range(cursor_art.GRID_SIZE)
+        )
+        transposed = tuple(
+            "".join(grid[y][x] for y in range(cursor_art.GRID_SIZE))
+            for x in range(cursor_art.GRID_SIZE)
+        )
+        self.assertNotEqual(grid, transposed)
+        for size in (1, 5, 8, 24, 32):
+            with self.subTest(size=size):
+                rgba = make_cursors.render_rgba(grid, size)
+                for y in range(size):
+                    source_row = grid[y * cursor_art.GRID_SIZE // size]
+                    for x in range(size):
+                        expected = cursor_art.PIXELS[
+                            source_row[x * cursor_art.GRID_SIZE // size]
+                        ]
+                        start = (y * size + x) * 4
+                        self.assertEqual(
+                            rgba[start : start + 4],
+                            expected,
+                            msg=f"destination pixel ({x}, {y}) at size {size}",
+                        )
+
 
 class TestMainErrors(unittest.TestCase):
     """``main`` must report a creation or write failure and stop, exiting 2."""
