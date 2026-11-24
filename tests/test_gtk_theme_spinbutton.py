@@ -16,6 +16,7 @@ from support.gtk.child_probe import (
     _GTK3_SHEET_PROLOGUE,
     _GTK3_SHEET_PROVIDER,
     Gtk3ChildProbeCases,
+    gtk3_render_capture,
 )
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.repo_root import ROOT
@@ -70,20 +71,9 @@ def render(rtl):
         spin.set_direction(Gtk.TextDirection.RTL)
     box.pack_start(spin, False, False, 0)
     window.add(box)
-    window.show_all()
-    while Gtk.events_pending():
-        Gtk.main_iteration()
-    alloc = spin.get_allocation()
-    pixbuf = window.get_pixbuf()
-    pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
-    window.destroy()
-
-    def at(x, y):
-        red, green, blue = pixels[y * stride + x * n:][:3]
-        return f"#{red:02X}{green:02X}{blue:02X}"
-
-    left, top = alloc.x, alloc.y
-    right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
+'''
+            + gtk3_render_capture("spin")
+            + '''\
     return at, left, top, right, bottom
 
 BLACK, WHITE, GREY, LIGHT, SHADE = "#000000", "#FFFFFF", "#999999", "#DDDDDD", "#AAAAAA"
@@ -152,20 +142,9 @@ def render(rtl):
         spin.set_direction(Gtk.TextDirection.RTL)
     box.pack_start(spin, False, False, 0)
     window.add(box)
-    window.show_all()
-    while Gtk.events_pending():
-        Gtk.main_iteration()
-    alloc = spin.get_allocation()
-    pixbuf = window.get_pixbuf()
-    pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
-    window.destroy()
-
-    def at(x, y):
-        red, green, blue = pixels[y * stride + x * n:][:3]
-        return f"#{red:02X}{green:02X}{blue:02X}"
-
-    left, top = alloc.x, alloc.y
-    right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
+'''
+            + gtk3_render_capture("spin")
+            + '''\
     return at, left, top, right, bottom
 
 BLACK, GREY = "#000000", "#999999"
@@ -213,20 +192,9 @@ def render(rtl):
         spin.set_direction(Gtk.TextDirection.RTL)
     box.pack_start(spin, False, False, 0)
     window.add(box)
-    window.show_all()
-    while Gtk.events_pending():
-        Gtk.main_iteration()
-    alloc = spin.get_allocation()
-    pixbuf = window.get_pixbuf()
-    pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
-    window.destroy()
-
-    def at(x, y):
-        red, green, blue = pixels[y * stride + x * n:][:3]
-        return f"#{red:02X}{green:02X}{blue:02X}"
-
-    left, top = alloc.x, alloc.y
-    right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
+'''
+            + gtk3_render_capture("spin")
+            + '''\
     return at, left, top, right, bottom
 
 BLACK, WHITE, GREY, LIGHT, SHADE = "#000000", "#FFFFFF", "#999999", "#DDDDDD", "#AAAAAA"

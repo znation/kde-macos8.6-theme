@@ -80,6 +80,40 @@ def at(x, y):
 '''
 
 
+def gtk3_render_capture(widget):
+    """Return the capture tail of a GTK 3 ``render`` helper, indented.
+
+    The three ``test_gtk_theme_spinbutton`` children and the two
+    ``test_gtk_theme_frames`` children share this block byte for byte:
+    show the offscreen window, pump the event loop, snapshot it, destroy
+    the window, then define the ``at(x, y)`` pixel reader and the
+    widget's box coordinates. *widget* names the allocation subject,
+    spelled after the ``alloc = `` line. The returned block ends with a
+    newline so the program's own measurement lines follow it; it
+    composes like ``settle_loop`` does in the GTK 4 sibling.
+    ``test_gtk_theme_progress`` keeps its own copy: its ``render`` takes
+    no allocation and returns the reader alone.
+    """
+    return (
+        "    window.show_all()\n"
+        "    while Gtk.events_pending():\n"
+        "        Gtk.main_iteration()\n"
+        "    alloc = " + widget + ".get_allocation()\n"
+        "    pixbuf = window.get_pixbuf()\n"
+        "    pixels, stride, n = pixbuf.get_pixels(), "
+        "pixbuf.get_rowstride(), pixbuf.get_n_channels()\n"
+        "    window.destroy()\n"
+        "\n"
+        "    def at(x, y):\n"
+        "        red, green, blue = pixels[y * stride + x * n:][:3]\n"
+        '        return f"#{red:02X}{green:02X}{blue:02X}"\n'
+        "\n"
+        "    left, top = alloc.x, alloc.y\n"
+        "    right, bottom = alloc.x + alloc.width - 1, "
+        "alloc.y + alloc.height - 1\n"
+    )
+
+
 def run_gtk_child(test, program, *paths):
     """Run the GTK 3 pixel *program* in a fresh child interpreter.
 

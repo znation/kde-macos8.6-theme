@@ -17,6 +17,7 @@ from support.gtk.child_probe import (
     _GTK3_SHEET_PROLOGUE,
     _GTK3_SHEET_PROVIDER,
     Gtk3ChildProbeCases,
+    gtk3_render_capture,
     run_gtk_child,
 )
 
@@ -90,6 +91,34 @@ class TestGtkChildProbeSupport(unittest.TestCase):
             '    return f"#{red:02X}{green:02X}{blue:02X}"',
             _GTK3_PIXEL_HEAD,
         )
+
+    def test_render_capture_composes_the_indented_capture_block(self):
+        # The block is child-program text, so its wording is the
+        # contract: the five render helpers it serves (three in
+        # test_gtk_theme_spinbutton, two in test_gtk_theme_frames) used
+        # to spell these bytes out by hand.
+        self.assertEqual(
+            "    window.show_all()\n"
+            "    while Gtk.events_pending():\n"
+            "        Gtk.main_iteration()\n"
+            "    alloc = spin.get_allocation()\n"
+            "    pixbuf = window.get_pixbuf()\n"
+            "    pixels, stride, n = pixbuf.get_pixels(), "
+            "pixbuf.get_rowstride(), pixbuf.get_n_channels()\n"
+            "    window.destroy()\n"
+            "\n"
+            "    def at(x, y):\n"
+            "        red, green, blue = pixels[y * stride + x * n:][:3]\n"
+            '        return f"#{red:02X}{green:02X}{blue:02X}"\n'
+            "\n"
+            "    left, top = alloc.x, alloc.y\n"
+            "    right, bottom = alloc.x + alloc.width - 1, "
+            "alloc.y + alloc.height - 1\n",
+            gtk3_render_capture("spin"),
+        )
+        # The widget argument is the allocation subject, spelled after
+        # the `alloc = ` line and nowhere else.
+        self.assertEqual(1, gtk3_render_capture("frame").count("frame"))
 
     def test_run_gtk_child_skips_on_exit_77_with_the_childs_reason(self):
         recorder = _Recorder()

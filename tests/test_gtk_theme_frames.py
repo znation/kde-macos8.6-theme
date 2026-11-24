@@ -14,6 +14,7 @@ from pathlib import Path
 
 from support.gtk.child_probe import (
     _GTK3_PIXEL_HEAD,
+    gtk3_render_capture,
     _GTK3_SHEET_AND_WINDOW,
     _GTK3_SHEET_PROLOGUE,
     _GTK3_SHEET_PROVIDER,
@@ -118,20 +119,9 @@ def render(shadow, rtl):
         scrolled.set_direction(Gtk.TextDirection.RTL)
     box.pack_start(scrolled, False, False, 0)
     window.add(box)
-    window.show_all()
-    while Gtk.events_pending():
-        Gtk.main_iteration()
-    alloc = scrolled.get_allocation()
-    pixbuf = window.get_pixbuf()
-    pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
-    window.destroy()
-
-    def at(x, y):
-        red, green, blue = pixels[y * stride + x * n:][:3]
-        return f"#{red:02X}{green:02X}{blue:02X}"
-
-    left, top = alloc.x, alloc.y
-    right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
+'''
+            + gtk3_render_capture("scrolled")
+            + '''\
     mid_x, mid_y = (left + right) // 2, (top + bottom) // 2
     column = [at(mid_x, y) for y in range(top, top + 3)]
     column_bottom = [at(mid_x, y) for y in range(bottom - 2, bottom + 1)]
@@ -191,20 +181,9 @@ def render(shadow, rtl):
         frame.set_direction(Gtk.TextDirection.RTL)
     box.pack_start(frame, False, False, 0)
     window.add(box)
-    window.show_all()
-    while Gtk.events_pending():
-        Gtk.main_iteration()
-    alloc = frame.get_allocation()
-    pixbuf = window.get_pixbuf()
-    pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
-    window.destroy()
-
-    def at(x, y):
-        red, green, blue = pixels[y * stride + x * n:][:3]
-        return f"#{red:02X}{green:02X}{blue:02X}"
-
-    left, top = alloc.x, alloc.y
-    right, bottom = alloc.x + alloc.width - 1, alloc.y + alloc.height - 1
+'''
+            + gtk3_render_capture("frame")
+            + '''\
     mid_x, mid_y = (left + right) // 2, (top + bottom) // 2
     column = [at(mid_x, y) for y in range(top, top + 3)]
     column_bottom = [at(mid_x, y) for y in range(bottom - 2, bottom + 1)]
