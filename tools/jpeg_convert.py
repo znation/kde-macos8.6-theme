@@ -20,10 +20,10 @@ import tempfile
 from pathlib import Path
 
 if __package__:
-    from tools.diagnostics import require_path
+    from tools.diagnostics import report_note, require_path
     from tools.process_group import run_logged_split
 else:  # imported as a plain module by the direct-run path
-    from diagnostics import require_path
+    from diagnostics import report_note, require_path
     from process_group import run_logged_split
 
 # JPEGs start with the SOI marker FF D8; the third byte is the marker that
@@ -116,7 +116,9 @@ def decoded_png(input_bytes: bytes, prefix: str) -> Iterator[Path]:
     The PNG lives in a directory created here with *prefix* and removed when
     the ``with`` block exits, whether it returns, raises, or fails to decode.
     A decode failure raises :class:`JpegDecodeError` carrying the converter's
-    diagnostic, before the block runs.
+    diagnostic, before the block runs. If the directory cannot be removed, the
+    leftover path and the error are reported on stderr; the removal failure
+    never replaces the block's own outcome.
     """
     directory = tempfile.mkdtemp(prefix=prefix)
     try:
@@ -126,7 +128,19 @@ def decoded_png(input_bytes: bytes, prefix: str) -> Iterator[Path]:
             raise JpegDecodeError(problem)
         yield temp_png
     finally:
-        shutil.rmtree(directory, ignore_errors=True)
+        _remove_decoded_directory(directory)
+
+
+def _remove_decoded_directory(directory: str) -> None:
+    """Remove the decode *directory*; a failure is reported, not raised."""
+    try:
+        shutil.rmtree(directory)
+    except OSError as exc:
+        report_note(
+            "jpeg_convert",
+            f"could not remove decoded PNG directory {directory}: {exc}",
+            err=True,
+        )
 
 
 def _failed_output(headline: str, temp_png: Path, *logs: Path) -> str:

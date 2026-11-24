@@ -11,6 +11,9 @@ Run with the project's check harness (stdlib unittest)::
 
 from __future__ import annotations
 
+import contextlib
+import io
+import shutil
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -72,6 +75,66 @@ class TestDecodedPng(unittest.TestCase):
         self.assertFalse(body_ran)
         self.assertEqual(len(directories), 1)
         self.assertFalse(directories[0].exists())
+
+
+class TestDecodedPngCleanupFailure(unittest.TestCase):
+    """A directory that cannot be removed is named on stderr, never silently kept."""
+
+    def _fail_rmtree(self):
+        """Stand in for a removal the OS refuses, honouring ``ignore_errors``.
+
+        Like the real ``shutil.rmtree``, the stand-in raises only when the
+        caller did not ask for errors to be ignored; the directories the tests
+        create are removed afterwards by the test's own cleanup.
+        """
+
+        def refuse(path, ignore_errors=False, onerror=None):
+            if not ignore_errors:
+                raise OSError("device busy")
+
+        return mock.patch.object(jpeg_convert.shutil, "rmtree", side_effect=refuse)
+
+    def test_clean_exit_reports_the_leftover_directory_and_does_not_raise(self):
+        converter = _converter_writing(b"png")
+        seen = {}
+        stderr = io.StringIO()
+        with mock.patch.object(jpeg_convert, "convert_jpeg", side_effect=converter):
+            with self._fail_rmtree():
+                with contextlib.redirect_stderr(stderr):
+                    with jpeg_convert.decoded_png(b"jpeg", "unit-test-") as temp_png:
+                        seen["dir"] = temp_png.parent
+        self.addCleanup(shutil.rmtree, seen["dir"], True)
+        text = stderr.getvalue()
+        self.assertIn("jpeg_convert: note: could not remove", text)
+        self.assertIn(str(seen["dir"]), text)
+        self.assertIn("device busy", text)
+
+    def test_decode_failure_still_raises_its_own_error_when_removal_fails(self):
+        seen = {}
+
+        def failing(input_bytes, temp_png):
+            seen["dir"] = Path(temp_png).parent
+            return "convert exited 7: bad marker"
+
+        stderr = io.StringIO()
+        with mock.patch.object(jpeg_convert, "convert_jpeg", side_effect=failing):
+            with self._fail_rmtree():
+                with contextlib.redirect_stderr(stderr):
+                    with self.assertRaises(jpeg_convert.JpegDecodeError) as caught:
+                        with jpeg_convert.decoded_png(b"jpeg", "unit-test-"):
+                            pass
+        self.addCleanup(shutil.rmtree, seen["dir"], True)
+        self.assertEqual(str(caught.exception), "convert exited 7: bad marker")
+        self.assertIn(str(seen["dir"]), stderr.getvalue())
+
+    def test_clean_removal_prints_nothing(self):
+        converter = _converter_writing(b"png")
+        stderr = io.StringIO()
+        with mock.patch.object(jpeg_convert, "convert_jpeg", side_effect=converter):
+            with contextlib.redirect_stderr(stderr):
+                with jpeg_convert.decoded_png(b"jpeg", "unit-test-"):
+                    pass
+        self.assertEqual(stderr.getvalue(), "")
 
 
 class TestRewriteTempPngError(unittest.TestCase):
