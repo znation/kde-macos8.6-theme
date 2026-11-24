@@ -4,7 +4,8 @@ import unittest
 
 from support.gtk4_child_probe import (GTK4_PROBE_PAINTED,
                                       GTK4_PROBE_PROLOGUE,
-                                      run_gtk4_probe)
+                                      run_gtk4_probe,
+                                      settle_loop)
 from support.gtk4_sheet import _rgb
 from support.gui_tests import require_gui_opt_in
 from support.platinum_palette import BLACK, FACE, GREY, TROUGH, WHITE
@@ -122,11 +123,8 @@ def pins(r, t, s):
 
 disabled_pins = [0, 4, 5, 6]  # face centre, both bands, trough rim
 
-deadline = time.monotonic() + 30
-while True:
-    while GLib.MainContext.default().pending():
-        GLib.MainContext.default().iteration(False)
-    mismatches = []
+'''
+    + settle_loop('''    mismatches = []
     ready = True
     for scrollbar, trough, slider, disabled in built:
         if disabled and not bool(
@@ -161,11 +159,8 @@ while True:
                           for g in got)
     if ready and not mismatches:
         break
-    if time.monotonic() >= deadline:
-        raise SystemExit(f"scrollbar pins did not settle: {mismatches}")
-    time.sleep(0.01)
-print("scrollbar pins settled")
-''')
+''', 'raise SystemExit(f"scrollbar pins did not settle: {mismatches}")')
+    + 'print("scrollbar pins settled")\n')
 
 
 if __name__ == "__main__":

@@ -4,7 +4,8 @@ import unittest
 
 from support.gtk4_child_probe import (GTK4_PROBE_PAINTED,
                                       GTK4_PROBE_PROLOGUE,
-                                      run_gtk4_probe)
+                                      run_gtk4_probe,
+                                      settle_loop)
 from support.gtk4_sheet import _rgb
 from support.gui_tests import require_gui_opt_in
 from support.platinum_palette import BLACK, BUTTON_SHADOW, FACE, WHITE
@@ -66,11 +67,8 @@ def pins(w, h, active):
             ((w // 2, 1), top_arm),
             ((w - 2, h - 2), bottom_arm)]
 
-deadline = time.monotonic() + 30
-while True:
-    while GLib.MainContext.default().pending():
-        GLib.MainContext.default().iteration(False)
-    mismatches = []
+'''
+    + settle_loop('''    mismatches = []
     ready = True
     for button, active in zip(buttons, (False, True)):
         # Snapshot at the allocation, not the width/height getters: as the
@@ -101,11 +99,8 @@ while True:
         mismatches.extend(("active" if active else "resting",) + g for g in got)
     if ready and not mismatches:
         break
-    if time.monotonic() >= deadline:
-        raise SystemExit(f"button pins did not settle: {mismatches}")
-    time.sleep(0.01)
-print("button pins settled")
-''')
+''', 'raise SystemExit(f"button pins did not settle: {mismatches}")')
+    + 'print("button pins settled")\n')
 
 
 if __name__ == "__main__":

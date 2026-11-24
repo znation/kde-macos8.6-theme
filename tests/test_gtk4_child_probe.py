@@ -11,7 +11,8 @@ from pathlib import Path
 
 from support.gtk4_child_probe import (GTK4_PROBE_PAINTED,
                                       GTK4_PROBE_PROLOGUE,
-                                      run_gtk4_probe)
+                                      run_gtk4_probe,
+                                      settle_loop)
 from support.gtk4_sheet import THEME_DIR
 
 # The six suites whose child programs interpolate the shared prologue; the
@@ -31,6 +32,17 @@ _PROLOGUE_SUITES = (
     "test_gtk4_indicators_probe.py",
     "test_gtk4_notebook_probe.py",
     "test_gtk4_progressbar_probe.py",
+    "test_gtk4_scale_probe.py",
+    "test_gtk4_scrollbar_probe.py",
+)
+# The suites whose children share the settle loop: the four allocation-
+# pinned suites whose loop is deadline/while True/break/sleep. The
+# progressbar child loops on a ``settled`` flag, indicators raises two
+# distinct messages from a nested block, and spin returns from its own
+# shape, so all three keep their inline loops.
+_SETTLE_SUITES = (
+    "test_gtk4_button_probe.py",
+    "test_gtk4_notebook_probe.py",
     "test_gtk4_scale_probe.py",
     "test_gtk4_scrollbar_probe.py",
 )
@@ -131,6 +143,45 @@ class TestRunGtk4Probe(unittest.TestCase):
             )
             self.assertNotIn(
                 "Gtk.WidgetPaintable.new(widget).snapshot", source, name
+            )
+
+    def test_settle_loop_composes_the_shared_skeleton(self):
+        # The settle loop's contract: a 30-second deadline, a pump that
+        # drains the default main context between attempts, the body at
+        # four-space indent, a deadline raise naming the child's own
+        # mismatch list, and a 10 ms sleep.
+        composed = settle_loop("    at = capture()\n        break\n",
+                               'raise SystemExit(f"pins: {mismatches}")')
+        self.assertEqual(
+            composed,
+            "deadline = time.monotonic() + 30\n"
+            "while True:\n"
+            "    while GLib.MainContext.default().pending():\n"
+            "        GLib.MainContext.default().iteration(False)\n"
+            "    at = capture()\n"
+            "        break\n"
+            "    if time.monotonic() >= deadline:\n"
+            "        raise SystemExit(f\"pins: {mismatches}\")\n"
+            "    time.sleep(0.01)\n",
+        )
+
+    def test_settle_loop_suites_use_the_shared_helper(self):
+        # A file that copy-pastes the deadline/pump/sleep skeleton back
+        # into its child program would drift from the shared helper; each
+        # settle-loop suite must name it once per import and per child and
+        # keep no inline copy of the pump. The suites outside the tuple
+        # (progressbar, indicators, spin) keep their own loop shapes and
+        # are pinned to that by keeping their inline pumps.
+        for name in _SETTLE_SUITES:
+            source = (Path(__file__).parent / name).read_text()
+            self.assertEqual(
+                source.count("settle_loop"),
+                2,
+                f"{name} must interpolate the settle loop exactly once "
+                f"per child",
+            )
+            self.assertNotIn(
+                "while GLib.MainContext.default().pending():", source, name
             )
 
     def test_view_census_face_children_use_the_shared_prologue(self):

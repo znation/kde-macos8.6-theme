@@ -2,7 +2,8 @@
 
 import unittest
 
-from support.gtk4_child_probe import GTK4_PROBE_PROLOGUE, run_gtk4_probe
+from support.gtk4_child_probe import (GTK4_PROBE_PROLOGUE, run_gtk4_probe,
+                                      settle_loop)
 from support.gui_tests import require_gui_opt_in
 
 
@@ -44,17 +45,14 @@ def capture():
         return tuple(data[start:start + 3])
     return at
 
-deadline = time.monotonic() + 30
-while True:
-    while GLib.MainContext.default().pending():
-        GLib.MainContext.default().iteration(False)
-    at = capture()
+'''
+    + settle_loop('''    at = capture()
     if at is not None and all(tab.get_width() > 0 for tab in tab_nodes):
         break
-    if time.monotonic() >= deadline:
-        raise AssertionError("notebook header produced no allocated paintable")
-    time.sleep(0.01)
-# The two tabs occupy the header's leading edge. Probe one pixel inside each
+''',
+                 'raise AssertionError("notebook header produced no allocated '
+                 'paintable")')
+    + '''# The two tabs occupy the header's leading edge. Probe one pixel inside each
 # tab, and the header face beyond both tabs; positions are derived from the
 # fresh allocations so font metrics do not become a fixture.
 tabs_x = tabs.get_allocation().x

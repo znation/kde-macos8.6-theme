@@ -80,6 +80,32 @@ def painted(widget, w, h):
 '''
 
 
+def settle_loop(body, deadline_failure):
+    """Compose the child program's main-context settle loop around *body*.
+
+    The four allocation-pinned probe children -- ``button``, ``scale``,
+    ``scrollbar`` and ``notebook`` -- share this skeleton byte for byte:
+    a 30-second deadline, a pump that drains the default main context
+    between attempts, a *body* at four-space indent that ends with its
+    own ``break`` once settled, a *deadline_failure* raise line, and a
+    10 ms sleep. No other child shares the shape: ``progressbar`` loops
+    on a ``settled`` flag, ``indicators`` raises two distinct messages
+    from a nested block, ``spin`` returns from its own shape, and the two
+    ``test_gtk_view_census`` face children pump through a local
+    ``pending()`` helper and raise inline diagnostics.
+    """
+    return (
+        "deadline = time.monotonic() + 30\n"
+        "while True:\n"
+        "    while GLib.MainContext.default().pending():\n"
+        "        GLib.MainContext.default().iteration(False)\n"
+        + body
+        + "    if time.monotonic() >= deadline:\n"
+        "        " + deadline_failure + "\n"
+        "    time.sleep(0.01)\n"
+    )
+
+
 def gtk4_child_env():
     """Return the environment for a GTK 4 child: X11 backend, cairo renderer.
 
