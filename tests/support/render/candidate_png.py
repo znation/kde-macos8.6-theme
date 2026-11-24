@@ -29,9 +29,9 @@ class CachedCandidatePng:
 
     - ``candidate_image``: decode the capture once and reuse the decoded
       image for every later read. A failed render leaves the output absent
-      and the first read raises the read error just as it did before:
-      ``FileNotFoundError`` for a missing file, ``PngError`` naming the path
-      for an unreadable one.
+      and the first read raises ``PngError`` naming the path, just as it
+      did before: for a missing file the message carries the underlying
+      ``FileNotFoundError``, for an unreadable one the read failure.
     - ``test_exits_zero``: the render's exit status is 0, with a failure
       message built from both streams — a failed render's session-log tail
       lands on stdout and stderr may print nothing, so quoting stderr
