@@ -24,10 +24,12 @@ any art change fails here beside the paintless `inactive-center` pins in
 from __future__ import annotations
 
 import hashlib
+import os
 import re
 import unittest
 
 from support.aurorae_fixtures import AURORAE_ID
+from support.pin_registries import assert_registries_name_each_key_once
 from support.repo_root import ROOT
 
 PACKAGE_UI = f"{ROOT}/theme/kwin-decoration/{AURORAE_ID}/contents/ui"
@@ -185,6 +187,22 @@ class TestHitSurfaces(unittest.TestCase):
                 self.assertEqual(
                     hashlib.sha256(handle.read()).hexdigest(), digest, name
                 )
+
+
+class TestPinRegistries(unittest.TestCase):
+    """Guard the pin registries against a merge that repeats a key.
+
+    The digest registry's consumer iterates ``.items()``, so a duplicated
+    key literal is legal Python that silently keeps the last digest and
+    stops asserting the discarded SVG's pins.
+    """
+
+    def test_the_pin_registries_name_each_key_exactly_once(self):
+        assert_registries_name_each_key_once(
+            self,
+            os.path.abspath(__file__),
+            ("PINNED_SVG_DIGESTS",),
+        )
 
 
 if __name__ == "__main__":

@@ -14,11 +14,13 @@ independent of ``tools/xcursor.py``; see ``tests/support/xcursor.py``.
 
 from __future__ import annotations
 
+import os
 import unittest
 from unittest import mock
 
 from support import containment  # noqa: E402
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.pin_registries import assert_registries_name_each_key_once  # noqa: E402
 from support.cursor.artifact_cases import (  # noqa: E402
     BLACK,
     CURSORS,
@@ -491,6 +493,24 @@ class TestCursorSet(unittest.TestCase):
                     _repo_bytes(CURSORS / alias),
                     _repo_bytes(CURSORS / canonical),
                 )
+
+
+class TestPinRegistries(unittest.TestCase):
+    """Guard the pin registries against a merge that repeats a key.
+
+    The alias registry's consumer flattens each canonical's aliases into
+    ``CURSOR_FILES``, and the pixel registry's consumer indexes each cursor
+    by name and each inner entry by ``face``/``outline``, so a duplicated
+    key literal is legal Python that silently keeps the last entry and
+    stops asserting the discarded cursor's pins.
+    """
+
+    def test_the_pin_registries_name_each_key_exactly_once(self):
+        assert_registries_name_each_key_once(
+            self,
+            os.path.abspath(__file__),
+            ("ALIASES", "PINNED_PIXELS"),
+        )
 
 
 if __name__ == "__main__":

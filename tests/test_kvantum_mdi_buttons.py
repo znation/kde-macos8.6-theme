@@ -13,6 +13,7 @@ import unittest
 
 from support.aurorae_fixtures import AURORAE_DIR, inactive_fill
 from support.kvantum_fixtures import SVG
+from support.pin_registries import assert_registries_name_each_key_once
 from support.platinum_palette import BOX_INNER_OUTLINE
 from support.svg_case import parse_svg
 from svg_assertions import (
@@ -169,6 +170,22 @@ class TestMdiButtons(unittest.TestCase):
             with self.subTest(role=role, state=state):
                 for pixel in glyph:
                     self.assertIn(pixel, shipped)
+
+
+class TestPinRegistries(unittest.TestCase):
+    """Guard the pin registries against a merge that repeats a key.
+
+    The source registry's consumer indexes each role by name, so a
+    duplicated key literal is legal Python that silently keeps the last
+    source and stops asserting the discarded role's pins.
+    """
+
+    def test_the_pin_registries_name_each_key_exactly_once(self):
+        assert_registries_name_each_key_once(
+            self,
+            os.path.abspath(__file__),
+            ("MDI_SOURCES",),
+        )
 
 
 if __name__ == "__main__":
