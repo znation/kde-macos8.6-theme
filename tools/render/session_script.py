@@ -103,7 +103,8 @@ def _window_report(report: str = "report") -> str:
         'org.kde.kwin.Scripting.loadScript "$report" 2>/dev/null); '
         'case "$id" in ""|*[!0-9]*) '
         'echo "render-session: the window report script did not load" >&2;; '
-        '*) "$qdbus" org.kde.KWin "/Scripting/Script$id" run >/dev/null 2>&1;; '
+        '*) "$qdbus" org.kde.KWin "/Scripting/Script$id" run >/dev/null 2>&1 || '
+        'echo "render-session: the window report script did not run" >&2;; '
         'esac; '
         'else echo "render-session: no qdbus for the window report" >&2; fi; '
     )
@@ -185,7 +186,9 @@ def session_script(
     capture-time window report -- one line per listed window with its
     caption, active state and kind (see
     ``tools/render/settle_scripts.py::window_report_text``). A host without
-    ``qdbus`` only logs the omission and the capture proceeds unchanged.
+    ``qdbus``, a failed load or a failed run only logs the omission and the
+    capture proceeds unchanged; the log line is what keeps a failed report
+    from reading as an empty window list.
     With no path given the stage is not joined at all, so the earlier
     callers' session text is byte-identical.
 

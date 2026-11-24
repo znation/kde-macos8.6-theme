@@ -30,7 +30,7 @@ class TestSessionFocusSettle(unittest.TestCase):
             # CLI now builds: the report stage joins only when a report
             # script is passed, so the four pre-split fixtures above keep
             # their lengths and digests.
-            ("/fixture/focus.js", "/fixture/readiness.js", "/fixture/render-window-report.js", 4708, "df53fd43275299b023b8995111032520de776891424c87df9abbe7f8e6c1d8c5"),
+            ("/fixture/focus.js", "/fixture/readiness.js", "/fixture/render-window-report.js", 4775, "d226bee2e77ab4aa404f0d5d3d4faa336ef0b120ed1c31ed6a68a53a279d3434"),
         )
         for focus, readiness, report, expected_length, expected_digest in fixtures:
             with self.subTest(focus=focus, readiness=readiness, report=report):
@@ -315,6 +315,36 @@ class TestSessionFocusSettle(unittest.TestCase):
         log = (root / "session.log").read_text(encoding="utf-8")
         self.assertEqual(0, status, log)
         self.assertIn("render-session: no qdbus for the window report", log)
+        self.assertIn("capture status 0", log)
+
+    def test_a_failed_window_report_run_names_the_stage_and_still_captures(
+            self):
+        # A run that exits nonzero (a busy KWin scripting host, a D-Bus
+        # timeout under the parallel check's load) must log the failed run
+        # like the readiness stage does: otherwise the failed gate's log
+        # shows no window lines and no explanation, and the recurrence
+        # diagnosis reads the failed report as an empty window list -- the
+        # client's window never mapped -- when the report never ran at all.
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        for name in ("sleep", "date", "rm", "touch"):
+            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        write_executable(
+            bindir / "qdbus6",
+            "#!/bin/sh\n"
+            "case \"$*\" in\n"
+            "  *loadScript*) echo 0;;\n"
+            "  *Script0*) exit 1;;\n"
+            "esac\n",
+        )
+        status = self._run_report_session(
+            root, str(bindir), "/scratch/render-window-report.js"
+        )
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertIn(
+            "render-session: the window report script did not run", log)
         self.assertIn("capture status 0", log)
 
     def test_the_window_report_loads_and_runs_once_before_the_capture(self):
