@@ -1075,6 +1075,38 @@ PINS = {
         _shape("rect", x="5", y="13", width="3", height="1", fill="#000000"),
         _shape("rect", x="6", y="14", width="1", height="1", fill="#000000"),
     ),
+    # The ARJ-archive item icon KDE draws for `application/x-arj`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/x-arj` type, whose `generic-icon`
+    # is the shipped `package-x-generic`); one file covers exactly its
+    # own name, and the drawing shares the sealed package box and holds
+    # a stepped capital letter A on the white body left of the grey
+    # tape stripe (the letter's one-cell apex, full three-cell crossbar
+    # and two legs two columns apart, a mark distinct from tar's T,
+    # 7z's stepped 7, rar's stepped diamond, zip's zipper slider, the
+    # gzip down-arrow, deb's hollow capital D, cpio's capital C, xz's
+    # stair-stepped X and the QCOW disc's hollow Q with its tail).
+    os.path.join("32x32", "mimetypes", "application-x-arj.svg"): (
+        *_SEALED_PACKAGE_32,
+        _shape("rect", x="9", y="15", width="1", height="1", fill="#000000"),
+        _shape("rect", x="8", y="16", width="3", height="1", fill="#000000"),
+        _shape("rect", x="8", y="17", width="1", height="3", fill="#000000"),
+        _shape("rect", x="10", y="17", width="1", height="3", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-x-arj.svg"): (
+        *_SEALED_PACKAGE_16,
+        _shape("rect", x="4", y="7", width="1", height="1", fill="#000000"),
+        _shape("rect", x="3", y="8", width="3", height="1", fill="#000000"),
+        _shape("rect", x="3", y="9", width="1", height="3", fill="#000000"),
+        _shape("rect", x="5", y="9", width="1", height="3", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-x-arj.svg"): (
+        *_SEALED_PACKAGE_22,
+        _shape("rect", x="6", y="10", width="1", height="1", fill="#000000"),
+        _shape("rect", x="5", y="11", width="3", height="1", fill="#000000"),
+        _shape("rect", x="5", y="12", width="1", height="3", fill="#000000"),
+        _shape("rect", x="7", y="12", width="1", height="3", fill="#000000"),
+    ),
     # The gzip-compressed-tar-archive item icon KDE draws for
     # `application/x-compressed-tar` items (the type-spelled icon name
     # of the installed shared MIME database's
