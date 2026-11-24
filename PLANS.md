@@ -56,6 +56,119 @@ desktoptheme, kvantum and render tests).
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw desktop launchers with an original `application-x-desktop` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A launcher file (`*.desktop`, `*.kdelnk`) in the file manager or
+an open or save dialog is drawn with Breeze's art beside the Platinum
+documents and folders. Ship one original placeholder icon,
+`application-x-desktop`, at 16x16, 22x22 and 32x32. The name is the
+type-spelled icon name of the `application/x-desktop` MIME type in the
+installed shared MIME database (`freedesktop.org.xml` declares the type
+"Desktop entry" with `generic-icon name="text-x-generic"`, no `<icon>`
+element, the single alias `application/x-gnome-app-info`, the globs
+`*.desktop` and `*.kdelnk` and five matchers, and the database holds zero
+occurrences of the hyphenated name, so one file covers exactly its own
+name and the MIME database's alias resolution lets the alias ask it too).
+
+Planning-time probe with `kiconfinder6` and a copy of the theme selected
+through scratch XDG homes: `application-x-desktop` resolved to Breeze's
+`:/icons/breeze/mimetypes/32/application-x-desktop.svg` — at the exact
+name Breeze's own file beats the theme's `text-x-generic` fallback, which
+the theme ships — while `application-x-executable-script` resolved to the
+theme's own shipped `application-x-executable` file (its `generic-icon`,
+no gap), and `application-menu` and `application-exit` resolved to Breeze
+`actions` icons that no MIME type names, so those two names are out of
+scope for this series. Ship no alias files and no
+`application-x-generic`.
+
+**Approach.**
+
+- Add `mimetypes/application-x-desktop.svg` under `16x16`, `22x22` and
+  `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme` already
+  declares the three directories. Give each file the XML declaration, the
+  comment
+  `<!-- PLACEHOLDER: original desktop-launcher illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette, not
+  traced from anyone's artwork, and a root with matching `width`, `height`
+  and `viewBox`. The art is the matching size's document drawing (black
+  outline, white page, folded corner) with the text lines replaced by a
+  small window — a black outline holding a white face under a black
+  title-bar band — reading as a document that opens a window. Each file
+  holds these elements in order, the paths written `d fill` and the rects
+  written `x,y width×height fill`:
+  - 32x32: `M6 3 h14 l6 6 v20 H6 Z #000000`; `M7 4 h12 l6 6 v18 H7 Z
+    #FFFFFF`; `M19 4 L25 4 L25 10 Z #DDDDDD`; then `10,13 12×9 #000000`;
+    `11,14 10×7 #FFFFFF`; `11,14 10×2 #000000`.
+  - 22x22: `M4 1 h10 l4 4 v15 H4 Z #000000`; `M5 2 h8 l4 4 v13 H5 Z
+    #FFFFFF`; `M13 2 L17 2 L17 6 Z #DDDDDD`; then `7,9 8×7 #000000`;
+    `8,10 6×5 #FFFFFF`; `8,10 6×2 #000000`.
+  - 16x16: `M3 1 h7 l3 3 v10 H3 Z #000000`; `M4 2 h5 l3 3 v8 H4 Z
+    #FFFFFF`; `M9 2 L12 2 L12 5 Z #DDDDDD`; then `5,6 6×5 #000000`;
+    `6,7 4×3 #FFFFFF`; `6,7 4×1 #000000`.
+
+  These were rendered at planning time and read as a document holding a
+  small window at each size (the probe rasterizer draws rect heights one
+  pixel tall; the element lists above are the contract and the geometry
+  test re-derives them from the shipped XML).
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `application-x-shellscript` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` between the shell-script block and the `text-x-script`
+  block, and extend the comment above the block with the desktop-launcher
+  icon (the name is the type-spelled icon name of the
+  `application/x-desktop` MIME type in the installed shared MIME
+  database).
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings in
+  `PINS` beside the other page-backed pins, each spreading the matching
+  `_PAGE_16`, `_PAGE_22` or `_PAGE_32` prefix from
+  `tests/support/icon/shape_pins/_shared.py` followed by the three mark
+  rects listed for that size. This plan touches no other family's pins,
+  so it merges independently of the waiting shared-library plan.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, extend the last
+  cell with the `application-x-desktop` provenance: no reference pixels
+  were used, the name is the type-spelled icon name of the
+  `application/x-desktop` MIME type in the installed shared MIME
+  database, Breeze's own exact-name file beat the theme's
+  `text-x-generic` fallback at the exact name (the probe above), and the
+  document-with-window drawing is this theme's own choice.
+- `docs/installing.md`: add a desktop-launcher icon clause to the
+  sentence listing the icon theme's placeholder illustrations and their
+  sizes, after the shell-script clause.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and has a
+  `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing one of the window-mark rectangles' position, size or fill, or
+  the element order, in one file makes the geometry test fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME`
+  and `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `application-x-desktop` resolves to the
+  theme's 32x32 `mimetypes/application-x-desktop.svg` (at planning time,
+  before this change, it resolved to Breeze's
+  `:/icons/breeze/mimetypes/32/application-x-desktop.svg`), and
+  `text-x-generic`, `application-x-executable` and
+  `application-x-executable-script` still resolve to the theme's own
+  files (the fallbacks keep their own drawings). Report the output in
+  VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
