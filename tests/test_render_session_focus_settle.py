@@ -277,9 +277,9 @@ class TestSessionFocusSettle(unittest.TestCase):
     def _run_report_session(self, root, path, report_script):
         # A stubbed one-window session like _run_focus_session, but the
         # session carries only a window-report script: the spectacle stub
-        # returns at once, the client only waits to be stopped, and PATH
-        # holds just the tools the script needs plus whatever qdbus stub
-        # the test adds.
+        # marks the capture's start by touching root/capturing, the client
+        # only waits to be stopped, and PATH holds just the tools the
+        # script needs plus whatever qdbus stub the test adds.
         apply = root / "plasma-apply-colorscheme"
         write_executable(apply, "#!/bin/sh\nexit 0\n")
         client = root / "client.py"
@@ -287,7 +287,7 @@ class TestSessionFocusSettle(unittest.TestCase):
         return render_workflow.run_logged(
             [
                 "/bin/sh", "-c",
-                "spectacle() { return 0; }; "
+                f"spectacle() {{ touch {shlex.quote(str(root / 'capturing'))}; return 0; }}; "
                 + render_session.session_script(window_report_script=report_script),
                 "sh", "1", str(root / "capture.png"), sys.executable,
                 str(client),
