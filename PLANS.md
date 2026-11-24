@@ -59,6 +59,149 @@ desktoptheme, kvantum and render tests).
 
 ---
 
+### Platinum icon theme: draw QEMU QCOW disk images with an original `application-x-qemu-disk` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A QEMU QCOW disk image (`*.qcow2` or `*.qcow`, as the file
+manager identifies it) draws Breeze's art beside the Platinum documents
+and folders. Ship one original placeholder icon,
+`application-x-qemu-disk`, at 16x16, 22x22 and 32x32, in the same
+mimetype-item series as the landed `application-vnd.efi.iso` optical
+disc and the in-flight squashfs, WIM and MHTML entries. Provenance:
+the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/x-qemu-disk` ("QEMU QCOW disk image", with the acronym
+QCOW expanded to "QEMU Copy On Write") with no `<icon>` element, no
+`<generic-icon>` element, no `<alias>` element and no
+`<sub-class-of>`, the two globs `*.qcow2` and `*.qcow` (each at the
+default weight 50, and each unique in the database — no other type
+shares either glob), and one `<magic>` matcher at priority 50 (the
+string `QFI` at offset 0 with a nested byte `0xfb` match at offset 3);
+no other MIME type in the database declares a `.qcow` or `.qcow2`
+glob, and the string `application-x-qemu-disk` occurs 0 times in the
+database (`str.count` is 0 — `grep -c` counts lines, not matches).
+With no icon element the type asks its literal name; the theme's
+`index.theme` declares `Inherits=breeze`, so the lookup falls through
+to Breeze's exact-name file. Planning-time probe on 2026-11-24 with
+`kiconfinder6`, the theme installed into scratch XDG homes
+(`XDG_DATA_DIRS=/usr/share` naming the scratch data root beside the
+system data root, `[Icons] Theme=org.macos8.desktop` in the scratch
+`kdeglobals`, `QT_QPA_PLATFORM=offscreen`, no `DISPLAY` and no
+`WAYLAND_DISPLAY`): `application-x-qemu-disk` resolved to
+`:/icons/breeze/mimetypes/32/application-x-qemu-disk.svg` while
+`text-x-generic` and `application-x-shellscript` resolved to the
+theme's own 32x32 files — the gap is real, not the screened-out shape
+where the theme's own generic art wins. No reference screenshot shows
+a QCOW disk-image icon, so no reference pixels are used and the
+drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/application-x-qemu-disk.svg` under `16x16`, `22x22`
+  and `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme`
+  already declares the three MimeTypes directories. Give each file
+  the XML declaration, the comment `<!-- PLACEHOLDER: original QCOW
+  disk-image illustration pending user-approved artwork. -->`, a
+  short comment saying it is our own drawing in the Platinum
+  palette, not traced from anyone's artwork, and a root with
+  matching `width`, `height` and `viewBox`. The art shares the disc
+  family (the black ring and the grey face that the pending squashfs
+  entry and the EFI-ISO disc share: `circle` `#000000` then
+  `circle` `#DDDDDD`) and holds a white Q — the copy-on-write
+  image's initial and the first byte of the type's `QFI` magic —
+  drawn as a 2px-thick white ring with a tail: an original mark
+  distinct from the EFI-ISO capital I with its glints and hub rings
+  (the Q is off-centre, has a tail and no glints, rim or hole), the
+  squashfs tapering bands, the WIM split plate, the shell script's
+  `>_` prompt, JSON's curly braces, BitTorrent's download arrow, the
+  PGP key, the cpio box's C, the SQLite canister, the crash core's
+  square ring, the certificate's seal-and-ribbons and the
+  Android-package robot:
+  - 32x32: `circle cx="16" cy="16" r="14"` `#000000`, `circle
+    cx="16" cy="16" r="13"` `#DDDDDD`; then, all `#FFFFFF`, the ring
+    `circle cx="13" cy="13" r="5"` and `#DDDDDD` `circle cx="13"
+    cy="13" r="3"`, and the tail `rect 16,16 2×2` (rows 16..17) —
+    every white pixel inside the grey face (the tail's far corner is
+    at distance ≈1.4 from the disc centre, the ring's farthest reach
+    ≈9.3 from it, both under the face radius 12).
+  - 22x22: `circle cx="11" cy="11" r="10"` `#000000`, `circle
+    cx="11" cy="11" r="9"` `#DDDDDD`; then, all `#FFFFFF`, the ring
+    `circle cx="9" cy="9" r="4"` and `#DDDDDD` `circle cx="9" cy="9"
+    r="2"`, and the tail `rect 11,12 1×2` (rows 12..13) — every
+    white pixel inside the grey face.
+  - 16x16: `circle cx="8" cy="8" r="7"` `#000000`, `circle cx="8"
+    cy="8" r="6"` `#DDDDDD`; then, all `#FFFFFF`, the ring `circle
+    cx="7" cy="7" r="3"` and `#DDDDDD` `circle cx="7" cy="7" r="1"`,
+    and the tail `rect 8,9 1×1` (row 9) — every white pixel inside
+    the grey face.
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG
+  reader bleeds 1px shapes, so the pins below are the drawing
+  contract.
+- `PLACEHOLDERS.md`: one row per file beside the ISO disc row,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths
+  beside the other `mimetypes` paths in `SHIPPED_ICONS`, and extend
+  the mimetypes comment above them to name the QCOW disk image in
+  the type-spelled series.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three
+  drawings in `PINS` from the lists above (the disc circles, then
+  the ring circles and the tail rect).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-x-qemu-disk` in the last cell, as the
+  `application-pgp-keys` sentence there does.
+- `docs/installing.md`: add the QCOW disk-image icon to the sentence
+  listing the icon theme's placeholder illustrations and their
+  sizes.
+- The in-flight squashfs, WIM and MHTML entries edit the same
+  inventory block, `PINS` registry, invariants row and
+  installing.md sentence; this entry sits behind them in the queue,
+  so rebase on whatever they have landed when picking this up,
+  keeping one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the disc circles first,
+  in document order, then the ring circles and the tail rect),
+  carries a placeholder marker and has a `PLACEHOLDERS.md` row; the
+  existing inventory, palette, geometry and placeholder-register
+  tests cover all three.
+- Changing one circle's centre, radius or fill, or the tail rect's
+  position, size or fill, or the element order, in one file makes
+  the geometry test fail; dropping a file while leaving it shipped
+  makes `test_the_geometry_registry_covers_every_shipped_icon`
+  fail.
+- The `#000000`, `#FFFFFF` and `#DDDDDD` fills stay inside
+  `PLATINUM_FILLS`, so `test_each_icon_uses_only_the_platinum_palette`
+  passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch `XDG_DATA_HOME`, use a scratch `HOME`,
+  `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`, written with `kwriteconfig6 --file`),
+  `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY` and
+  `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `application-x-qemu-disk` resolves to the theme's 32x32
+  `mimetypes/application-x-qemu-disk.svg` (at planning time, before
+  this change, it resolved to Breeze's
+  `:/icons/breeze/mimetypes/32/application-x-qemu-disk.svg`), and
+  `text-x-generic` and `application-x-shellscript` still resolve to
+  the theme's own files. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ### Platinum icon theme: draw MHTML web archives with an original `application-x-mimearchive` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
 
 **Goal.** An MHTML web-archive file (`*.mhtml` or `*.mht`, as the file
