@@ -11,13 +11,16 @@ and tree-expander arrows in `test_kvantum_svg_arrows`.
 
 from __future__ import annotations
 
+import ast
 import sys
 import tempfile
 import unittest
 from unittest import mock
 
 from support import svg_case
+from support.invariants import parsed_module
 from support.kde_config import read as read_kde_config
+from support.repo_root import ROOT
 from support.kvantum_fixtures import KVCONFIG, SVG
 from support.platinum_palette import (
     BOX_INNER_OUTLINE,
@@ -361,6 +364,35 @@ class TestSvg(unittest.TestCase):
         for element, expected in INTERIOR_GROUP_SHAPES.items():
             with self.subTest(element=element):
                 self.assertEqual(_drawing_elements(by_id[element]), expected)
+
+    def test_the_pin_registries_name_each_key_exactly_once(self):
+        # FRAME_STATES, INTERIOR_STATES, INTERIOR_SHAPES and
+        # INTERIOR_GROUP_SHAPES are dict literals whose consumers all
+        # deduplicate: the coverage tests compare set(registry) against the
+        # SVG's ids and the pin comparisons read the built dict, so a
+        # duplicated key literal (the classic merge slip when two elements
+        # are appended on the same day) is legal Python that silently keeps
+        # the last pin and lets the discarded elements' assertions drift
+        # unobserved. Parse this module's literals and require distinct keys.
+        module = parsed_module(__file__, ROOT)
+        wanted = {
+            "FRAME_STATES", "INTERIOR_STATES",
+            "INTERIOR_SHAPES", "INTERIOR_GROUP_SHAPES",
+        }
+        found = {
+            target.id: node.value
+            for node in module.body
+            if isinstance(node, ast.Assign)
+            for target in node.targets
+            if isinstance(target, ast.Name) and target.id in wanted
+        }
+        self.assertEqual(wanted, set(found))
+        for name, literal in found.items():
+            with self.subTest(registry=name):
+                self.assertIsInstance(literal, ast.Dict)
+                keys = [key.value for key in literal.keys]
+                self.assertTrue(all(isinstance(key, str) for key in keys))
+                self.assertEqual(len(keys), len(set(keys)), f"{name} names a key twice")
 
     def test_size_grip_states_draw_one_pixel_rects(self):
         by_id = elements_by_id(self.tree)
