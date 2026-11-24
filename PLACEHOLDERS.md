@@ -52,6 +52,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-trash.svg` | original backup-file illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-nzb.svg` | original NZB usenet-index illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-pgp-keys.svg` | original PGP-key illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/mimetypes/application-pgp-signature.svg` | original detached OpenPGP-signature illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/text-html.svg` | original web-document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/internet-mail.svg` | original envelope illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-pdf.svg` | original PDF-document illustration pending user-approved artwork. |
@@ -141,6 +142,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-trash.svg` | original backup-file illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-nzb.svg` | original NZB usenet-index illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-pgp-keys.svg` | original PGP-key illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/mimetypes/application-pgp-signature.svg` | original detached OpenPGP-signature illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/text-html.svg` | original web-document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/internet-mail.svg` | original envelope illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-pdf.svg` | original PDF-document illustration pending user-approved artwork. |
@@ -228,6 +230,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-trash.svg` | original backup-file illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-nzb.svg` | original NZB usenet-index illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-pgp-keys.svg` | original PGP-key illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/mimetypes/application-pgp-signature.svg` | original detached OpenPGP-signature illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/text-html.svg` | original web-document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/internet-mail.svg` | original envelope illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-pdf.svg` | original PDF-document illustration pending user-approved artwork. |

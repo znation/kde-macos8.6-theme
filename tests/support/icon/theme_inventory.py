@@ -351,6 +351,16 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-pgp-keys.svg"),
     os.path.join("16x16", "mimetypes", "application-pgp-keys.svg"),
     os.path.join("22x22", "mimetypes", "application-pgp-keys.svg"),
+    # The detached-signature `application-pgp-signature` icon at all three
+    # sizes (our own drawing of the generic document's page with a black
+    # signature stroke and underline; the name is the type-spelled icon
+    # name of the `application/pgp-signature` MIME type, whose
+    # MIME-database entry has no `generic-icon`, no aliases and no
+    # per-type fallback, so one file covers the exact name, where Breeze's
+    # own file otherwise beats the theme's missing fallback).
+    os.path.join("32x32", "mimetypes", "application-pgp-signature.svg"),
+    os.path.join("16x16", "mimetypes", "application-pgp-signature.svg"),
+    os.path.join("22x22", "mimetypes", "application-pgp-signature.svg"),
     os.path.join("32x32", "mimetypes", "application-x-shellscript.svg"),
     os.path.join("16x16", "mimetypes", "application-x-shellscript.svg"),
     os.path.join("22x22", "mimetypes", "application-x-shellscript.svg"),

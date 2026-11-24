@@ -239,6 +239,41 @@ PINS = {
         _shape("rect", x="11", y="12", width="1", height="2", fill="#000000"),
         _shape("rect", x="14", y="12", width="1", height="2", fill="#000000"),
     ),
+    # The detached-signature item icon KDE draws for `application/
+    # pgp-signature` items (the type-spelled icon name of the installed
+    # shared MIME database's `application/pgp-signature` type, which has
+    # no `generic-icon`, no `<icon>` element, no aliases and no per-type
+    # fallback, so one file covers exactly its own name); the drawing
+    # shares the generic document's page and holds a black signature
+    # stroke — a stepped ink flourish stepping down and up across the
+    # page's foot — over a straight underline (the signature stroke is
+    # what separates it from the shell script's `>_` prompt, the JSON
+    # document's curly braces and the NZB index's dot-and-bars groups).
+    os.path.join("32x32", "mimetypes", "application-pgp-signature.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="9", y="18", width="3", height="1", fill="#000000"),
+        _shape("rect", x="12", y="17", width="3", height="1", fill="#000000"),
+        _shape("rect", x="15", y="18", width="3", height="1", fill="#000000"),
+        _shape("rect", x="18", y="17", width="3", height="1", fill="#000000"),
+        _shape("rect", x="21", y="18", width="2", height="1", fill="#000000"),
+        _shape("rect", x="9", y="20", width="14", height="1", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-pgp-signature.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="5", y="10", width="2", height="1", fill="#000000"),
+        _shape("rect", x="7", y="9", width="2", height="1", fill="#000000"),
+        _shape("rect", x="9", y="10", width="2", height="1", fill="#000000"),
+        _shape("rect", x="5", y="12", width="7", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-pgp-signature.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="7", y="13", width="2", height="1", fill="#000000"),
+        _shape("rect", x="9", y="12", width="2", height="1", fill="#000000"),
+        _shape("rect", x="11", y="13", width="2", height="1", fill="#000000"),
+        _shape("rect", x="13", y="12", width="2", height="1", fill="#000000"),
+        _shape("rect", x="15", y="13", width="2", height="1", fill="#000000"),
+        _shape("rect", x="7", y="15", width="10", height="1", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "application-x-shellscript.svg"): (
         *_PAGE_32,
         _shape("rect", x="10", y="15", width="12", height="7", fill="#000000"),

@@ -60,7 +60,7 @@ desktoptheme, kvantum and render tests).
 ---
 
 
-### Platinum icon theme: draw detached OpenPGP signatures with an original `application-pgp-signature` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+### Platinum icon theme: draw detached OpenPGP signatures with an original `application-pgp-signature` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A detached OpenPGP signature file (`*.sig`, `*.gpg`,
 `*.pgp` or `*.asc`, as the file manager identifies it) draws Breeze's

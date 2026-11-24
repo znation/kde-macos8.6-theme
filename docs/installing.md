@@ -188,7 +188,9 @@ same three sizes), an MHTML web-archive icon for MHTML web-archive
 files (the `application-x-mimearchive` name at the same three sizes), a
 QCOW disk-image icon for QCOW disk images (the
 `application-x-qemu-disk` name at the same three sizes), a PGP-key icon for
-PGP key files (the `application-pgp-keys` name at the same three sizes), a shell-script icon
+PGP key files (the `application-pgp-keys` name at the same three sizes), a detached
+OpenPGP-signature icon for detached signature files (the
+`application-pgp-signature` name at the same three sizes), a shell-script icon
 for script files (the `application-x-shellscript` name at the same three
 sizes), a core-dump icon for core-dump files (the `application-x-core`
 name at the same three sizes), a certificate icon for X.509 certificate
