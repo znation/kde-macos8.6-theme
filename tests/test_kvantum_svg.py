@@ -20,8 +20,8 @@ from unittest import mock
 from support import svg_case
 from support.invariants import parsed_module
 from support.kde_config import read as read_kde_config
-from support.repo_root import ROOT
 from support.kvantum_fixtures import KVCONFIG, SVG
+from support.repo_root import ROOT
 from support.platinum_palette import (
     BOX_INNER_OUTLINE,
     BOX_FACE_MID,
