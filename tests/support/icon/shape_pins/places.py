@@ -1,5 +1,5 @@
 """Pins for the places family: folders, trash cans, the network server
-and symbolic starts.
+and the symbolic start-here icon.
 
 Every entry is a ``os.path.join(size, "places", name.svg)`` key holding
 the pinned tuple of drawing elements for that shipped file, in document

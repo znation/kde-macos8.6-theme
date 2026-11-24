@@ -1,5 +1,5 @@
-"""Pins for the mimetypes family: documents, images, media, mail,
-archives and blank pages.
+"""Pins for the mimetypes family: the generic file-type icons and the
+per-type exact-name drawings the file types resolve to.
 
 Every entry is a ``os.path.join(size, "mimetypes", name.svg)`` key holding
 the pinned tuple of drawing elements for that shipped file, in document
