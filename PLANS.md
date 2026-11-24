@@ -214,6 +214,161 @@ pixels are used and the drawing is this theme's own choice.
   `make check` after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw Flatpak repository descriptions with an original `application-vnd.flatpak.repo` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A Flatpak repository description (`*.flatpakrepo`, as the
+file manager identifies it) draws this theme's own mark beside the
+Platinum documents and folders. Ship one original placeholder icon,
+`application-vnd.flatpak.repo`, at 16x16, 22x22 and 32x32, in the same
+mimetype-item series as the `application-x-generic` blank page. It is
+a sibling of the pending `application-vnd.flatpak.ref` plan (the
+`*.flatpakref` repository-reference type), which declares this type
+out of scope; this entry covers only `application/vnd.flatpak.repo`.
+Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/vnd.flatpak.repo` ("Flatpak repository description") with
+no `<icon>` element and no `<alias>` element, the single `<generic-icon
+name="package-x-generic"/>` element, the single `<glob
+pattern="*.flatpakrepo"/>` at the default weight 50, the `<magic>`
+match `[Flatpak Repo]` (string, offset 0:256) and the sub-class
+`text/plain`; the dash-form name `application-vnd.flatpak.repo` occurs
+0 times in the database (`grep -o` count 0). With no `<icon>` element
+the type asks its literal dash-form name first: a Gio probe run at
+planning time (2026-11-24, `Gio.content_type_guess` on a
+`test.flatpakrepo` file) shows the fallback chain
+`application-vnd.flatpak.repo` then `package-x-generic`. The theme
+ships `package-x-generic.svg` at all three sizes, so today a
+`.flatpakrepo` file draws this theme's own package box — the new icon
+gives the type a mark of its own. Breeze ships no exact-name file
+(`find` over `/usr/share/icons` lists no `application-vnd.flatpak.repo`
+in either `breeze` or `breeze-dark`; its only close mimetype name is
+`application-vnd.flatpak.ref.svg`, which the pending Flatpak-ref plan
+covers), so nothing else competes for the name. No reference
+screenshot shows a `.flatpakrepo` item icon, so no reference pixels
+are used and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/application-vnd.flatpak.repo.svg` under `16x16`,
+  `22x22` and `32x32` of `theme/icons/org.macos8.desktop/`.
+  `index.theme` already declares the three MimeTypes directories. Give
+each file the XML declaration, the comment `<!-- PLACEHOLDER:
+  original Flatpak repository-description illustration pending
+  user-approved artwork. -->`, a short comment saying it is our own
+  drawing in the Platinum palette, not traced from anyone's artwork,
+  and a root with matching `width`, `height` and `viewBox`. The art
+  shares the sealed package box (every drawing element of
+  `package-x-generic.svg` at that size, the `_SEALED_PACKAGE_*` group
+  the `tests/support/icon/shape_pins/_shared.py` registry keeps) and
+  holds a black stepped capital letter R on the white body left of the
+  grey tape stripe — a repository mark distinct from the deb package's
+  letter D, the tar archive's letter T, the compressed-tar archive's
+  stepped Z, the RAR archive's stepped diamond, the ZIP archive's
+  zipper slider (all on the same box at other cells), the queued
+  `application-vnd.flatpak.ref` arrow-into-open-crate mark and the
+  queued `application-vnd.appimage` launch arrow (both other marks):
+  - 32x32: the five `_SEALED_PACKAGE_32` box elements; then the
+    letter, six rects — the stem, `rect x="5" y="15" width="1"
+    height="7"` (column 5, rows 15..21); the top bar, `rect x="6"
+    y="15" width="4" height="1"` (columns 6..9, row 15); the bowl's
+    right side, `rect x="9" y="16" width="1" height="2"` (column 9,
+    rows 16..17); the middle bar, `rect x="6" y="18" width="4"
+    height="1"` (columns 6..9, row 18); and the two leg steps, `rect
+    x="9" y="19" width="1" height="1"` and `rect x="10" y="20"
+    width="1" height="1"`. A script run at planning time checked every
+    letter cell sits on the box's white face, clear of the grey tape
+    stripe (columns 15..16) and does not overlap another letter cell.
+  - 22x22: the five `_SEALED_PACKAGE_22` box elements; then the
+    letter, six rects — the stem, `rect x="4" y="9" width="1"
+    height="7"` (column 4, rows 9..15); the top bar, `rect x="5" y="9"
+    width="3" height="1"` (columns 5..7, row 9); the bowl's right
+    side, `rect x="7" y="10" width="1" height="2"` (column 7, rows
+    10..11); the middle bar, `rect x="5" y="12" width="3" height="1"`
+    (columns 5..7, row 12); and the two leg steps, `rect x="7" y="13"
+    width="1" height="1"` and `rect x="8" y="14" width="1" height="1"`.
+    Every letter cell sits on the white face, clear of the tape
+    (columns 10..11), checked by the same script.
+  - 16x16: the five `_SEALED_PACKAGE_16` box elements; then the
+    letter, five rects — the stem, `rect x="3" y="7" width="1"
+    height="5"` (column 3, rows 7..11); the top bar, `rect x="4" y="7"
+    width="2" height="1"` (columns 4..5, row 7); the bowl's right
+    side, `rect x="5" y="8" width="1" height="1"`; the middle bar,
+    `rect x="4" y="9" width="2" height="1"` (columns 4..5, row 9); and
+    the leg step, `rect x="5" y="10" width="1" height="1"`. Every
+    letter cell sits on the white face, clear of the tape (columns
+    7..8), checked by the same script.
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the Squashfs rows,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings
+  in `PINS` from the lists above (the five `_SEALED_PACKAGE_*` box
+  elements spread as the prefix, then the letter rects in the order
+  listed).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-vnd.flatpak.repo` in the last cell, as
+  the `application-vnd.squashfs` sentence there does.
+- `docs/installing.md`: add the Flatpak repository-description icon to
+  the sentence listing the icon theme's placeholder illustrations and
+  their sizes (the one naming the `application-vnd.squashfs` files).
+- The queued mimetype-icon entries ahead of this one (the pending
+  `application-vnd.flatpak.ref` plan and the in-flight
+  `application-vnd.appimage` and `application-x-arj` plans) edit the
+  same inventory block, `PINS` registry, invariants row and
+  installing.md sentence; this entry sits behind them in the queue, so
+  rebase on whatever they have landed when picking this up, keeping
+  one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the five
+  `_SEALED_PACKAGE_*` elements matching the `package-x-generic` pins,
+  then the letter rects), carries a placeholder marker and has a
+  `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing any letter rect's position, size or fill, or the element
+  order, in one file makes the geometry test fail; dropping a file
+  while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The `#000000` and `#FFFFFF` fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- The letter R shares no drawing element with the deb `D`, tar `T`,
+  compressed-tar `Z`, RAR diamond or ZIP zipper on the same box, nor
+  with the queued Flatpak-ref arrow-into-open-crate or AppImage launch
+  arrow, so the siblings stay visually distinct.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into
+  a scratch `XDG_DATA_HOME` (the `make install
+  INSTALL_PACKAGES=icon-theme DESTDIR=<root>` route installs it at
+  `<root>$XDG_DATA_HOME/icons`; add that installed path to
+  `XDG_DATA_DIRS`), use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`),
+  `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY` and
+  `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `application-vnd.flatpak.repo` resolves to the theme's 32x32
+  `mimetypes/application-vnd.flatpak.repo.svg` (at planning time the
+  name falls through to the theme's own `package-x-generic`), and
+  `text-x-generic` still resolves to the theme's own file. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ### Platinum icon theme: draw Flatpak repository references with an original `application-vnd.flatpak.ref` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
 
 **Goal.** KIO requests an `application/vnd.flatpak.ref` item's icon
