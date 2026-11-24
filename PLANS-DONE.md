@@ -66,9 +66,10 @@ drawing is this theme's own choice.
     cx="16" cy="16" r="13"` `#DDDDDD`; then, all `#FFFFFF`, the ring
     `circle cx="13" cy="13" r="5"` and `#DDDDDD` `circle cx="13"
     cy="13" r="3"`, and the tail `rect 16,16 2×2` (rows 16..17) —
-    every white pixel inside the grey face (the tail's far corner is
-    at distance ≈1.4 from the disc centre, the ring's farthest reach
-    ≈9.3 from it, both under the face radius 12).
+    every white pixel inside the grey face (the tail's centre is
+    at distance ≈1.4 from the disc centre — its far corner ≈2.8, and
+    the ring's farthest reach
+    ≈9.3 from it, all under the face radius 12).
   - 22x22: `circle cx="11" cy="11" r="10"` `#000000`, `circle
     cx="11" cy="11" r="9"` `#DDDDDD`; then, all `#FFFFFF`, the ring
     `circle cx="9" cy="9" r="4"` and `#DDDDDD` `circle cx="9" cy="9"
