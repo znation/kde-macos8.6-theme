@@ -26,6 +26,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/devices/drive-removable-media.svg` | original removable-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/devices/drive-optical.svg` | original optical-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/devices/media-optical.svg` | original optical-disc illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.efi.iso.svg` | original ISO disc-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/devices/media-flash.svg` | original flash-media illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/devices/media-floppy.svg` | original floppy-disk illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/devices/scanner.svg` | original scanner illustration pending user-approved artwork. |
@@ -97,6 +98,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/22x22/devices/drive-removable-media.svg` | original removable-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/devices/drive-optical.svg` | original optical-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/devices/media-optical.svg` | original optical-disc illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.efi.iso.svg` | original ISO disc-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/devices/media-flash.svg` | original flash-media illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/devices/media-floppy.svg` | original floppy-disk illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/devices/scanner.svg` | original scanner illustration pending user-approved artwork. |
@@ -166,6 +168,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/32x32/devices/drive-removable-media.svg` | original removable-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/devices/drive-optical.svg` | original optical-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/devices/media-optical.svg` | original optical-disc illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.efi.iso.svg` | original ISO disc-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/devices/media-flash.svg` | original flash-media illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/devices/media-floppy.svg` | original floppy-disk illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/devices/scanner.svg` | original scanner illustration pending user-approved artwork. |

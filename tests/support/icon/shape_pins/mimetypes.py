@@ -774,6 +774,49 @@ PINS = {
         _shape("rect", x="3", y="11", width="2", height="3", fill="#000000"),
         _shape("rect", x="3", y="14", width="6", height="2", fill="#000000"),
     ),
+    # The ISO disc-image item icon KDE draws for `application/vnd.efi.iso`
+    # items (the type-spelled icon name of the canonical `.iso` type,
+    # whose `generic-icon` is the theme's own `media-optical` file and
+    # whose exact name Breeze ships at every size): each size's tuple is
+    # that size's `devices/media-optical` disc elements, in document
+    # order, followed by the capital I's top bar, stem and bottom bar on
+    # the grey face.
+    os.path.join("32x32", "mimetypes", "application-vnd.efi.iso.svg"): (
+        _shape("circle", cx="16", cy="16", r="14", fill="#000000"),
+        _shape("circle", cx="16", cy="16", r="13", fill="#DDDDDD"),
+        _shape("path", d="M16 16 L8 6 L6 8 Z", fill="#FFFFFF"),
+        _shape("path", d="M16 16 L24 26 L26 24 Z", fill="#FFFFFF"),
+        _shape("circle", cx="16", cy="16", r="5", fill="#999999"),
+        _shape("circle", cx="16", cy="16", r="4", fill="#FFFFFF"),
+        _shape("circle", cx="16", cy="16", r="2", fill="#000000"),
+        _shape("rect", x="22", y="10", width="6", height="2", fill="#000000"),
+        _shape("rect", x="25", y="12", width="2", height="6", fill="#000000"),
+        _shape("rect", x="22", y="18", width="6", height="2", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-vnd.efi.iso.svg"): (
+        _shape("circle", cx="8", cy="8", r="7", fill="#000000"),
+        _shape("circle", cx="8", cy="8", r="6", fill="#DDDDDD"),
+        _shape("path", d="M8 8 L5 3 L3 5 Z", fill="#FFFFFF"),
+        _shape("path", d="M8 8 L11 13 L13 11 Z", fill="#FFFFFF"),
+        _shape("circle", cx="8", cy="8", r="3", fill="#999999"),
+        _shape("circle", cx="8", cy="8", r="2", fill="#FFFFFF"),
+        _shape("circle", cx="8", cy="8", r="1", fill="#000000"),
+        _shape("rect", x="11", y="5", width="3", height="2", fill="#000000"),
+        _shape("rect", x="12", y="7", width="1", height="2", fill="#000000"),
+        _shape("rect", x="11", y="9", width="3", height="2", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-vnd.efi.iso.svg"): (
+        _shape("circle", cx="11", cy="11", r="10", fill="#000000"),
+        _shape("circle", cx="11", cy="11", r="9", fill="#DDDDDD"),
+        _shape("path", d="M11 11 L6 4 L4 6 Z", fill="#FFFFFF"),
+        _shape("path", d="M11 11 L16 18 L18 16 Z", fill="#FFFFFF"),
+        _shape("circle", cx="11", cy="11", r="4", fill="#999999"),
+        _shape("circle", cx="11", cy="11", r="3", fill="#FFFFFF"),
+        _shape("circle", cx="11", cy="11", r="1", fill="#000000"),
+        _shape("rect", x="15", y="7", width="4", height="2", fill="#000000"),
+        _shape("rect", x="16", y="9", width="2", height="3", fill="#000000"),
+        _shape("rect", x="15", y="12", width="4", height="2", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"): (
         _shape("rect", x="3", y="3", width="26", height="26", fill="#000000"),
         _shape("rect", x="4", y="4", width="24", height="24", fill="#DDDDDD"),

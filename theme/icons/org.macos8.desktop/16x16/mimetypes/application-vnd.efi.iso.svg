@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original ISO disc-image illustration pending user-approved artwork. -->
+<!-- Platinum ISO disc-image icon, 16x16.
+
+     Our own 16x16 drawing in the Platinum palette: the optical disc the
+     media-optical icon draws, with a black capital letter I on the grey
+     face in the upper-right quadrant. Drawn for this theme, not traced
+     from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <circle cx="8" cy="8" r="7" fill="#000000"/>
+  <circle cx="8" cy="8" r="6" fill="#DDDDDD"/>
+  <path d="M8 8 L5 3 L3 5 Z" fill="#FFFFFF"/>
+  <path d="M8 8 L11 13 L13 11 Z" fill="#FFFFFF"/>
+  <circle cx="8" cy="8" r="3" fill="#999999"/>
+  <circle cx="8" cy="8" r="2" fill="#FFFFFF"/>
+  <circle cx="8" cy="8" r="1" fill="#000000"/>
+  <rect x="11" y="5" width="3" height="2" fill="#000000"/>
+  <rect x="12" y="7" width="1" height="2" fill="#000000"/>
+  <rect x="11" y="9" width="3" height="2" fill="#000000"/>
+</svg>

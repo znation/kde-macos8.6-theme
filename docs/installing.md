@@ -211,7 +211,9 @@ for bzip2-compressed tar archive files (the
 LZMA-compressed-tar icon for LZMA-compressed tar archive files (the
 `application-x-lzma-compressed-tar` name at the same three sizes), a
 cpio-archive icon for cpio archive files (the `application-x-cpio` name
-at the same three sizes), a
+at the same three sizes), an
+ISO disc-image icon for disc-image files (the `application-vnd.efi.iso`
+name at the same three sizes), a
 flash-media card
 icon for
 memory cards (the `media-flash` name at the same three sizes), a floppy-disk

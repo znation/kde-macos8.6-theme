@@ -98,7 +98,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `application-x-bzip2-compressed-tar` icon at all three sizes (the
 # sealed package box holding a lowercase letter b; the name is the
 # type-spelled icon name of the `application/x-bzip2-compressed-tar`
-# MIME type in the installed shared MIME database), the flash-media
+# MIME type in the installed shared MIME database), the ISO disc-image
+# `application-vnd.efi.iso` icon at all three sizes (the optical disc the
+# media-optical icon draws holding a black capital letter I; the name is
+# the type-spelled icon name of the `application/vnd.efi.iso` MIME type
+# in the installed shared MIME database), the flash-media
 # `media-flash`
 # icon at all three sizes (our own drawing of an upright card standing on
 # its contact pins; the name is a KDE-required value read from
@@ -284,8 +288,8 @@ SHIPPED_ICONS = (
     # `application/x-compressed-tar`, `application/vnd.rar`,
     # `application/x-xz-compressed-tar`,
     # `application/x-bzip2-compressed-tar`,
-    # `application/x-lzma-compressed-tar` and `application/x-cpio`),
-    # which gives the types the
+    # `application/x-lzma-compressed-tar`, `application/x-cpio` and
+    # `application/vnd.efi.iso`), which gives the types the
     # `package-x-generic` generic icon and no icon of their own; at the
     # exact names Breeze's own files beat the theme's generic-icon
     # fallback.
@@ -322,6 +326,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-cpio.svg"),
     os.path.join("16x16", "mimetypes", "application-x-cpio.svg"),
     os.path.join("22x22", "mimetypes", "application-x-cpio.svg"),
+    os.path.join("32x32", "mimetypes", "application-vnd.efi.iso.svg"),
+    os.path.join("16x16", "mimetypes", "application-vnd.efi.iso.svg"),
+    os.path.join("22x22", "mimetypes", "application-vnd.efi.iso.svg"),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"),
     os.path.join("16x16", "mimetypes", "x-office-document.svg"),
     os.path.join("22x22", "mimetypes", "x-office-document.svg"),
