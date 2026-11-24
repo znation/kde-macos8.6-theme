@@ -20,7 +20,7 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.render.field_probe import main  # noqa: E402
+from tools.render.field_probe import TOOL, USAGE, main  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
 
 FIELD_COLOR = "63639C"
@@ -108,6 +108,47 @@ class TestFieldProbe(unittest.TestCase):
             status, stderr, stdout = run_probe(probe_argv(png, x=-1, y=0))
             self.assertEqual(2, status)
             self.assertEqual("", stdout)
+
+    def test_the_wrong_argument_count_prints_the_usage_and_exits_2(self):
+        # The usage line is the probe's only diagnostic for a misshapen
+        # invocation, and the session log shows stderr verbatim, so it must
+        # carry the four-argument form and nothing else.
+        for argv in ([], ["capture.png", "63639C", "2"],
+                     ["capture.png", "63639C", "2", "398", "extra"]):
+            with self.subTest(argv=argv):
+                status, stderr, stdout = run_probe(argv)
+                self.assertEqual(2, status)
+                self.assertEqual("", stdout)
+                self.assertEqual(f"{TOOL}: {USAGE}\n", stderr)
+
+    def test_non_integer_coordinates_exits_2_naming_them(self):
+        # The coordinates are read as integers, so a stray decimal or word
+        # is refused by name before the capture is even opened; the raw
+        # texts stay in the diagnostic the session log records.
+        with tempfile.TemporaryDirectory() as root:
+            png = Path(root) / "capture.png"
+            png.write_bytes(field_png())
+            for x_text, y_text in (("2.5", "398"), ("2", "398.0")):
+                with self.subTest(x=x_text, y=y_text):
+                    status, stderr, stdout = run_probe(
+                        [str(png), FIELD_COLOR, x_text, y_text]
+                    )
+                    self.assertEqual(2, status)
+                    self.assertEqual("", stdout)
+                    self.assertIn(x_text, stderr)
+                    self.assertIn(y_text, stderr)
+                    self.assertIn("are not integers", stderr)
+
+    def test_a_six_character_non_hex_colour_exits_2(self):
+        # Six characters of the wrong alphabet still fail: the length check
+        # alone would accept a colour bytes.fromhex cannot parse.
+        with tempfile.TemporaryDirectory() as root:
+            png = Path(root) / "capture.png"
+            png.write_bytes(field_png())
+            status, stderr, stdout = run_probe(probe_argv(png, colour="63639G"))
+            self.assertEqual(2, status)
+            self.assertEqual("", stdout)
+            self.assertIn("'63639G' is not an RRGGBB colour", stderr)
 
     def test_a_malformed_colour_exits_2(self):
         with tempfile.TemporaryDirectory() as root:
