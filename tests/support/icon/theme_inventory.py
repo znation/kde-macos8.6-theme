@@ -111,7 +111,12 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # CD or DVD: a disc with white glints and a hub), the mouse
 # `input-mouse` icon at all three sizes (our own drawing of a rounded
 # mouse body with a two-button band and a scroll wheel; the name is the
-# input-device icon name KDE builds from the udev subsystem), the phone
+# input-device icon name KDE builds from the udev subsystem), the tablet
+# `input-tablet` icon at all three sizes (our own drawing of a graphics tablet
+# with a white drawing surface on the left and an upright pen on the right;
+# the name is a KDE-required value read from `libkwin.so.6`, which carries the
+# bare `input-tablet` literal, and the shared MIME database gives the name no
+# `generic-icon` binding, so one file covers exactly its own name), the phone
 # `phone` icon at all three sizes (our own drawing of an upright smartphone
 # with a screen, a speaker slot above it and a home button below; the name
 # is the device name KDE's device views draw for phones and the dash
@@ -156,6 +161,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "input-mouse.svg"),
     os.path.join("16x16", "devices", "input-mouse.svg"),
     os.path.join("22x22", "devices", "input-mouse.svg"),
+    os.path.join("32x32", "devices", "input-tablet.svg"),
+    os.path.join("16x16", "devices", "input-tablet.svg"),
+    os.path.join("22x22", "devices", "input-tablet.svg"),
     os.path.join("32x32", "devices", "phone.svg"),
     os.path.join("16x16", "devices", "phone.svg"),
     os.path.join("22x22", "devices", "phone.svg"),
