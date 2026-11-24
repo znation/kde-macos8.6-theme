@@ -5,6 +5,113 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw a network server with an original `network-server` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** A machine that serves the desktop's shared folders is drawn
+with Breeze's art beside the Platinum folder and trash places. Ship one
+original placeholder icon, `network-server`, at 16x16, 22x22 and 32x32,
+in the same places series as the landed `folder`, `user-home`,
+`user-desktop` and Trash entries.
+Provenance: the installed `org.kde.akonadi_kolab_resource.desktop`
+carries `Icon=network-server` (line 38, checked at planning time), so an
+installed KDE surface names this icon, as the printer entries did; the
+name is also a freedesktop icon-naming-spec places value (a server on
+the network), and the planning-time probe on 2026-11-24 (`kiconfinder6`
+against a scratch install of the theme, the `x-office-document` control
+resolving to the theme's 32x32 file, `DISPLAY` and `WAYLAND_DISPLAY`
+unset, `QT_QPA_PLATFORM=offscreen`) showed `network-server` resolving to
+Breeze's `:/icons/breeze/places/32/network-server.svg`. Breeze ships it
+in its places context, and this theme already declares the 16x16, 22x22
+and 32x32 places directories in `index.theme`. No reference screenshot
+in `macos8.6-screenshots/` shows a network server, so no reference
+pixels are used and the drawing is this theme's own choice. Out of
+scope: ship no alias files (nothing for `network-server-database` or
+symbolic variants) and nothing but `network-server`; `network-wireless`
+and `video-display` stay unplanned siblings — no installed desktop
+entry and no `libKF6Solid.so.6.13.0` literal names either (`strings -e
+l`, checked at planning time), so their provenance needs another source
+before they are planned.
+
+**Approach.**
+
+- Add `places/network-server.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. Give each file the XML declaration,
+  the comment `<!-- PLACEHOLDER: original network server illustration
+  pending user-approved artwork. -->`, a short comment saying it is our
+  own drawing in the Platinum palette, not traced from anyone's
+  artwork, and a root with matching `width`, `height` and `viewBox`.
+  The art is a Platinum server tower: the raised #DDDDDD chassis with
+  the 1px #000000 outline and the #FFFFFF/#999999 bevel, two #000000
+  drive-bay slots on the front and a #999999 indicator light below
+  them. Each file holds these elements in order, written
+  `x,y width×height fill` for rects:
+  - 32x32: `8,4 16×24 #000000`; `9,5 14×22 #DDDDDD`; `9,5 14×1
+    #FFFFFF`; `9,5 1×22 #FFFFFF`; `22,5 1×22 #999999`; `9,26 14×1
+    #999999`; bay `11,9 10×3 #000000`; bay `11,15 10×3 #000000`;
+    indicator `11,21 2×2 #999999`.
+  - 22x22: `5,2 12×18 #000000`; `6,3 10×16 #DDDDDD`; `6,3 10×1
+    #FFFFFF`; `6,3 1×16 #FFFFFF`; `15,3 1×16 #999999`; `6,18 10×1
+    #999999`; bay `7,7 8×2 #000000`; bay `7,12 8×2 #000000`; indicator
+    `7,15 2×2 #999999`.
+  - 16x16: `4,1 8×14 #000000`; `5,2 6×12 #DDDDDD`; `5,2 6×1 #FFFFFF`;
+    `5,2 1×12 #FFFFFF`; `10,2 1×12 #999999`; `5,13 6×1 #999999`; bay
+    `6,5 4×2 #000000`; bay `6,9 4×2 #000000`; indicator `6,11 1×1
+    #999999`.
+
+  The element lists were checked for geometric consistency at planning
+  time (every rect lies inside its face, and the bevel rows overlay only
+  the face's outermost rows as in the battery and phone pins); no
+  rendered-pixel claim is made, since the shape pins pin the XML, not a
+  raster.
+- `PLACEHOLDERS.md`: one row per file beside that size's `user-home`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `places` paths, and name the network
+  server in the comment above them.
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `network-server` in the last cell: no reference pixels
+  were used, the name is a KDE-required value read from the installed
+  `org.kde.akonadi_kolab_resource.desktop` (also a freedesktop
+  icon-naming-spec places name), and the tower-with-bays drawing is
+  this theme's own choice.
+- `docs/installing.md`: add the network server to the sentence listing
+  the icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and has
+  a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing an element's position, size, fill or order, a bay's position
+  or size, or the indicator's position or size, in one file makes
+  `test_each_icon_draws_its_pinned_artwork` fail; dropping a file while
+  leaving it shipped makes `test_the_geometry_registry_covers_every_shipped_icon`
+  fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `network-server` resolves to the theme's
+  32x32 file, and `network-wireless` and `video-display` stay on Breeze.
+  Also record what `network-server-database` resolves to, without pinning it.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw cameras with an original `camera-photo` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** The camera — the device KDE's digital-camera control module

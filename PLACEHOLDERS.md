@@ -56,6 +56,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/places/folder-templates.svg` | original Templates place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/places/folder-videos.svg` | original Videos place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/places/inode-directory.svg` | original directory illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/places/network-server.svg` | original network server illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/places/start-here-kde-symbolic.svg` | original menu logo illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/places/user-desktop.svg` | original Desktop place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/places/user-home.svg` | original Home place illustration pending user-approved artwork. |
@@ -101,6 +102,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/22x22/places/folder-videos.svg` | original Videos place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/places/folder.svg` | original generic folder illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/places/inode-directory.svg` | original directory illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/places/network-server.svg` | original network server illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/places/start-here-kde-symbolic.svg` | original menu logo illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/places/user-desktop.svg` | original Desktop place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/places/user-home.svg` | original Home place illustration pending user-approved artwork. |
@@ -145,6 +147,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/32x32/places/folder-videos.svg` | original Videos place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/places/folder.svg` | original generic folder illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/places/inode-directory.svg` | original directory illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/places/network-server.svg` | original network server illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/places/user-desktop.svg` | original Desktop place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/places/user-home.svg` | original Home place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/places/user-trash-full.svg` | original full Trash illustration pending user-approved artwork. |

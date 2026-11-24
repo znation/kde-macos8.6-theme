@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original network server illustration pending user-approved artwork. -->
+<!-- Platinum network server icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: a raised chassis
+     with a black outline, a white/#999999 bevel, two black drive-bay
+     slots on the front and a grey indicator light below them. Drawn
+     for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <rect x="8" y="4" width="16" height="24" fill="#000000"/>
+  <rect x="9" y="5" width="14" height="22" fill="#DDDDDD"/>
+  <rect x="9" y="5" width="14" height="1" fill="#FFFFFF"/>
+  <rect x="9" y="5" width="1" height="22" fill="#FFFFFF"/>
+  <rect x="22" y="5" width="1" height="22" fill="#999999"/>
+  <rect x="9" y="26" width="14" height="1" fill="#999999"/>
+  <rect x="11" y="9" width="10" height="3" fill="#000000"/>
+  <rect x="11" y="15" width="10" height="3" fill="#000000"/>
+  <rect x="11" y="21" width="2" height="2" fill="#999999"/>
+</svg>

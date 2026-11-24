@@ -176,6 +176,12 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "font-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "font-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "font-x-generic.svg"),
+    # The network-server place (a freedesktop icon-naming-spec places
+    # value, carried by the installed `org.kde.akonadi_kolab_resource.desktop`
+    # desktop entry).
+    os.path.join("32x32", "places", "network-server.svg"),
+    os.path.join("16x16", "places", "network-server.svg"),
+    os.path.join("22x22", "places", "network-server.svg"),
     os.path.join("32x32", "places", "folder.svg"),
     os.path.join("32x32", "places", "inode-directory.svg"),
     os.path.join("32x32", "places", "user-home.svg"),
