@@ -133,7 +133,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `application-vnd.efi.iso` icon at all three sizes (the optical disc the
 # media-optical icon draws holding a black capital letter I; the name is
 # the type-spelled icon name of the `application/vnd.efi.iso` MIME type
-# in the installed shared MIME database), the flash-media
+# in the installed shared MIME database), the Squashfs filesystem-image
+# `application-vnd.squashfs` icon at all three sizes (the optical disc
+# the media-optical icon draws holding three white tapering bands; the
+# name is the type-spelled icon name of the `application/vnd.squashfs`
+# MIME type in the installed shared MIME database), the flash-media
 # `media-flash`
 # icon at all three sizes (our own drawing of an upright card standing on
 # its contact pins; the name is a KDE-required value read from
@@ -470,6 +474,14 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-vnd.efi.iso.svg"),
     os.path.join("16x16", "mimetypes", "application-vnd.efi.iso.svg"),
     os.path.join("22x22", "mimetypes", "application-vnd.efi.iso.svg"),
+    # The Squashfs filesystem-image `application-vnd.squashfs` icon at
+    # all three sizes (the optical disc the media-optical icon draws
+    # holding three white tapering bands; the name is the type-spelled
+    # icon name of the `application/vnd.squashfs` MIME type in the
+    # installed shared MIME database).
+    os.path.join("32x32", "mimetypes", "application-vnd.squashfs.svg"),
+    os.path.join("16x16", "mimetypes", "application-vnd.squashfs.svg"),
+    os.path.join("22x22", "mimetypes", "application-vnd.squashfs.svg"),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"),
     os.path.join("16x16", "mimetypes", "x-office-document.svg"),
     os.path.join("22x22", "mimetypes", "x-office-document.svg"),

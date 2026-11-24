@@ -1126,6 +1126,35 @@ PINS = {
         _shape("rect", x="16", y="9", width="2", height="3", fill="#000000"),
         _shape("rect", x="15", y="12", width="4", height="2", fill="#000000"),
     ),
+    # The Squashfs filesystem-image item icon KDE draws for
+    # `application/vnd.squashfs` items (the type-spelled icon name of
+    # the installed shared MIME database's `application/vnd.squashfs`
+    # "Squashfs filesystem image" type, which has no `generic-icon`, no
+    # aliases and no per-type fallback, so one file covers exactly its
+    # own name); the drawing shares the disc family (the ring and face
+    # of the `media-optical` disc) and holds three white tapering bands
+    # squeezed down the grey face — a stack being squashed downward.
+    os.path.join("32x32", "mimetypes", "application-vnd.squashfs.svg"): (
+        _shape("circle", cx="16", cy="16", r="14", fill="#000000"),
+        _shape("circle", cx="16", cy="16", r="13", fill="#DDDDDD"),
+        _shape("rect", x="7", y="10", width="18", height="3", fill="#FFFFFF"),
+        _shape("rect", x="9", y="15", width="14", height="3", fill="#FFFFFF"),
+        _shape("rect", x="11", y="20", width="10", height="3", fill="#FFFFFF"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-vnd.squashfs.svg"): (
+        _shape("circle", cx="8", cy="8", r="7", fill="#000000"),
+        _shape("circle", cx="8", cy="8", r="6", fill="#DDDDDD"),
+        _shape("rect", x="4", y="4", width="8", height="2", fill="#FFFFFF"),
+        _shape("rect", x="5", y="7", width="6", height="2", fill="#FFFFFF"),
+        _shape("rect", x="6", y="10", width="4", height="2", fill="#FFFFFF"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-vnd.squashfs.svg"): (
+        _shape("circle", cx="11", cy="11", r="10", fill="#000000"),
+        _shape("circle", cx="11", cy="11", r="9", fill="#DDDDDD"),
+        _shape("rect", x="5", y="7", width="12", height="2", fill="#FFFFFF"),
+        _shape("rect", x="6", y="10", width="10", height="2", fill="#FFFFFF"),
+        _shape("rect", x="7", y="13", width="8", height="2", fill="#FFFFFF"),
+    ),
     # The JSON-document item icon KDE draws for `application/json` items
     # (the type-spelled icon name of the installed shared MIME database's
     # `application/json` type, whose `generic-icon` is the shipped

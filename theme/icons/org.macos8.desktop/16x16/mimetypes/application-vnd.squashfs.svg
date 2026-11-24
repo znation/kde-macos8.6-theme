@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original Squashfs filesystem-image illustration pending user-approved artwork. -->
+<!-- Platinum Squashfs filesystem-image icon, 16x16.
+
+     Our own 16x16 drawing in the Platinum palette: the optical disc the
+     media-optical icon draws, with three white tapering bands squeezed
+     down the grey face — a stack being squashed downward. Drawn for
+     this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <circle cx="8" cy="8" r="7" fill="#000000"/>
+  <circle cx="8" cy="8" r="6" fill="#DDDDDD"/>
+  <rect x="4" y="4" width="8" height="2" fill="#FFFFFF"/>
+  <rect x="5" y="7" width="6" height="2" fill="#FFFFFF"/>
+  <rect x="6" y="10" width="4" height="2" fill="#FFFFFF"/>
+</svg>
