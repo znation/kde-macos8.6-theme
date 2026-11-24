@@ -130,3 +130,33 @@ def assert_refuses_an_oversize_hook(case, command):
     case.assertIn(str(hook), result.stderr)
     case.assertIn("larger than", result.stderr)
     case.assertEqual(oversize, hook.read_bytes())
+
+
+FOREIGN_HOOK_REFUSALS = {
+    "install": "refusing to overwrite a foreign hook",
+    "uninstall": "refusing to remove a foreign hook",
+}
+
+
+def assert_exactly_cap_hook_is_refused_as_foreign(case, command):
+    """Assert a hook of exactly ``_MAX_HOOK_BYTES`` bytes misses the cap.
+
+    The reader reads one byte past the cap and refuses only
+    ``len(data) > _MAX_HOOK_BYTES``, so a hook of exactly the cap is not an
+    oversize hook: the ownership check runs on its bytes and rejects it as
+    foreign. An off-by-one on either side -- ``read(_MAX_HOOK_BYTES)`` or a
+    ``>=`` cap check -- would flip exactly this file to the oversize refusal.
+    Both subcommands share the boundary, so each suite pins its own verdict.
+    """
+    repo, hook = make_repo_with_hook(case)
+    at_cap = b"#!/bin/sh\n" + b"x" * (local_hook._MAX_HOOK_BYTES - 10)
+    case.assertEqual(local_hook._MAX_HOOK_BYTES, len(at_cap))
+    hook.write_bytes(at_cap)
+
+    result = run_tool(repo, command)
+
+    assert_exit_2_without_traceback(case, result)
+    case.assertIn(str(hook), result.stderr)
+    case.assertIn(FOREIGN_HOOK_REFUSALS[command], result.stderr)
+    case.assertNotIn("larger than", result.stderr)
+    case.assertEqual(at_cap, hook.read_bytes())

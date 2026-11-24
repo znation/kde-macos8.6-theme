@@ -10,6 +10,7 @@ from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.local_hook.repos import (
+    assert_exactly_cap_hook_is_refused_as_foreign,
     assert_refuses_a_foreign_hook,
     assert_refuses_an_oversize_hook,
     hook_path,
@@ -66,6 +67,12 @@ class TestUninstall(unittest.TestCase):
 
     def test_refuses_an_oversize_hook(self):
         assert_refuses_an_oversize_hook(self, "uninstall")
+
+    def test_a_hook_of_exactly_the_cap_is_refused_as_foreign_not_oversize(self):
+        # The shared boundary fixture pins the foreign verdict for a hook of
+        # exactly _MAX_HOOK_BYTES bytes; uninstall's refusal is its own
+        # wording, so this side pins the removal message beside install's.
+        assert_exactly_cap_hook_is_refused_as_foreign(self, "uninstall")
 
     def test_refuses_a_symlinked_hook(self):
         repo, hook = make_repo_with_hook(self)

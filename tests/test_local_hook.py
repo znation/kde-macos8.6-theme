@@ -27,6 +27,7 @@ from support.atomic_write_failures import crashing_fdopen, swapping_mkstemp
 from support.close_tracking import failing_fdopen
 from support.executable_stubs import write_executable
 from support.local_hook.repos import (
+    assert_exactly_cap_hook_is_refused_as_foreign,
     assert_refuses_a_foreign_hook,
     assert_refuses_an_oversize_hook,
     hook_path,
@@ -150,6 +151,13 @@ class TestInstall(unittest.TestCase):
         # into memory; a multi-gigabyte hook would otherwise raise MemoryError
         # (which is not an OSError) and escape as a traceback.
         assert_refuses_an_oversize_hook(self, "install")
+
+    def test_a_hook_of_exactly_the_cap_is_refused_as_foreign_not_oversize(self):
+        # The cap refusal starts strictly above _MAX_HOOK_BYTES: the boundary
+        # file stays readable, so the ownership check names it foreign and the
+        # oversize diagnostic never fires. A read of _MAX_HOOK_BYTES bytes or
+        # a >= cap check would turn exactly this hook into an oversize one.
+        assert_exactly_cap_hook_is_refused_as_foreign(self, "install")
 
     def test_refuses_a_dangling_symlinked_hook_without_writing_through(self):
         repo, hook = make_repo_with_hook(self)
