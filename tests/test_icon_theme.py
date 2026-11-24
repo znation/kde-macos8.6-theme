@@ -216,6 +216,14 @@ class TestIndex(unittest.TestCase):
             {"index.theme", *SHIPPED_ICONS, *SHIPPED_CURSORS},
         )
 
+    def test_the_shipped_icon_inventory_names_each_file_once(self):
+        # The inventory is a plain tuple, but every consumer deduplicates:
+        # the tracked-file comparison above compares sets and the register
+        # test below builds sets, so a duplicated row -- the same merge slip
+        # the pin registry's duplicate-key guard covers -- would visit a
+        # file twice without any failure. The inventory must be distinct.
+        self.assertEqual(len(SHIPPED_ICONS), len(set(SHIPPED_ICONS)))
+
     def test_placeholder_register_matches_the_icon_art(self):
         # Tracked placeholder art and its register stay in agreement: every
         # shipped icon carrying a `PLACEHOLDER:` marker has a row, every row

@@ -6,9 +6,12 @@ themselves live in ``support.icon.shape_pins``, beside the inventory they
 pin.
 """
 
+import ast
 import os
 import unittest
 
+from support.invariants import parsed_module
+from support.repo_root import ROOT
 from support.icon.theme_inventory import (
     BLANK_DOCUMENTS,
     FOLDER_ALIASES,
@@ -44,6 +47,35 @@ class TestIconGeometry(unittest.TestCase):
         # escape them. Derive the shipped set from the same list TestIndex
         # checks and require the registry to equal it.
         self.assertEqual(set(ICON_SHAPES), set(SHIPPED_ICONS))
+
+    def test_the_geometry_registry_names_each_file_exactly_once(self):
+        # The registry is a dict literal, and a dict literal that names the
+        # same file twice is legal Python that silently keeps the last pin.
+        # Every consumer deduplicates -- the coverage test above compares
+        # sets and the pin comparison reads the built registry -- so a
+        # duplicated entry (the classic merge slip when two icon plans
+        # append to this file on the same day) would leave the discarded
+        # pin's elements drifting unobserved. Re-derive each literal key's
+        # path and require the paths to be distinct.
+        module = parsed_module(
+            os.path.join(ROOT, "tests", "support", "icon", "shape_pins.py"),
+            ROOT,
+        )
+        (literal,) = (
+            node.value
+            for node in module.body
+            if isinstance(node, ast.Assign)
+            and any(
+                isinstance(target, ast.Name) and target.id == "ICON_SHAPES"
+                for target in node.targets
+            )
+        )
+        self.assertIsInstance(literal, ast.Dict)
+        paths = [
+            eval(compile(ast.Expression(key), "<pin-key>", "eval"), {"os": os})
+            for key in literal.keys
+        ]
+        self.assertEqual(len(paths), len(set(paths)))
 
     def test_each_icon_draws_its_pinned_artwork(self):
         for icon, expected in ICON_SHAPES.items():
