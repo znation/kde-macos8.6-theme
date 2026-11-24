@@ -13,7 +13,7 @@ _None yet._
 
 ### Should the sampler refuse a contradictory min/max filter window?
 
-**Context.** The sampler's `option_error` (tools/sample_arguments.py) validates option
+**Context.** The sampler's `option_error` (tools/sample_lib/arguments.py) validates option
 combinations before any image read, but it never cross-checks the five min/max filter pairs:
 `--min-run-length`/`--max-run-length`, `--min-color-count`/`--max-color-count`,
 `--min-color-fraction`/`--max-color-fraction`, `--min-match-run-length`/`--max-match-run-length`
