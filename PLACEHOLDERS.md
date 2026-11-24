@@ -54,6 +54,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-shellscript.svg` | original shell-script illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-core.svg` | original core-dump illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.android.package-archive.svg` | original Android-package illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/mimetypes/application-pkix-cert.svg` | original X.509 certificate illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-desktop.svg` | original desktop-launcher illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/package-x-generic.svg` | original package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-zip.svg` | original ZIP-archive illustration pending user-approved artwork. |
@@ -137,6 +138,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-shellscript.svg` | original shell-script illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-core.svg` | original core-dump illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.android.package-archive.svg` | original Android-package illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/mimetypes/application-pkix-cert.svg` | original X.509 certificate illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-desktop.svg` | original desktop-launcher illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/package-x-generic.svg` | original package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-zip.svg` | original ZIP-archive illustration pending user-approved artwork. |
@@ -218,6 +220,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-shellscript.svg` | original shell-script illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-core.svg` | original core-dump illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.android.package-archive.svg` | original Android-package illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/mimetypes/application-pkix-cert.svg` | original X.509 certificate illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-desktop.svg` | original desktop-launcher illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/package-x-generic.svg` | original package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-zip.svg` | original ZIP-archive illustration pending user-approved artwork. |
