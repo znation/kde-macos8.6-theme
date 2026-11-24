@@ -193,7 +193,7 @@ PINS = {
     # and no per-type fallback, so one file covers exactly its own name);
     # the drawing shares the shell-script document's page and holds a
     # black band with a white square ring and, at 22x22 and 32x32, a
-    # white center dot on the white face.
+    # white center dot inside the ring's hole.
     os.path.join("32x32", "mimetypes", "application-x-core.svg"): (
         *_PAGE_32,
         _shape("rect", x="10", y="15", width="12", height="7", fill="#000000"),
