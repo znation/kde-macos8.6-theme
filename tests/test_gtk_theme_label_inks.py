@@ -13,13 +13,7 @@ class TestGtkThemeLabelInks(GtkSheetRuleCases, unittest.TestCase):
     CSS_PATH = ROOT / "theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css"
 
     def test_separator_label_foreground(self):
-        selector = "label.separator"
-        self.assert_disabled_text((selector,))
-        self.assertEqual(
-            self.rules[selector],
-            {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"},
-        )
-        self.assertEqual(self.selectors.count(selector), 1)
+        self.assert_separator_label_foreground()
 
     def test_dim_label_foreground(self):
         selector = ".dim-label"

@@ -479,6 +479,23 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             self.assert_rule(selector, spec)
             self.assertNotIn("margin", self.rules[selector])
 
+    def assert_separator_label_foreground(self):
+        """Assert the separator label's opaque inactive grey, once per suite.
+
+        Both GTK sheets carry the same ``label.separator`` pin (an opaque
+        ``DISABLED_TEXT`` grey with no text shadow, one spelling); the GTK 3
+        and GTK 4 label-inks suites each wrap this assertion as their named
+        invariant pointer, and this is where the assertion body itself
+        lives.
+        """
+        selector = "label.separator"
+        self.assert_disabled_text((selector,))
+        self.assertEqual(
+            self.rules[selector],
+            {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"},
+        )
+        self.assertEqual(self.selectors.count(selector), 1)
+
     def assert_paned_handles(self):
         """Assert the etched paned split handles in both orientations."""
         self.assert_rule("paned.horizontal > separator", PANED_HANDLE_HORIZONTAL)
