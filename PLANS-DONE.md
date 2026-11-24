@@ -295,7 +295,7 @@ shared-library window. Provenance: the installed shared MIME database
 Pretty Good Privacy) with no `<generic-icon>` element, no `<icon>`
 element, no `<alias>` elements, the globs `*.skr`, `*.pkr`,
 `<glob weight="10" pattern="*.asc">`, `*.pgp`, `*.gpg` and `*.key`,
-four string `<magic>` matchers (`-----BEGIN PGP PUBLIC KEY BLOCK-----`,
+two string `<magic>` matchers (`-----BEGIN PGP PUBLIC KEY BLOCK-----`,
 `-----BEGIN PGP PRIVATE KEY BLOCK-----`) and four `big16` magic
 matchers, and holds zero occurrences of the hyphenated name
 `application-pgp-keys` (`str.count` is 0), so one file covers exactly
