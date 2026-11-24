@@ -2,8 +2,8 @@
 
 ``tools/render_surface.py``'s ``--textbox-dialog`` mode renders the Kvantum
 scrollbar that kdialog's text box draws; the gate here byte-compares its
-bands. The shared capture plumbing lives in ``tests/support/render/gates.py``,
-and the other kdialog widget gates live in ``tests/test_render_dialog_gates.py``.
+bands. The shared capture plumbing lives in ``tests/support/render/``, and the
+other kdialog widget gates live in ``tests/test_render_dialog_gates.py``.
 """
 
 from __future__ import annotations
