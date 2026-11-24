@@ -168,6 +168,122 @@ reference pixels are used, and the drawing is this theme's own choice.
   test_placeholders test_invariants'` passes, and so does full `make check`
   after the final edit, apart from main's known-red tests.
 
+### Platinum icon theme: draw smartphones with an original `smartphone` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** KDE Connect and plasma-nm draw phone-type devices with the
+`smartphone` device name, and on this host the name still resolves to
+Breeze: ship one original placeholder icon, `smartphone`, at 16x16,
+22x22 and 32x32, sharing the shipped `phone` drawing, in the same
+devices series as the landed `computer`, `input-keyboard`,
+`input-mouse`, `printer`, `media-floppy`, `camera-photo`, `modem`,
+`video-display` and `phone` files. Provenance: the freedesktop
+icon-naming spec lists `smartphone` as a devices value, and the
+installed `libkdeconnectcore.so.25.04.2`, `libplasmanm_internal.so`
+and `libplasmanm_editor.so` each carry the bare `smartphone` literal
+(`strings -e l`), so KDE consumers request the name; the installed
+`libKF6Solid.so.6.13.0` carries no `smartphone` literal, so no
+Solid-built device name reduces to it, and the shared MIME database
+gives the name no binding (zero `name="smartphone"` hits counted on
+`/usr/share/mime/packages/freedesktop.org.xml`), so exactly one file
+covers its own name — no alias files and no MIME fallback are in play.
+Breeze ships the name under `devices/` at 16, 22, 24 and 64, plus
+`status/` renditions of related names this theme stays out of.
+Planning-time probe on 2026-11-24 with `kiconfinder6`, the theme
+installed into a scratch `DESTDIR` tree and probe XDG homes
+(`QT_QPA_PLATFORM=offscreen`, no `DISPLAY`): `smartphone` resolved to
+Breeze's `:/icons/breeze/devices/64/smartphone.svg` while the `phone`
+control resolved to the theme's 32x32 devices file, so the theme must
+ship the name to win it. The shipped `phone` art is already this
+theme's own upright smartphone drawing, so `smartphone` shares it
+(the same element lists as the same size's `phone.svg`), the way
+`drive-removable-media` shares the hard disk's body and bevel; no
+reference screenshot shows a smartphone icon, so no reference pixels
+are used and the drawing remains this theme's own choice.
+
+**Approach.**
+
+- Add `devices/smartphone.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original smartphone illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  shared with the `phone` icon, not traced from anyone's artwork, and
+  a root with matching `width`, `height` and `viewBox`. Each file
+  holds exactly the element list of the same size's `phone.svg`, in
+  the same order — the raised #DDDDDD body with the 1px #000000
+  outline and the #FFFFFF/#999999 bevel, the #000000 screen, the
+  #000000 speaker slot above the screen and the #000000 home button
+  below it, as pinned for `phone` in
+  `tests/support/icon/shape_pins/devices.py`'s `PINS` table. No new
+  geometry is invented, so the lists need no fresh geometric
+  consistency pass.
+- `PLACEHOLDERS.md`: one row per file beside that size's `phone` row,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths where
+  the other `devices` paths are listed in `SHIPPED_ICONS` (the base
+  tuple or one of the `SHIPPED_ICONS += tuple(...)` blocks), and name
+  the smartphone icon in the comment above the list beside `phone`.
+- `tests/support/icon/shape_pins/devices.py`: pin the three drawings
+  in its `PINS` table from the shipped `phone` lists (the table feeds
+  `ICON_SHAPES` in `tests/support/icon/shape_pins/__init__.py`), with
+  a comment recording that `smartphone` shares the `phone` art.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, append the
+  provenance of `smartphone` to the row's last cell: no reference
+  pixels were used; the name is a freedesktop icon-naming-spec devices
+  value requested by KDE Connect and plasma-nm for phone-type devices
+  (the installed `libkdeconnectcore.so.25.04.2`,
+  `libplasmanm_internal.so` and `libplasmanm_editor.so` each carry the
+  bare `smartphone` literal, `strings -e l` verified, while the
+  installed `libKF6Solid.so.6.13.0` carries no `smartphone` literal,
+  so no Solid-built device name reduces to it), the shared MIME
+  database gives the name no binding, Breeze's own art was beaten by
+  shipping the name at the theme's sizes (before the change,
+  `kiconfinder6 smartphone` with the theme installed into scratch XDG
+  homes resolved to Breeze's `:/icons/breeze/devices/64` file while
+  `phone` resolved to the theme's 32x32 devices file), the drawing
+  shares the shipped `phone` art, Breeze's `status/` renditions of
+  `smartphoneconnected`, `smartphonedisconnected` and
+  `smartphonetrusted` are not captured, and the shared drawing is this
+  theme's own choice.
+- `docs/installing.md`: add the smartphone icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes,
+  beside the phone sentence.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/devices.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the `phone` element list for that size, carries a
+  placeholder marker and has a `PLACEHOLDERS.md` row; the existing
+  inventory, palette, geometry and placeholder-register tests cover
+  all three.
+- Changing an element's position, size, fill or order in one
+  `smartphone.svg` makes `test_each_icon_draws_its_pinned_artwork`
+  fail; dropping a file while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `DESTDIR` tree, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `smartphone` resolves to the theme's
+  32x32 devices file (at planning time, before this change, it resolved
+  to Breeze's `:/icons/breeze/devices/64/smartphone.svg`), and `phone`
+  stays on the theme's 32x32 devices file. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
