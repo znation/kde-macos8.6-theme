@@ -38,6 +38,28 @@ def _drawing_elements(tree):
     )
 
 
+def _shipped_elements(size, family, name):
+    """Return the shipped *family*/*name* icon's drawing elements at *size*.
+
+    The one reader for the shipped files the sharing tests below compare;
+    every call site passes the size directory, the family directory and
+    the icon name without its ``.svg`` suffix.
+    """
+    return _drawing_elements(
+        parse_svg(os.path.join(PACKAGE, size, family, name + ".svg"))
+    )
+
+
+def _generic_page(size):
+    """Return the generic document's page prefix at *size*.
+
+    The first three drawing elements of the shipped ``text-x-generic.svg``
+    (the black outline, the white page and the folded corner) that the
+    page-sharing tests below compare every page-backed document against.
+    """
+    return _shipped_elements(size, "mimetypes", "text-x-generic")[:3]
+
+
 class TestIconGeometry(unittest.TestCase):
     """Pin every shipped icon's drawing elements, in document order."""
 
@@ -121,13 +143,11 @@ class TestIconGeometry(unittest.TestCase):
         # shipped files, not the pinned tuples, so a drift in either file
         # fails here as well as in the pins above.
         for size in ("32x32", "22x22", "16x16"):
-            disk = parse_svg(os.path.join(PACKAGE, size, "devices", "drive-harddisk.svg"))
-            removable = parse_svg(
-                os.path.join(PACKAGE, size, "devices", "drive-removable-media.svg")
-            )
+            disk = _shipped_elements(size, "devices", "drive-harddisk")
+            removable = _shipped_elements(size, "devices", "drive-removable-media")
             self.assertEqual(
-                _drawing_elements(removable)[:6],
-                _drawing_elements(disk)[:6],
+                removable[:6],
+                disk[:6],
                 size,
             )
         # The optical drive is also the hard disk's body and bevel holding a
@@ -136,13 +156,11 @@ class TestIconGeometry(unittest.TestCase):
         # than the hard disk's face so the disc fits inside the bevel, and
         # the sharing check holds by exclusion there.
         for size in ("32x32", "22x22"):
-            disk = parse_svg(os.path.join(PACKAGE, size, "devices", "drive-harddisk.svg"))
-            optical = parse_svg(
-                os.path.join(PACKAGE, size, "devices", "drive-optical.svg")
-            )
+            disk = _shipped_elements(size, "devices", "drive-harddisk")
+            optical = _shipped_elements(size, "devices", "drive-optical")
             self.assertEqual(
-                _drawing_elements(optical)[:6],
-                _drawing_elements(disk)[:6],
+                optical[:6],
+                disk[:6],
                 size,
             )
 
@@ -153,18 +171,10 @@ class TestIconGeometry(unittest.TestCase):
         # files catches a path edited in either file and a text line added to
         # a blank document, which would make it four or more elements long.
         for size in ("16x16", "22x22", "32x32"):
-            generic = _drawing_elements(
-                parse_svg(
-                    os.path.join(PACKAGE, size, "mimetypes", "text-x-generic.svg")
-                )
-            )[:3]
+            generic = _generic_page(size)
             for name in BLANK_DOCUMENTS:
                 with self.subTest(size=size, name=name):
-                    drawing = _drawing_elements(
-                        parse_svg(
-                            os.path.join(PACKAGE, size, "mimetypes", name + ".svg")
-                        )
-                    )
+                    drawing = _shipped_elements(size, "mimetypes", name)
                     self.assertEqual(drawing, generic)
 
     def test_office_document_shares_the_generic_page(self):
@@ -176,16 +186,8 @@ class TestIconGeometry(unittest.TestCase):
         # shipped `text-x-generic.svg`'s. Compare the files, so a drift in
         # either file fails both.
         for size in ("16x16", "22x22", "32x32"):
-            generic = _drawing_elements(
-                parse_svg(
-                    os.path.join(PACKAGE, size, "mimetypes", "text-x-generic.svg")
-                )
-            )[:3]
-            office = _drawing_elements(
-                parse_svg(
-                    os.path.join(PACKAGE, size, "mimetypes", "x-office-document.svg")
-                )
-            )
+            generic = _generic_page(size)
+            office = _shipped_elements(size, "mimetypes", "x-office-document")
             self.assertEqual(office[:3], generic, size)
 
     def test_office_spreadsheet_shares_the_generic_page(self):
@@ -196,18 +198,8 @@ class TestIconGeometry(unittest.TestCase):
         # drawing elements must be the shipped `text-x-generic.svg`'s.
         # Compare the files, so a drift in either file fails both.
         for size in ("16x16", "22x22", "32x32"):
-            generic = _drawing_elements(
-                parse_svg(
-                    os.path.join(PACKAGE, size, "mimetypes", "text-x-generic.svg")
-                )
-            )[:3]
-            spreadsheet = _drawing_elements(
-                parse_svg(
-                    os.path.join(
-                        PACKAGE, size, "mimetypes", "x-office-spreadsheet.svg"
-                    )
-                )
-            )
+            generic = _generic_page(size)
+            spreadsheet = _shipped_elements(size, "mimetypes", "x-office-spreadsheet")
             self.assertEqual(spreadsheet[:3], generic, size)
 
     def test_the_template_document_shares_the_generic_page(self):
@@ -219,17 +211,9 @@ class TestIconGeometry(unittest.TestCase):
         # be the shipped `text-x-generic.svg`'s. Compare the files, so a
         # drift in either file fails both.
         for size in ("16x16", "22x22", "32x32"):
-            generic = _drawing_elements(
-                parse_svg(
-                    os.path.join(PACKAGE, size, "mimetypes", "text-x-generic.svg")
-                )
-            )[:3]
-            template = _drawing_elements(
-                parse_svg(
-                    os.path.join(
-                        PACKAGE, size, "mimetypes", "text-x-generic-template.svg"
-                    )
-                )
+            generic = _generic_page(size)
+            template = _shipped_elements(
+                size, "mimetypes", "text-x-generic-template"
             )
             self.assertEqual(template[:3], generic, size)
 
@@ -242,16 +226,8 @@ class TestIconGeometry(unittest.TestCase):
         # shipped `text-x-generic.svg`'s. Compare the files, so a drift in
         # either file fails both.
         for size in ("16x16", "22x22", "32x32"):
-            generic = _drawing_elements(
-                parse_svg(
-                    os.path.join(PACKAGE, size, "mimetypes", "text-x-generic.svg")
-                )
-            )[:3]
-            script = _drawing_elements(
-                parse_svg(
-                    os.path.join(PACKAGE, size, "mimetypes", "text-x-script.svg")
-                )
-            )
+            generic = _generic_page(size)
+            script = _shipped_elements(size, "mimetypes", "text-x-script")
             self.assertEqual(script[:3], generic, size)
 
     def test_the_font_document_shares_the_generic_page(self):
@@ -263,16 +239,8 @@ class TestIconGeometry(unittest.TestCase):
         # shipped `text-x-generic.svg`'s. Compare the files, so a drift in
         # either file fails both.
         for size in ("16x16", "22x22", "32x32"):
-            generic = _drawing_elements(
-                parse_svg(
-                    os.path.join(PACKAGE, size, "mimetypes", "text-x-generic.svg")
-                )
-            )[:3]
-            font = _drawing_elements(
-                parse_svg(
-                    os.path.join(PACKAGE, size, "mimetypes", "font-x-generic.svg")
-                )
-            )
+            generic = _generic_page(size)
+            font = _shipped_elements(size, "mimetypes", "font-x-generic")
             self.assertEqual(font[:3], generic, size)
 
     def test_office_presentation_shares_the_generic_page(self):
@@ -283,17 +251,9 @@ class TestIconGeometry(unittest.TestCase):
         # drawing elements must be the shipped `text-x-generic.svg`'s.
         # Compare the files, so a drift in either file fails both.
         for size in ("16x16", "22x22", "32x32"):
-            generic = _drawing_elements(
-                parse_svg(
-                    os.path.join(PACKAGE, size, "mimetypes", "text-x-generic.svg")
-                )
-            )[:3]
-            presentation = _drawing_elements(
-                parse_svg(
-                    os.path.join(
-                        PACKAGE, size, "mimetypes", "x-office-presentation.svg"
-                    )
-                )
+            generic = _generic_page(size)
+            presentation = _shipped_elements(
+                size, "mimetypes", "x-office-presentation"
             )
             self.assertEqual(presentation[:3], generic, size)
 
@@ -324,16 +284,10 @@ class TestIconGeometry(unittest.TestCase):
 
     def _assert_aliases_share_folder_art(self, size):
         """Pin every folder alias's drawing to the folder's at *size*."""
-        folder = _drawing_elements(
-            parse_svg(os.path.join(PACKAGE, size, "places", "folder.svg"))
-        )
+        folder = _shipped_elements(size, "places", "folder")
         for alias in FOLDER_ALIASES:
             with self.subTest(size=size, alias=alias):
-                drawing = _drawing_elements(
-                    parse_svg(
-                        os.path.join(PACKAGE, size, "places", alias + ".svg")
-                    )
-                )
+                drawing = _shipped_elements(size, "places", alias)
                 self.assertEqual(drawing, folder)
 
 
