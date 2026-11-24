@@ -295,7 +295,7 @@ theme's own choice.
     `4,13 2×2 #000000`; `8,13 2×2 #000000`.
 
   In each list the first four elements are the reels (drawn first so
-  the body covers their lower half), the next six are the body
+  the body overlaps their bottom edge), the next six are the body
   outline, fill and bevels, and the last three are the lens hood and
   the two legs. Validate by XML only, never by rasterizing:
   `convert`'s MSVG reader bleeds 1px rects, so the pins below are the
