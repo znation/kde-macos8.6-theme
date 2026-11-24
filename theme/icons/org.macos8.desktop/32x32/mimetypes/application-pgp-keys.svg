@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original PGP-key illustration pending user-approved artwork. -->
+<!-- Platinum PGP-key icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: a small window with a
+     #000000 outline, a #DDDDDD title bar with a #FFFFFF highlight and one
+     #999999 stripe, a #FFFFFF body and a black skeleton key.
+     Drawn for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Window outline. -->
+  <rect x="3" y="5" width="26" height="22" fill="#000000"/>
+  <!-- Title bar face. -->
+  <rect x="4" y="6" width="24" height="4" fill="#DDDDDD"/>
+  <!-- Title bar highlight. -->
+  <rect x="4" y="6" width="24" height="1" fill="#FFFFFF"/>
+  <!-- Title bar stripe. -->
+  <rect x="6" y="8" width="20" height="1" fill="#999999"/>
+  <!-- White body. -->
+  <rect x="4" y="11" width="24" height="15" fill="#FFFFFF"/>
+  <!-- Key bow ring. -->
+  <rect x="6" y="13" width="7" height="1" fill="#000000"/>
+  <rect x="6" y="19" width="7" height="1" fill="#000000"/>
+  <rect x="6" y="14" width="1" height="5" fill="#000000"/>
+  <rect x="12" y="14" width="1" height="5" fill="#000000"/>
+  <!-- Key stem. -->
+  <rect x="13" y="16" width="8" height="1" fill="#000000"/>
+  <!-- Key teeth. -->
+  <rect x="16" y="17" width="1" height="2" fill="#000000"/>
+  <rect x="20" y="17" width="1" height="2" fill="#000000"/>
+</svg>
