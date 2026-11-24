@@ -75,8 +75,9 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # (our own drawing of a monitor over a desktop case; the name is a
 # KDE-required value read from `libKF6Solid.so.6`), the
 # `input-keyboard` keyboard at all three sizes (our own drawing of a raised
-# face holding rows of keys and a space bar; the name is a KDE-required
-# device value read from `libKF6Solid.so.6`), the
+# face holding rows of keys and a space bar; the name is the input-device
+# icon name KDE builds as `input-` + the device name, so the library
+# carries no `input-keyboard` literal), the
 # `media-optical` optical disc at all three sizes (our own drawing of a
 # CD or DVD: a disc with white glints and a hub), the mouse
 # `input-mouse` icon at all three sizes (our own drawing of a rounded
