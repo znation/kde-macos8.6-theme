@@ -133,7 +133,12 @@ symbolic variants) and nothing but `network-server`; `network-wireless`
 and `video-display` stay unplanned siblings — no installed desktop
 entry and no `libKF6Solid.so.6.13.0` literal names either (`strings -e
 l`, checked at planning time), so their provenance needs another source
-before they are planned.
+before they are planned. The feature run's probe on 2026-11-24 (the
+manual check below) also showed `network-server-database` resolving to
+this theme's own `32x32/places/network-server.svg` — the icon-lookup
+dash fallback (dropping the `-database` segment, as with
+`phone-apple-iphone` → `phone`) answers it from the shipped name, so no
+alias file is needed and nothing is pinned for it.
 
 **Approach.**
 
