@@ -345,6 +345,36 @@ PINS = {
         _shape("rect", x="12", y="9", width="1", height="3", fill="#000000"),
         _shape("rect", x="9", y="11", width="4", height="1", fill="#000000"),
     ),
+    # The BitTorrent-file item icon KDE draws for `application/x-bittorrent`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/x-bittorrent` type, which has no
+    # `generic-icon` and no aliases, so one file covers exactly its own
+    # name); the drawing shares the generic document's page and holds a
+    # black band with a white download arrow over a tray on the white face.
+    os.path.join("32x32", "mimetypes", "application-x-bittorrent.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="10", y="15", width="12", height="7", fill="#000000"),
+        _shape("rect", x="15", y="16", width="2", height="2", fill="#FFFFFF"),
+        _shape("rect", x="14", y="18", width="4", height="1", fill="#FFFFFF"),
+        _shape("rect", x="15", y="19", width="2", height="1", fill="#FFFFFF"),
+        _shape("rect", x="12", y="21", width="8", height="1", fill="#FFFFFF"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-x-bittorrent.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="5", y="6", width="6", height="5", fill="#000000"),
+        _shape("rect", x="7", y="7", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="6", y="8", width="3", height="1", fill="#FFFFFF"),
+        _shape("rect", x="7", y="9", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="6", y="10", width="4", height="1", fill="#FFFFFF"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-x-bittorrent.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="7", y="10", width="8", height="5", fill="#000000"),
+        _shape("rect", x="10", y="11", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="9", y="12", width="3", height="1", fill="#FFFFFF"),
+        _shape("rect", x="10", y="13", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="9", y="14", width="4", height="1", fill="#FFFFFF"),
+    ),
     os.path.join("32x32", "mimetypes", "x-office-presentation.svg"): (
         *_PAGE_32,
         _shape("rect", x="10", y="12", width="12", height="9", fill="#000000"),

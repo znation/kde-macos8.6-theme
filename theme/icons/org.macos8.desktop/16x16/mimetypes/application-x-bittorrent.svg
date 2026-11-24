@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original BitTorrent-file illustration pending user-approved artwork. -->
+<!-- Platinum BitTorrent-file icon, 16x16 rendition.
+
+     Our own 16x16 drawing in the Platinum palette: the generic document's
+     page with its text lines replaced by a black band holding a white
+     download arrow over a tray. Drawn for this theme, not traced from
+     anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M3 1 h7 l3 3 v10 H3 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M4 2 h5 l3 3 v8 H4 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M9 2 L12 2 L12 5 Z" fill="#DDDDDD"/>
+  <!-- Download band. -->
+  <rect x="5" y="6" width="6" height="5" fill="#000000"/>
+  <!-- Download arrow, whole-pixel cells. -->
+  <rect x="7" y="7" width="1" height="1" fill="#FFFFFF"/>
+  <rect x="6" y="8" width="3" height="1" fill="#FFFFFF"/>
+  <rect x="7" y="9" width="1" height="1" fill="#FFFFFF"/>
+  <!-- Tray. -->
+  <rect x="6" y="10" width="4" height="1" fill="#FFFFFF"/>
+</svg>
