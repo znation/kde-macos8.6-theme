@@ -5,6 +5,87 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw programs with an original `application-x-executable` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** A program file in the file manager is drawn with Breeze's art
+beside the Platinum document and folders. Ship one original placeholder icon,
+`application-x-executable`, at 16x16, 22x22 and 32x32. The name is the
+`application/x-executable` MIME type, and the `generic-icon` of other program
+types, in the installed shared MIME database.
+
+Planning-time probe with `kiconfinder6` and a copy of the theme selected
+through scratch XDG homes: `application-x-executable` and
+`application-x-executable-script` resolved to Breeze; after
+`application-x-executable.svg` was added to the copy's three `mimetypes`
+directories, both resolved to its 32x32 file. `application-x-sharedlib`,
+`application-x-desktop`, `application-menu` and `application-exit` still
+resolved to Breeze. Those names, shell scripts, AppImages and every other
+name are out of scope: ship no alias files and no `application-x-generic`.
+
+**Approach.**
+
+- Add `mimetypes/application-x-executable.svg` under `16x16`, `22x22` and
+  `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme` already
+  declares the three directories. Give each file the XML declaration, the
+  comment
+  `<!-- PLACEHOLDER: original program illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette, not
+  traced from anyone's artwork, and a root with matching `width`, `height`
+  and `viewBox`. The art is a small window (outline, title bar with one grey
+  stripe, white body) holding a black right-pointing triangle built from
+  whole-pixel columns, so no edge is antialiased. Each file holds these
+  `rect` elements in order, written `x,y width×height fill`:
+  - 32x32: `3,5 26×22 #000000`; `4,6 24×4 #DDDDDD`; `4,6 24×1 #FFFFFF`;
+    `6,8 20×1 #999999`; `4,11 24×15 #FFFFFF`; then, all `#000000`,
+    `13,13 2×11`; `15,14 2×9`; `17,15 2×7`; `19,16 2×5`; `21,17 2×3`.
+  - 22x22: `2,3 18×16 #000000`; `3,4 16×3 #DDDDDD`; `3,4 16×1 #FFFFFF`;
+    `5,5 12×1 #999999`; `3,8 16×10 #FFFFFF`; then, all `#000000`,
+    `9,9 1×8`; `10,10 1×6`; `11,11 1×4`; `12,12 1×2`.
+  - 16x16: `1,2 14×12 #000000`; `2,3 12×3 #DDDDDD`; `2,3 12×1 #FFFFFF`;
+    `4,4 8×1 #999999`; `2,7 12×6 #FFFFFF`; then, both `#000000`,
+    `6,8 2×4`; `8,9 2×2`.
+- `PLACEHOLDERS.md`: one row per file beside that size's `text-x-generic`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `mimetypes` paths, and name the program
+  icon in the comment above it.
+- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-x-executable` in the last cell: no reference
+  pixels were used, the name is a KDE-required value from the shared MIME
+  database, and the drawing is this theme's own choice.
+- `docs/installing.md`: add the program icon to the sentence listing the
+  icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the rectangles listed for that size, carries a placeholder marker and has a
+  `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing a rectangle's position, size or fill, or the element order, in
+  one file makes the geometry test fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts the
+  three files in the installed theme, and uninstalling removes them (the
+  existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. The two executable names resolve to the
+  theme's file and the four names listed as still on Breeze stay there.
+  Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw optical discs with an original `media-optical` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** An inserted CD or DVD is drawn with Breeze's art beside the
