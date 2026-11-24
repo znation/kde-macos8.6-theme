@@ -71,7 +71,7 @@ class TestDataHomeLock(ThemeLockCase):
     def test_apply_refuses_while_an_install_or_uninstall_holds_the_data_home_lock(self):
         self.hold_data_lock()
 
-        result = assert_run_lock_time_out(
+        assert_run_lock_time_out(
             self,
             apply_theme,
             self.run_tool,

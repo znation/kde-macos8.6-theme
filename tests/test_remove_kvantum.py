@@ -299,7 +299,7 @@ class TestSelectionRemoval(RemoveKvantumCase):
         hold_directory_flock(self, lock_dir)
         before = self.read_bytes()
 
-        result = assert_run_lock_time_out(
+        assert_run_lock_time_out(
             self,
             kvantum_selection,
             self.run_tool,

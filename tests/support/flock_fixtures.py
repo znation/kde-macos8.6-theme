@@ -49,8 +49,8 @@ def assert_run_lock_time_out(case, module, run, message, path):
     ``LOCK_TIMEOUT`` is patched to :data:`LOCK_TIME_OUT_TEST_SECONDS`, and
     asserts the shared bounded-wait refusal: exit 2 with no traceback, the
     holder diagnostic *message* and the locked *path* on stderr. This helper
-    does those three steps once and returns the ``CompletedProcess`` for each
-    site's follow-up assertions. Its call sites are the lock-time-out suites
+    does those three steps once, so no suite repeats the three-part
+    assertion. Its call sites are the lock-time-out suites
     ``tests/test_apply_gtk_locks.py``, ``tests/test_apply_theme_locks.py``,
     ``tests/test_apply_cursor_locks.py``,
     ``tests/test_install_firefox_lock.py`` and ``tests/test_remove_kvantum.py``.
@@ -58,4 +58,3 @@ def assert_run_lock_time_out(case, module, run, message, path):
     with mock.patch.object(module, "LOCK_TIMEOUT", LOCK_TIME_OUT_TEST_SECONDS):
         result = run()
     assert_lock_time_out(case, result, message, path)
-    return result

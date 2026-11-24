@@ -36,7 +36,7 @@ class TestProfileLock(FirefoxProfileTestCase):
     ):
         self.hold_profile_lock()
 
-        result = assert_run_lock_time_out(
+        assert_run_lock_time_out(
             self,
             install_firefox,
             lambda: self.run_tool("--profile", str(self.profile)),
@@ -52,7 +52,7 @@ class TestProfileLock(FirefoxProfileTestCase):
         before_js = self.user_js_path().read_bytes()
         self.hold_profile_lock()
 
-        result = assert_run_lock_time_out(
+        assert_run_lock_time_out(
             self,
             install_firefox,
             lambda: self.run_tool("--remove", "--profile", str(self.profile)),

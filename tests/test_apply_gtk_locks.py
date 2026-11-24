@@ -47,7 +47,7 @@ class TestConfigLock(ApplyGtkTestCase):
         self.write(self.settings("gtk-3.0"), before)
         self.hold_config_lock()
 
-        result = assert_run_lock_time_out(
+        assert_run_lock_time_out(
             self,
             apply_gtk,
             self.run_tool,
@@ -76,7 +76,7 @@ class TestConfigLock(ApplyGtkTestCase):
         self.write(self.settings("gtk-3.0"), before)
         self.hold_config_lock()
 
-        result = assert_run_lock_time_out(
+        assert_run_lock_time_out(
             self,
             apply_gtk,
             lambda: self.run_tool("--remove"),
@@ -90,7 +90,7 @@ class TestConfigLock(ApplyGtkTestCase):
     def test_remove_waits_for_the_lock_even_without_a_config_home(self):
         self.hold_config_lock()
 
-        result = assert_run_lock_time_out(
+        assert_run_lock_time_out(
             self,
             apply_gtk,
             lambda: self.run_tool("--remove"),
@@ -149,7 +149,7 @@ class TestDataHomeLock(ApplyGtkTestCase):
         self.write(self.settings("gtk-3.0"), before)
         self.hold_data_lock()
 
-        result = assert_run_lock_time_out(
+        assert_run_lock_time_out(
             self,
             apply_gtk,
             self.run_tool,

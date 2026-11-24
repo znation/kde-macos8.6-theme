@@ -68,7 +68,7 @@ class TestDataHomeLock(CursorLockCase):
         os.symlink(str(self.installed), str(self.link))
         self.hold_data_lock()
 
-        result = assert_run_lock_time_out(
+        assert_run_lock_time_out(
             self,
             cursor_workflow,
             lambda: self.run_tool("--remove"),
@@ -81,7 +81,7 @@ class TestDataHomeLock(CursorLockCase):
         self.stub_selector()
         self.hold_data_lock()
 
-        result = assert_run_lock_time_out(
+        assert_run_lock_time_out(
             self,
             cursor_workflow,
             self.run_tool,

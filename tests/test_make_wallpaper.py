@@ -115,7 +115,6 @@ class ContainmentCase(WallpaperCase):
 
 class TestMain(WallpaperCase):
     def test_writes_one_desktop_field_image_per_resolution_without_a_reference(self):
-        width, height = X0 + TILE, Y0 + TILE
         status, err = self.run_main()
         self.assertEqual((status, err), (0, ""))
         self.assertEqual(

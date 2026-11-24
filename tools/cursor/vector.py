@@ -166,9 +166,9 @@ def _pixel_counts(edges, width, scale, offsets, px, py):
     """
     black = 0
     white = 0
-    for j, dy in enumerate(offsets):
+    for dy in offsets:
         sy = (py + dy) * scale
-        for i, dx in enumerate(offsets):
+        for dx in offsets:
             sx = (px + dx) * scale
             inside = False
             for (x1, y1), (x2, y2) in edges:
