@@ -23,7 +23,10 @@ class TestSessionSetup(unittest.TestCase):
         with render_session.Session.create() as session:
             root = session.root
             self.assertTrue(root.name.startswith("render-surface-"))
-            for directory in (session.runtime, session.config, session.data, session.home):
+            for directory in (
+                session.runtime, session.config, session.data, session.cache,
+                session.home,
+            ):
                 with self.subTest(directory=directory.name):
                     self.assertTrue(directory.is_dir())
             self.assertEqual(0o700, stat.S_IMODE(session.runtime.stat().st_mode))
@@ -71,6 +74,19 @@ class TestSessionSetup(unittest.TestCase):
                 str(session.config), session.environment["XDG_CONFIG_HOME"]
             )
             self.assertEqual(str(session.data), session.environment["XDG_DATA_HOME"])
+            self.assertEqual(str(session.cache), session.environment["XDG_CACHE_HOME"])
+
+    def test_environment_replaces_the_callers_cache_home(self):
+        # The session's clients write their caches (fontconfig, ksycoca, the
+        # icon cache) under XDG_CACHE_HOME, so the caller's value must not
+        # survive: it would leak the session's cache writes into the running
+        # user's real cache home and let the capture depend on what that
+        # cache already holds, the same leak the other scratch homes close.
+        with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": "/ambient/cache"}):
+            with render_session.Session.create() as session:
+                environment = session.environment
+        self.assertEqual(str(session.cache), environment["XDG_CACHE_HOME"])
+        self.assertNotEqual("/ambient/cache", environment["XDG_CACHE_HOME"])
 
     def test_environment_disables_kwin_screenshot_authorization(self):
         # The nested compositor cannot map its clients to a desktop-file

@@ -62,17 +62,21 @@ def _remove_scratch_root(root: Path) -> None:
         )
 
 
-def _session_directories(root: Path) -> tuple[Path, Path, Path, Path, Path]:
-    runtime, config, data = (root / name for name in ("rt", "cfg", "data"))
+def _session_directories(root: Path) -> tuple[Path, Path, Path, Path, Path, Path]:
+    runtime, config, data, cache = (
+        root / name for name in ("rt", "cfg", "data", "cache")
+    )
     home = root / "home"
     home.mkdir()
-    for directory in (runtime, config, data):
+    for directory in (runtime, config, data, cache):
         directory.mkdir()
     runtime.chmod(0o700)
-    return runtime, config, data, home, root / "surface.png"
+    return runtime, config, data, home, cache, root / "surface.png"
 
 
-def _session_environment(runtime: Path, config: Path, data: Path, home: Path) -> dict[str, str]:
+def _session_environment(
+    runtime: Path, config: Path, data: Path, home: Path, cache: Path,
+) -> dict[str, str]:
     dropped_environment = {
         "WAYLAND_DISPLAY", "DISPLAY", "DESTDIR", "MAKEFLAGS", "MAKEFILES",
         "XDG_CONFIG_DIRS", "LANGUAGE",
@@ -81,11 +85,17 @@ def _session_environment(runtime: Path, config: Path, data: Path, home: Path) ->
         key: value for key, value in os.environ.items()
         if key not in dropped_environment
     }
+    # The cache home is pinned like the other scratch homes: the session's
+    # clients write caches under it (fontconfig, ksycoca, the icon cache),
+    # so the caller's XDG_CACHE_HOME would both leak those writes into the
+    # running user's real cache home and let the capture depend on what
+    # that cache already holds.
     environment.update(
         XDG_RUNTIME_DIR=str(runtime), WAYLAND_DISPLAY=SOCKET,
         QT_QPA_PLATFORM="offscreen", KWIN_SCREENSHOT_NO_PERMISSION_CHECKS="1",
         SPECTACLE_VIDEO_PLATFORM="VideoPlatformNull",
         XDG_CONFIG_HOME=str(config), XDG_DATA_HOME=str(data), HOME=str(home),
+        XDG_CACHE_HOME=str(cache),
         LANG=MEASUREMENT_LOCALE, LC_ALL=MEASUREMENT_LOCALE,
     )
     return environment
@@ -113,6 +123,7 @@ class Session:
     runtime: Path
     config: Path
     data: Path
+    cache: Path
     home: Path
     surface: Path
     install_log: Path
@@ -124,8 +135,10 @@ class Session:
         """Create a fresh scratch session, removing it if setup fails."""
         root = Path(tempfile.mkdtemp(prefix="render-surface-"))
         try:
-            runtime, config, data, home, surface = _session_directories(root)
-            environment = _session_environment(runtime, config, data, home)
+            runtime, config, data, home, cache, surface = _session_directories(
+                root,
+            )
+            environment = _session_environment(runtime, config, data, home, cache)
         except BaseException:
             _remove_scratch_root(root)
             raise
@@ -134,6 +147,7 @@ class Session:
             runtime=runtime,
             config=config,
             data=data,
+            cache=cache,
             home=home,
             surface=surface,
             install_log=root / "install.log",
