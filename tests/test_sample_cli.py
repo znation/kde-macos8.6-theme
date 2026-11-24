@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import unittest
 import json
+import os
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -315,6 +316,32 @@ class TestSampleCli(CliTestCase):
         result = self._run(missing, "0", "0")
         self._assert_usage_error(result, "cannot read", missing)
         self.assertIn("No such file or directory", result.stderr)
+
+    def test_a_directory_input_is_refused_as_not_a_regular_file(self):
+        # os.open succeeds on a directory, so the sampler must check the
+        # opened object's own type before reading it; the refusal names the
+        # path the operator typed, not the kernel's EISDIR, which would read
+        # like an internal failure instead of a wrong argument.
+        tmp = self._tmp_dir()
+        directory = tmp / "reference.png"
+        directory.mkdir()
+        result = self._run(str(directory), "0", "0")
+        self._assert_usage_error(result, "cannot read", str(directory),
+                                 "not a regular file")
+        self.assertNotIn("Errno", result.stderr)
+        self.assertEqual(result.stdout, "")
+
+    def test_a_fifo_input_is_refused_as_not_a_regular_file(self):
+        # A FIFO also opens successfully (O_NONBLOCK, read side), and a read
+        # from it would block the session or fail with EAGAIN; the opened
+        # object's type check refuses it before any bytes are read.
+        tmp = self._tmp_dir()
+        fifo = tmp / "reference.png"
+        os.mkfifo(fifo)
+        result = self._run(str(fifo), "0", "0")
+        self._assert_usage_error(result, "cannot read", str(fifo),
+                                 "not a regular file")
+        self.assertEqual(result.stdout, "")
 
     def test_in_repo_decode_error_names_the_typed_path(self):
         # An in-repo read goes through a stable ``/proc/self/fd`` handle so a
