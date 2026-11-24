@@ -5,13 +5,11 @@ import unittest
 from support.gtk_css import strip_comments
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
-    BUTTON_BEVEL,
     DISABLED_TEXT,
     ENTRY_FIELD,
-    ETCH_DARK,
-    INVERTED_BUTTON_BEVEL,
+    osd_button_arms,
 )
-from support.platinum_palette import BLACK, FACE
+from support.platinum_palette import BLACK
 from support.repo_root import ROOT
 
 
@@ -127,16 +125,7 @@ class TestGtkThemeOsdFields(GtkSheetRuleCases, unittest.TestCase):
 
     def test_osd_spinbutton_buttons(self):
         """Pin the twelve OSD spinbutton stepper arms to push-button faces."""
-        base = {
-            "background-color": FACE, "background-image": "none",
-            "border": f"1px solid {BLACK}", "border-radius": "0",
-            "box-shadow": BUTTON_BEVEL, "color": BLACK,
-            "outline-color": BLACK, "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        active = {**base, "box-shadow": INVERTED_BUTTON_BEVEL}
-        disabled = {**base, "color": ETCH_DARK}
-        del disabled["outline-color"]
+        base, active, disabled = osd_button_arms()
         def horizontal(declarations):
             return declarations
 

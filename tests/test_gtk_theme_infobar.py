@@ -6,13 +6,8 @@ import unittest
 
 from support import gtk_css
 from support.gtk_rule_cases import GtkSheetRuleCases
-from support.gtk_theme_spec import (
-    BUTTON_BEVEL,
-    DISABLED_TEXT,
-    INVERTED_BUTTON_BEVEL,
-    LINK,
-)
-from support.platinum_palette import BLACK, FACE, SELECTION
+from support.gtk_theme_spec import LINK, osd_button_arms
+from support.platinum_palette import BLACK, SELECTION
 from support.repo_root import ROOT
 
 
@@ -43,24 +38,7 @@ class TestGtkThemeInfobar(GtkSheetRuleCases, unittest.TestCase):
         chain ``infobar > revealer > box`` and name no message type, so
         ``test_infobar``'s ban stays green uncited here.
         """
-        face = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border": f"1px solid {BLACK}",
-            "border-radius": "0",
-            "box-shadow": BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        pressed = {**face, "box-shadow": INVERTED_BUTTON_BEVEL}
-        # The existing `.osd button:disabled` shape: no ``outline-color``,
-        # the Inactive grey (DISABLED_TEXT) label ink.
-        disabled = {
-            **{k: v for k, v in face.items() if k != "outline-color"},
-            "color": DISABLED_TEXT["color"],
-        }
+        face, pressed, disabled = osd_button_arms()
         expected = {
             "infobar > revealer > box button": face,
             "infobar > revealer > box button:hover": face,

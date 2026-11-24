@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 
 from support.gtk4_sheet import SCALE_FOCUS, SCALE_SLIDER, Gtk4SheetRuleCases
-from support.gtk_theme_spec import BUTTON_BEVEL, RAISED_BEVEL
+from support.gtk_theme_spec import OSD_BUTTON_RECIPE, RAISED_BEVEL
 from support.platinum_palette import BLACK, FACE, TROUGH
 
 
@@ -35,17 +35,7 @@ class TestGtk4Scale(Gtk4SheetRuleCases, unittest.TestCase):
         border and no bevel at (0,2,1)/(0,1,1), outranking the existing
         base ``button`` group's (0,0,1) face, border and bevel.
         """
-        recipe = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border": f"1px solid {BLACK}",
-            "border-radius": "0",
-            "box-shadow": BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
+        recipe = OSD_BUTTON_RECIPE
         self.assertEqual(self.rules[".osd .scale-popup button.flat"], recipe)
         self.assertEqual(self.rules[".scale-popup button:hover"], recipe)
         self.assertEqual(

@@ -4,8 +4,7 @@ import unittest
 
 from support.gtk.osd_cases import OsdSelectorAssertions
 from support.gtk_rule_cases import GtkSheetRuleCases
-from support.gtk_theme_spec import BUTTON_BEVEL, INVERTED_BUTTON_BEVEL, ETCH_DARK
-from support.platinum_palette import BLACK, FACE
+from support.gtk_theme_spec import ETCH_DARK, osd_button_arms
 from support.repo_root import ROOT
 
 
@@ -38,28 +37,7 @@ class TestGtkThemeOsdFlat(
         labels stay grey; active/checked keeps stock's sheet-order win over
         hover.
         """
-        recipe = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border": f"1px solid {BLACK}",
-            "border-radius": "0",
-            "box-shadow": BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        active = {**recipe, "box-shadow": INVERTED_BUTTON_BEVEL}
-        disabled = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border": f"1px solid {BLACK}",
-            "border-radius": "0",
-            "box-shadow": BUTTON_BEVEL,
-            "color": ETCH_DARK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
+        recipe, active, disabled = osd_button_arms()
         expected = [
             (recipe, (
                 ".app-notification button.flat",

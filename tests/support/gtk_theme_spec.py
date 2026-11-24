@@ -73,6 +73,55 @@ RAISED_BEVEL = f"inset 1px 1px {WHITE}, inset -1px -1px {GREY}"
 BUTTON_BEVEL = f"inset 1px 1px {WHITE}, inset -1px -1px {BUTTON_SHADOW}"
 INVERTED_BUTTON_BEVEL = f"inset 1px 1px {BUTTON_SHADOW}, inset -1px -1px {WHITE}"
 
+# The OSD push-button recipe the sheets restate across their overlay
+# families: the raised push-button face (square, 1px black border,
+# ``BUTTON_BEVEL``, black label) the osd-scoped ``button``, ``button.flat``
+# and action-class arms all draw. The GTK 3 suites go through
+# ``osd_button_arms``; ``test_gtk4_scale`` pins its scale-popup arm with the
+# constant alone.
+OSD_BUTTON_RECIPE = {
+    "background-color": FACE,
+    "background-image": "none",
+    "border": f"1px solid {BLACK}",
+    "border-radius": "0",
+    "box-shadow": BUTTON_BEVEL,
+    "color": BLACK,
+    "outline-color": BLACK,
+    "text-shadow": "none",
+    "-gtk-icon-shadow": "none",
+}
+
+
+def osd_button_arms(clip=False):
+    """Return the OSD button's (resting, active, disabled) declarations.
+
+    The resting arm is :data:`OSD_BUTTON_RECIPE`, plus
+    ``background-clip: border-box`` when *clip* (the stock
+    destructive/suggested-action arms carry it); the active arm swaps only
+    the box-shadow to ``INVERTED_BUTTON_BEVEL``; the disabled arm keeps
+    ``BUTTON_BEVEL`` with the Inactive grey (``ETCH_DARK``) and no
+    ``outline-color``. Returns fresh dicts, so a suite may trim or extend
+    its own copy without touching the shared recipe.
+
+    Called by the six GTK 3 sheet suites that pin its restatements: the
+    five OSD rule families ``test_gtk_theme_osd_buttons``,
+    ``test_gtk_theme_osd_flat`` and ``test_gtk_theme_osd_fields`` without
+    *clip*, ``test_gtk_theme_osd_destructive`` and
+    ``test_gtk_theme_osd_suggested`` with ``clip=True``, and
+    ``test_gtk_theme_infobar`` without *clip* (its untyped bar-button
+    family restates the same face the ``.app-notification`` and ``.osd``
+    button groups pin). The non-OSD suites restate their own
+    ``border-color``-spelled faces and stay local.
+    """
+    base = dict(OSD_BUTTON_RECIPE)
+    if clip:
+        base["background-clip"] = "border-box"
+    active = {**base, "box-shadow": INVERTED_BUTTON_BEVEL}
+    disabled = {**base, "color": ETCH_DARK}
+    del disabled["outline-color"]
+    return base, active, disabled
+
+
 # The progress-bar and scale spec both sheets implement. Their selectors differ
 # (GTK 3 names the nodes as descendants, GTK 4 as children), but the trough,
 # selection fill and beveled thumb declarations must match.

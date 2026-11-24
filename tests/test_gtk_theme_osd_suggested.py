@@ -4,8 +4,7 @@ import unittest
 
 from support.gtk.osd_cases import OsdSelectorAssertions
 from support.gtk_rule_cases import GtkSheetRuleCases
-from support.gtk_theme_spec import BUTTON_BEVEL, INVERTED_BUTTON_BEVEL, ETCH_DARK
-from support.platinum_palette import BLACK, FACE
+from support.gtk_theme_spec import osd_button_arms
 from support.repo_root import ROOT
 
 
@@ -44,21 +43,7 @@ class TestGtkThemeOsdSuggested(
         the active/checked arm keeps stock's sheet-order win over the
         hover arm.
         """
-        base = {
-            "background-color": FACE,
-            "background-image": "none",
-            "background-clip": "border-box",
-            "border": f"1px solid {BLACK}",
-            "border-radius": "0",
-            "box-shadow": BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        active = {**base, "box-shadow": INVERTED_BUTTON_BEVEL}
-        disabled = {**base, "color": ETCH_DARK}
-        del disabled["outline-color"]
+        base, active, disabled = osd_button_arms(clip=True)
         expected = [
             (base, (
                 ".osd button.suggested-action",
