@@ -177,15 +177,17 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # database), the video
 # `video-x-generic` icon at all three sizes (our own drawing of a display
 # screen with a play triangle and a stand; the name is the `generic-icon`
-# of 13 video MIME types in the installed shared MIME database —
+# of 14 video MIME types in the installed shared MIME database —
 # `application/smil+xml`, `application/vnd.ms-wpl`, `video/x-flv`,
 # `video/x-javafx`, `video/vnd.youtube.yt`, `application/x-matroska`,
-# `application/mxf`, `application/annodex`,
+# `application/mxf`, `application/annodex`, `application/ogg`,
 # `application/x-quicktime-media-link`,
 # `application/vnd.adobe.flash.movie`, `application/vnd.rn-realmedia`,
 # `application/x-netshow-channel` and `application/sdp` — and, through
 # KIconLoader's generic fallback, also covers `video/mp4`, `video/webm`
-# and `video/mpeg`), the font
+# and `video/mpeg`; of those 14, `application/ogg` no longer reaches the
+# generic fallback because the theme ships the exact-name
+# `application-ogg` file its items draw), the font
 # `font-x-generic` icon at all three sizes (our own drawing of the
 # generic document's page under a capital letter A; the name is the
 # `generic-icon` of the 23 font MIME types in the installed shared MIME
