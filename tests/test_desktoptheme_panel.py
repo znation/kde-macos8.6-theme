@@ -42,19 +42,19 @@ PANEL_EDGE_PIXELS = {
 
 
 # Every pixel of each `north-` slice (the top-edge panel state), row-major in
-# slice-local coordinates. Row 0 of the 8x18 centre is the bar's white
-# highlight, which Plasma never lets the top slices draw; rows 1..17 are the
+# slice-local coordinates. Row 0 of the 8x1080 centre is the bar's white
+# highlight, which Plasma never lets the top slices draw; rows 1..1079 are the
 # #DDDDDD body. The side slices continue that row 0 highlight.
 NORTH_EDGE_PIXELS = {
     "north-top": (8, 2, ("#FFFFFF",) * 8 + ("#DDDDDD",) * 8),
     "north-bottom": (8, 2, ("#999999",) * 8 + ("#000000",) * 8),
     "north-left": (
-        2, 18, ("#FFFFFF", "#FFFFFF") + ("#FFFFFF", "#DDDDDD") * 17
+        2, 1080, ("#FFFFFF", "#FFFFFF") + ("#FFFFFF", "#DDDDDD") * 1079
     ),
     "north-right": (
-        2, 18, ("#FFFFFF", "#999999") + ("#DDDDDD", "#999999") * 17
+        2, 1080, ("#FFFFFF", "#999999") + ("#DDDDDD", "#999999") * 1079
     ),
-    "north-center": (8, 18, ("#FFFFFF",) * 8 + ("#DDDDDD",) * 136),
+    "north-center": (8, 1080, ("#FFFFFF",) * 8 + ("#DDDDDD",) * (8 * 1079)),
     "north-topleft": (2, 2, ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#DDDDDD")),
     "north-topright": (2, 2, ("#FFFFFF", "#999999", "#DDDDDD", "#999999")),
     "north-bottomleft": (2, 2, ("#999999", "#999999", "#000000", "#000000")),
@@ -80,10 +80,10 @@ class TestPanelBackground(NineSliceCase, unittest.TestCase):
                 "hint-right-margin": ("10", "2", "2", "2"),
                 **nine_slice_inset_hints("", 2, 8, 8),
                 "north-hint-top-margin": ("2", "0", "2", "2"),
-                "north-hint-bottom-margin": ("2", "20", "2", "2"),
+                "north-hint-bottom-margin": ("2", "1082", "2", "2"),
                 "north-hint-left-margin": ("0", "2", "2", "2"),
                 "north-hint-right-margin": ("10", "2", "2", "2"),
-                **nine_slice_inset_hints("north", 2, 8, 18),
+                **nine_slice_inset_hints("north", 2, 8, 1080),
             },
         )
 
@@ -113,6 +113,30 @@ class TestPanelBackground(NineSliceCase, unittest.TestCase):
             containment.read_bytes(SOLID_PANEL_SVG, ROOT),
             containment.read_bytes(PANEL_SVG, ROOT),
         )
+
+    def test_north_centre_tile_repeats_one_highlight_row(self):
+        # Plasma tiles `north-center` down a top panel taller than the tile.
+        # Only the tile's own row 0 is the white highlight, so over a 30-row
+        # centre (a 32px bar at 1.5x scale, past the 20px layout) exactly one
+        # row may be #FFFFFF. An 18-row tile repeats the highlight at row 18.
+        centre = next(
+            el for el in self.tree.iter() if el.get("id") == "north-center"
+        )
+        body = [r for r in centre if r.get("fill") == "#DDDDDD"]
+        white = [r for r in centre if r.get("fill") == "#FFFFFF"]
+        self.assertEqual(len(body), 1)
+        tile_height = int(body[0].get("height"))
+        panel_rows = 30
+        highlighted = [
+            y
+            for y in range(panel_rows)
+            if any(
+                int(r.get("y", "0")) <= y % tile_height
+                < int(r.get("y", "0")) + int(r.get("height", "0"))
+                for r in white
+            )
+        ]
+        self.assertEqual(highlighted, [0])
 
     def test_north_state_pixels(self):
         # A top-edge panel draws the `north-` state, and Plasma draws only its

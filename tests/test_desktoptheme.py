@@ -80,8 +80,8 @@ PLASMA_SECTION = "plasmarc][Theme"
 
 # Each shipped SVG's root canvas. Seven widgets (the frame, button,
 # line edit, list item, view item, tab bar and plasmoid heading) share a tight
-# 12x12 canvas; the menu bar is 12x22 (its `north-` state is 18px tall in the
-# centre); the menu-bar item is 20x12 (7px side borders); the pager is 12x9
+# 12x12 canvas; the menu bar is 12x1084 (its `north-` state is an 1080px-tall
+# centre, so a taller top panel tiles no highlight row); the menu-bar item is 20x12 (7px side borders); the pager is 12x9
 # (a 1px border around a 10x7 cell); the scrollbar,
 # slider, toolbar, arrows, menu body, tooltip (and its solid/ copy) and dialog
 # window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
@@ -98,8 +98,8 @@ PLASMA_SECTION = "plasmarc][Theme"
 # the analog clock plasmoid's nine side-by-side element columns
 # (face, screw, shadow pairs, hands and glass).
 SVG_CANVASES = (
-    ("panel-background.svg", PANEL_SVG, 12, 22),
-    ("solid/widgets/panel-background.svg", SOLID_PANEL_SVG, 12, 22),
+    ("panel-background.svg", PANEL_SVG, 12, 1084),
+    ("solid/widgets/panel-background.svg", SOLID_PANEL_SVG, 12, 1084),
     ("frame.svg", FRAME_SVG, 12, 12),
     ("button.svg", BUTTON_SVG, 12, 12),
     ("lineedit.svg", LINEEDIT_SVG, 12, 12),
@@ -143,7 +143,7 @@ class TestMetadata(PackageMetadata, unittest.TestCase):
     PLASMA_API_VERSION = "5.0"
 
 
-# The menu bar's unprefixed state sits at the origin of the 12x22 canvas grown
+# The menu bar's unprefixed state sits at the origin of the 12x1084 canvas grown
 # for its taller `north-` state, so its margin rects stop above the bottom.
 # The switch's inactive/active tracks likewise sit at the origin of the 30x18
 # canvas grown to hold the 18px thumb, so their margin rects stop short of the

@@ -20,7 +20,8 @@ from .tree import _numeric_attribute, children_named, groups_with_id
 # with width="100000" height="100000" would allocate 10^10 entries and exhaust
 # `make check`. The cap is 256x256 pixels across one SVG; the largest total
 # rect area in any shipped theme SVG (measured by summing every rect's
-# width*height per file) is 1408, so real artwork sits far below it.
+# width*height per file) is 53160 (the Kvantum `org.macos8.desktop.svg`), so
+# real artwork sits below it.
 _MAX_RENDERED_PIXELS = 1 << 16
 
 # Composited pixels, keyed by the parsed tree's identity. A widget suite

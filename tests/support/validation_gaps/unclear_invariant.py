@@ -15,7 +15,7 @@ from collections import namedtuple
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of merging uncovered.
-UNCLEAR_INVARIANT_BASELINE = 38
+UNCLEAR_INVARIANT_BASELINE = 39
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -412,5 +412,13 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         "tests/test_gtk_uninstall_diagnostic.py::TestGtkSettingsLatch"
         "::test_latches_when_a_later_duplicate_names_a_foreign_theme",
         GTK_SETTINGS_LATCH_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "north-state-tall-panel-tiling",
+        ("A white line runs through a top panel taller than 20px",),
+        "tests/test_desktoptheme_panel.py::TestPanelBackground"
+        "::test_north_centre_tile_repeats_one_highlight_row",
+        "the `north-center` tile is 1080 rows tall, so a top panel up to that "
+        "height repeats no highlight row past row 0",
     ),
 )

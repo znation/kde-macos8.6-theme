@@ -14,14 +14,17 @@
      adjustPrefix() picks the prefix `north`). Plasma drops every border that
      lies on a screen edge, so a full-width top bar never draws its top, left
      or right slices; the white row 0 therefore lives in `north-center`, an
-     8x18 tile whose first row is #FFFFFF. The 12x22 canvas holds both states,
+     8x1080 tile whose first row is #FFFFFF. Plasma tiles it down a taller
+     top panel from its top edge, so the cut-off bottom leaves one highlight
+     row per panel; the 1082-row bottom slice sits below it. The 12x1084 canvas
+     holds both states,
      overlapping at the origin. `hint-tile-center` is read without a prefix,
      so the 8x8 hint also tiles the north centre 1:1.
 
      Known limits, unreachable through panel-background: the reference's
      rounded black screen corners (x 0..4 and 1019..1023 of row 0) and its
      1px #FFFFFF left column and #999999 right column at the screen edges. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="12" height="22" viewBox="0 0 12 22">
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="1084" viewBox="0 0 12 1084">
   <!-- Nine-slice hints: tile size, border margins, and zero insets. -->
   <rect id="hint-tile-center" x="2" y="2" width="8" height="8" style="fill:#ff6600"/>
   <rect id="hint-top-margin" x="2" y="0" width="2" height="2" style="fill:#ff00ff"/>
@@ -33,15 +36,15 @@
   <rect id="hint-left-inset" x="0" y="2" width="0" height="8" style="fill:#00ff00"/>
   <rect id="hint-right-inset" x="12" y="2" width="0" height="8" style="fill:#00ff00"/>
 
-  <!-- North (top-panel) state: 2px border around an 8x18 centre. -->
+  <!-- North (top-panel) state: 2px border around an 8x1080 centre. -->
   <rect id="north-hint-top-margin" x="2" y="0" width="2" height="2" style="fill:#ff00ff"/>
-  <rect id="north-hint-bottom-margin" x="2" y="20" width="2" height="2" style="fill:#ff00ff"/>
+  <rect id="north-hint-bottom-margin" x="2" y="1082" width="2" height="2" style="fill:#ff00ff"/>
   <rect id="north-hint-left-margin" x="0" y="2" width="2" height="2" style="fill:#ff00ff"/>
   <rect id="north-hint-right-margin" x="10" y="2" width="2" height="2" style="fill:#ff00ff"/>
   <rect id="north-hint-top-inset" x="2" y="0" width="8" height="0" style="fill:#00ff00"/>
-  <rect id="north-hint-bottom-inset" x="2" y="22" width="8" height="0" style="fill:#00ff00"/>
-  <rect id="north-hint-left-inset" x="0" y="2" width="0" height="18" style="fill:#00ff00"/>
-  <rect id="north-hint-right-inset" x="12" y="2" width="0" height="18" style="fill:#00ff00"/>
+  <rect id="north-hint-bottom-inset" x="2" y="1084" width="8" height="0" style="fill:#00ff00"/>
+  <rect id="north-hint-left-inset" x="0" y="2" width="0" height="1080" style="fill:#00ff00"/>
+  <rect id="north-hint-right-inset" x="12" y="2" width="0" height="1080" style="fill:#00ff00"/>
 
   <!-- Top edge: outer 1px highlight, then body. -->
   <g id="top" transform="translate(2,0)">
@@ -105,26 +108,26 @@
     <rect x="0" y="0" width="8" height="1" fill="#FFFFFF"/>
   </g>
 
-  <g id="north-bottom" transform="translate(2,20)">
+  <g id="north-bottom" transform="translate(2,1082)">
     <rect x="0" y="0" width="8" height="2" fill="#DDDDDD"/>
     <rect x="0" y="0" width="8" height="1" fill="#999999"/>
     <rect x="0" y="1" width="8" height="1" fill="#000000"/>
   </g>
 
   <g id="north-left" transform="translate(0,2)">
-    <rect x="0" y="0" width="2" height="18" fill="#DDDDDD"/>
-    <rect x="0" y="0" width="1" height="18" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="1080" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="1" height="1080" fill="#FFFFFF"/>
     <rect x="0" y="0" width="2" height="1" fill="#FFFFFF"/>
   </g>
 
   <g id="north-right" transform="translate(10,2)">
-    <rect x="0" y="0" width="2" height="18" fill="#DDDDDD"/>
-    <rect x="1" y="0" width="1" height="18" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="1080" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="1080" fill="#999999"/>
     <rect x="0" y="0" width="1" height="1" fill="#FFFFFF"/>
   </g>
 
   <g id="north-center" transform="translate(2,2)">
-    <rect x="0" y="0" width="8" height="18" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="8" height="1080" fill="#DDDDDD"/>
     <rect x="0" y="0" width="8" height="1" fill="#FFFFFF"/>
   </g>
 
@@ -140,14 +143,14 @@
     <rect x="1" y="0" width="1" height="2" fill="#999999"/>
   </g>
 
-  <g id="north-bottomleft" transform="translate(0,20)">
+  <g id="north-bottomleft" transform="translate(0,1082)">
     <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
     <rect x="0" y="0" width="1" height="2" fill="#FFFFFF"/>
     <rect x="0" y="0" width="2" height="1" fill="#999999"/>
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
   </g>
 
-  <g id="north-bottomright" transform="translate(10,20)">
+  <g id="north-bottomright" transform="translate(10,1082)">
     <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
     <rect x="1" y="0" width="1" height="2" fill="#999999"/>
     <rect x="0" y="0" width="2" height="1" fill="#999999"/>

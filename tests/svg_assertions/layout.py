@@ -210,9 +210,9 @@ def assert_slices_stay_within_their_tiles(case, tree, prefixes, hint_aliases=Non
                 # `hint-right-margin`/`hint-bottom-margin` could declare a
                 # canvas whose tile region holds 10^10 pixels; the set below
                 # would then exhaust memory. Cap it the way render_slices caps
-                # the same artwork's rects. The largest region any shipped
-                # nine-slice SVG has is 144 pixels (panel-background.svg's
-                # 8x18 north-center tile).
+                # the same artwork's rects. panel-background.svg's 8x1080
+                # north-center tile, at 8640 pixels, is the largest region
+                # this check was measured against.
                 raise ValueError(
                     f"tile {state}{name} region is {width}x{height}, larger "
                     f"than the {_MAX_RENDERED_PIXELS}-pixel limit the margin "
