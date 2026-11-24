@@ -213,6 +213,8 @@ class TestRequireConfigAndDataHomeWrappers(unittest.TestCase):
         )
 
     def test_the_config_home_refusal_names_xdg_config_home(self):
+        # A wrapper passing the wrong variable or fallback would word the
+        # refusal after the other home; pin both names in each refusal.
         with self.assertRaises(self._Refusal) as caught:
             xdg_homes.require_config_home({}, self._Refusal)
         self.assertIn("XDG_CONFIG_HOME is unset", str(caught.exception))
@@ -225,6 +227,18 @@ class TestRequireConfigAndDataHomeWrappers(unittest.TestCase):
         self.assertIn(
             "the $HOME/.local/share fallback cannot be used", str(caught.exception)
         )
+
+    def test_wrappers_fall_back_below_an_absolute_home(self):
+        env = {"HOME": "/home/user"}
+        self.assertEqual(
+            Path("/home/user/.config"),
+            xdg_homes.require_config_home(env, self._Refusal),
+        )
+        self.assertEqual(
+            Path("/home/user/.local/share"),
+            xdg_homes.require_data_home(env, self._Refusal),
+        )
+
 
 
 class TestUnresolvedHomeState(unittest.TestCase):

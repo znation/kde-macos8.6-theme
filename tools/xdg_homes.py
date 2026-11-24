@@ -87,11 +87,12 @@ def require_home(
 
 
 def require_config_home(env: dict[str, str], error) -> Path:
-    """Resolve the config home through :func:`require_home`, or refuse.
+    """Resolve and require the config home, raising *error* on refusal.
 
-    The one-line form the tools call instead of repeating the four-argument
-    :func:`require_home` incantation for the config home; the refusal names
-    ``XDG_CONFIG_HOME`` and the ``$HOME/.config`` fallback.
+    The one shared incantation of :func:`config_home` and
+    :func:`require_home` for the ``XDG_CONFIG_HOME`` variable and its
+    ``$HOME/.config`` fallback; the GTK, Kvantum, Ghostty, theme and
+    Konsole-font tools call this instead of repeating the five arguments.
     """
     return require_home(
         config_home(env), env, "XDG_CONFIG_HOME", "$HOME/.config", error=error
@@ -99,15 +100,17 @@ def require_config_home(env: dict[str, str], error) -> Path:
 
 
 def require_data_home(env: dict[str, str], error) -> Path:
-    """Resolve the data home through :func:`require_home`, or refuse.
+    """Resolve and require the data home, raising *error* on refusal.
 
-    The one-line form the tools call instead of repeating the four-argument
-    :func:`require_home` incantation for the data home; the refusal names
-    ``XDG_DATA_HOME`` and the ``$HOME/.local/share`` fallback.
+    The one shared incantation of :func:`data_home` and
+    :func:`require_home` for the ``XDG_DATA_HOME`` variable and its
+    ``$HOME/.local/share`` fallback; the GTK, Ghostty and theme tools call
+    this instead of repeating the five arguments.
     """
     return require_home(
         data_home(env), env, "XDG_DATA_HOME", "$HOME/.local/share", error=error
     )
+
 
 
 def unresolved_home_state(value: str) -> str:
