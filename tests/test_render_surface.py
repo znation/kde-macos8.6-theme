@@ -10,7 +10,7 @@ desktop bar. The startup splash's gate is in
 ``tests/test_render_splash_gate.py``. The dialog clients' engine-drawn widgets
 are pinned in ``tests/test_render_dialog_gates.py`` and
 ``tests/test_render_file_dialog.py``, the capture plumbing these suites
-share in ``tests/support/render/gates.py``, the CLI's failure paths against
+share in ``tests/support/render/``, the CLI's failure paths against
 shell stubs in ``tests/test_render_failure_paths.py`` and its live-session
 capture outcomes in ``tests/test_render_live_capture.py``, and the session
 script and argument handling without a session in
@@ -28,14 +28,13 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.aurorae_fixtures import REFERENCE_BOUNDS
 from support.platinum_palette import FACE, hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
-from support.render.gates import (
+from support.render.pixel_pins import PixelPins
+from support.render.renders import Renders, render_output_note
+from support.render.skip_guards import (
     DESKTOP_REAL_TOOLS,
     REAL_TOOLS,
-    PixelPins,
-    Renders,
     desktop_gate_guard,
     probe_gate_skip,
-    render_output_note,
     software_renderer_skip_reason,
 )
 from tools.fidelity_lib.metrics import compare, crop  # noqa: E402
@@ -662,7 +661,7 @@ class TestDesktopGateSkipGuard(unittest.TestCase):
 # This module's two gates wait on two render kinds (the applet and the desktop
 # captures); requesting them at import time lets the first gate class to set
 # up start the batch with one shared settle budget (see Renders in
-# tests/support/render/gates.py). A gate whose skip guard holds never calls
+# tests/support/render/renders.py). A gate whose skip guard holds never calls
 # ensure, so a host that merely lacks the tools, or forces a software
 # renderer, renders nothing.
 Renders.request("applet", "desktop")

@@ -225,7 +225,7 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_draws_the_grid_field_top_edge (test_render_dialog_gates.TestIconDialogRender.test_draws_the_grid_field_top_edge)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
-**Needs review 2026-11-19 by bugfix: On recurrence, the failure will still show only the first mismatching pixel's coordinates and expected/observed colours. Read together with the sibling icon-dialog entries, the `#CCCCCC` value is the desktop face, so the capture likely ran before the `--geticon` dialog mapped (the icon render waits on a fixed `--settle` sleep in `tests/support/render/gates.py`). Confirming that needs the render's stderr tail and a check of whether the whole band is `#CCCCCC`, which the message does not print yet.**
+**Needs review 2026-11-19 by bugfix: On recurrence, the failure will still show only the first mismatching pixel's coordinates and expected/observed colours. Read together with the sibling icon-dialog entries, the `#CCCCCC` value is the desktop face, so the capture likely ran before the `--geticon` dialog mapped (the icon render waits on a fixed `--settle` sleep in `tests/support/render/renders.py`). Confirming that needs the render's stderr tail and a check of whether the whole band is `#CCCCCC`, which the message does not print yet.**
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
@@ -289,7 +289,7 @@ make: *** [Makefile:491: check] Error 1
 
 Progress 2026-11-19 by the director role: the quoted `AssertionError: '#CCCCCC' != '#000000'`
 cannot have come from this test or this class. `PixelPins.assert_pixel` and `assert_band`
-(tests/support/render/gates.py) call `assertEqual(expected, observed)`, so the message means
+(tests/support/render/pixel_pins.py) call `assertEqual(expected, observed)`, so the message means
 *expected* `#CCCCCC`, *observed* `#000000`. That is the reverse of the umbrella entry's
 "expected `#000000` but observed `#CCCCCC`". No `TestIconDialogRender` pin expects `#CCCCCC`:
 `assert_raised_frame`, `assert_push_button_recipe`, `assert_push_button_face_reaches_its_row`,
@@ -333,7 +333,7 @@ make: *** [Makefile:491: check] Error 1
 
 Progress 2026-11-19 by the director role: the recorded `AssertionError: '#CCCCCC' != '#000000'` is not
 this test's failure. `test_draws_the_search_field` asserts only through `PixelPins.assert_band`
-(tests/support/render/gates.py), which compares a whole row as two lists, so its mismatch reads
+(tests/support/render/pixel_pins.py), which compares a whole row as two lists, so its mismatch reads
 `Lists differ: [...] != [...]` inside a `row=` subTest, never a bare two-string message. Its expected
 rows hold only `#999999`, `#000000`, `#FFFFFF` and `#DDDDDD`, and `assertEqual(expected, observed)`
 means the quoted line expected `#CCCCCC`, so the "desktop face where the dark outline belongs"
@@ -372,7 +372,7 @@ non-zero exit is still unknown. Keep the entry open and parked until a recurrenc
 
 **Director handoff 2026-11-19**
 
-**Needs review 2026-11-19 by bugfix: the next failure must show the unittest `FAIL:`/`ERROR:` line naming the failing test. The recorded excerpt's `'#CCCCCC' != '#000000'` is a pixel-colour assertion, which `test_writes_a_480x360_png` (`tests/support/render/gates.py:404`, a size-only check) cannot raise, so the test name here is likely mislabelled. Also record the render stderr and session log tail for that capture.**
+**Needs review 2026-11-19 by bugfix: the next failure must show the unittest `FAIL:`/`ERROR:` line naming the failing test. The recorded excerpt's `'#CCCCCC' != '#000000'` is a pixel-colour assertion, which `test_writes_a_480x360_png` (`tests/support/render/gates.py`, a size-only check) cannot raise, so the test name here is likely mislabelled. Also record the render stderr and session log tail for that capture.**
 
 **Needs review 2026-11-19 by director: decide, together with the sibling `test_draws_the_push_button_frame_and_cell` entry's identical question, whether to park all seven `TestIconDialogRender` quarantines until a recurrence records the icon render's stderr and session-log tail (recommended), or close them as unreproducible. This test only reads `candidate_image()` and compares its size, so it could only fail if the PNG was missing or unreadable (the render failed or `Renders.ensure` raised in `setUpClass`). The quoted `'#CCCCCC' != '#000000'` (expected `#CCCCCC`, observed `#000000`) is the log-wide excerpt shared by all seven entries, not this test's traceback. The bugfix role's change makes `PixelPins.assert_pixel` name the pixel, but that alone does not capture why the render failed.**
 
@@ -536,7 +536,7 @@ Not reproduced by the ci role on 2026-11-21, at main tip 8268f59:
 The cause is unknown. The watch's run may have been under parallel load; that is not verified. The failure output is needed to tell a capture-timing miss from a true pixel change.
 
 ### `test_left_window_client_edge_is_the_recoloured_inner_rectangle (test_render_dialog_gates.TestInactiveDialogRender.test_left_window_client_edge_is_the_recoloured_inner_rectangle)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
-**Needs review 2026-11-21 by bugfix: fix landed, not closed.** The inactive-dialog gate settled for 20 s instead of 8 s; since 2026-11-24 its readiness script ends the settle once the pair is settled, under a 45 s ceiling (`tests/support/render/gates.py`, the `inactive` kind), pinned by `tests/test_render_surface.py::TestRenderBudgets::test_the_inactive_gate_settles_for_at_most_forty_five_seconds`, which fails on the old flags. The flake could not be reproduced on this host, so it cannot close as `no-repro` or `real-run-needed` without a new offline reproduction, and either tag would push its ledger past its baseline (no-repro reached 7 against 6). Next failure: if `'#CCCCCC' != '#000000'` recurs at the left window's edge, the render log says which path ended the settle: `settle ceiling reached` means the pair never reported within 45 s, `client ready` means it reported before the capture held both painted windows.
+**Needs review 2026-11-21 by bugfix: fix landed, not closed.** The inactive-dialog gate settled for 20 s instead of 8 s; since 2026-11-24 its readiness script ends the settle once the pair is settled, under a 45 s ceiling (`tests/support/render/renders.py`, the `inactive` kind), pinned by `tests/test_render_surface.py::TestRenderBudgets::test_the_inactive_gate_settles_for_at_most_forty_five_seconds`, which fails on the old flags. The flake could not be reproduced on this host, so it cannot close as `no-repro` or `real-run-needed` without a new offline reproduction, and either tag would push its ledger past its baseline (no-repro reached 7 against 6). Next failure: if `'#CCCCCC' != '#000000'` recurs at the left window's edge, the render log says which path ended the settle: `settle ceiling reached` means the pair never reported within 45 s, `client ready` means it reported before the capture held both painted windows.
 
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
@@ -630,7 +630,7 @@ quarantine excerpt did not keep this test's own message. Keep this entry and its
 
 **Director note 2026-11-23: explained from the code, not reproduced; parked for a recurrence.**
 The `'#CCCCCC'` in the mismatch is the virtual framebuffer's desktop face, not a decoration colour:
-`band_mismatch_context` in `tests/support/render/gates.py` documents a desktop-face `#CCCCCC` where a
+`band_mismatch_context` in `tests/support/render/pixel_pins.py` documents a desktop-face `#CCCCCC` where a
 dialog pixel belongs as the signature of "the capture ran before the dialog mapped". So the failing
 capture caught the focused (right-hand) window before it painted — unmapped or mapped but not yet
 decorated — which confirms the paint-race inference below from the code, not just placement reasoning.

@@ -3,7 +3,7 @@
 ``tools/render_surface.py``'s thirteen ``--*-dialog`` modes open kdialog
 clients whose engine-drawn widgets these gates byte-compare with the shipped
 Kvantum art: the shared capture plumbing lives in
-``tests/support/render/gates.py``, the menu gate in
+``tests/support/render/``, the menu gate in
 ``tests/test_render_menu_dialog.py``, the radio-list gate in
 ``tests/test_render_radio_dialog.py``, the line-input gate in
 ``tests/test_render_lineedit_dialog.py``, the combobox gate in
@@ -34,12 +34,12 @@ from support.platinum_palette import (
     INACTIVE_OUTLINE,
     hex_colour,
 )
-from support.render.gates import (
+from support.render.gates import DialogGate
+from support.render.pixel_pins import PixelPins
+from support.render.skip_guards import (
     DIALOG_REAL_TOOLS,
     REAL_TOOLS,
     SOFTWARE_RENDER_SKIP_REASON,
-    DialogGate,
-    PixelPins,
     dialog_gate_guard,
     probe_gate_skip,
     software_renderer_skip_reason,
@@ -614,7 +614,7 @@ class TestCandidateColourMapKeysTheRectFromItsTopLeft(
 
     def test_the_map_is_rect_relative_and_reads_the_rect_offset(self):
         with mock.patch(
-            "support.render.gates.pixel_at", side_effect=lambda _i, x, y: (x, y, 7)
+            "support.render.pixel_pins.pixel_at", side_effect=lambda _i, x, y: (x, y, 7)
         ):
             self.assertEqual(
                 {
@@ -641,12 +641,12 @@ class TestPixelMismatchNamesThePixel(PixelPins, unittest.TestCase):
         return None
 
     def test_a_matching_pixel_passes(self):
-        with mock.patch("support.render.gates.pixel_at", return_value=(0, 0, 0)):
+        with mock.patch("support.render.pixel_pins.pixel_at", return_value=(0, 0, 0)):
             self.assert_pixel(302, 324, "#000000")
 
     def test_a_mismatched_pixel_message_names_its_coordinates(self):
         with mock.patch(
-            "support.render.gates.pixel_at", return_value=(0xCC, 0xCC, 0xCC)
+            "support.render.pixel_pins.pixel_at", return_value=(0xCC, 0xCC, 0xCC)
         ):
             with self.assertRaises(AssertionError) as caught:
                 self.assert_pixel(302, 324, "#000000")
@@ -669,7 +669,7 @@ class TestLiveInkProbe(PixelPins, unittest.TestCase):
         # and column must count, or a band whose only ink sits at an
         # edge would be missed.
         with mock.patch(
-            "support.render.gates.pixel_at",
+            "support.render.pixel_pins.pixel_at",
             side_effect=lambda image, x, y: (
                 (0x11, 0x11, 0x11) if (x, y) == (310, 330) else (0xDD, 0xDD, 0xDD)
             ),
@@ -680,7 +680,7 @@ class TestLiveInkProbe(PixelPins, unittest.TestCase):
 
     def test_an_all_face_band_fails_naming_the_band(self):
         with mock.patch(
-            "support.render.gates.pixel_at", return_value=(0xDD, 0xDD, 0xDD)
+            "support.render.pixel_pins.pixel_at", return_value=(0xDD, 0xDD, 0xDD)
         ):
             with self.assertRaises(AssertionError) as caught:
                 self.assert_inks_off_the_face(

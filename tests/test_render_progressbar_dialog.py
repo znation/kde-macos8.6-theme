@@ -3,7 +3,7 @@
 ``tools/render_surface.py``'s ``--progressbar-dialog`` mode renders the Kvantum
 progress meter that kdialog's progress helper draws; the gate here
 byte-compares its face and edge bands. The shared capture plumbing lives in
-``tests/support/render/gates.py``, and the other kdialog widget gates live in
+``tests/support/render/``, and the other kdialog widget gates live in
 ``tests/test_render_dialog_gates.py``.
 """
 
@@ -12,8 +12,8 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.render.gates import (
-    DialogGate,
+from support.render.gates import DialogGate
+from support.render.skip_guards import (
     assert_gate_skips_only_when_a_tool_is_absent,
     dialog_gate_guard,
 )

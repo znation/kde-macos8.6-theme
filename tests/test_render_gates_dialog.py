@@ -21,6 +21,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import process_runner
 from support.render import gates as render_gates
 from support.render.gates import DialogGate, Renders
+from support.render.pixel_pins import band_mismatch_context
 
 
 class TestDialogGateRegistration(unittest.TestCase):
@@ -130,7 +131,7 @@ class TestBandMismatchContext(unittest.TestCase):
     """
 
     def test_names_every_colour_of_the_band_with_its_count(self):
-        message = render_gates.band_mismatch_context(
+        message = band_mismatch_context(
             ["#CCCCCC", "#CCCCCC", "#000000"], "",
         )
         self.assertIn("#CCCCCC:2", message)
@@ -138,13 +139,13 @@ class TestBandMismatchContext(unittest.TestCase):
 
     def test_quotes_the_last_twelve_stderr_lines(self):
         stderr = "".join(f"line{index:02d}\n" for index in range(30))
-        message = render_gates.band_mismatch_context(["#CCCCCC"], stderr)
+        message = band_mismatch_context(["#CCCCCC"], stderr)
         self.assertIn("line18", message)
         self.assertIn("line29", message)
         self.assertNotIn("line17", message)
 
     def test_says_when_the_render_printed_nothing(self):
-        message = render_gates.band_mismatch_context(["#CCCCCC"], "  \n\n")
+        message = band_mismatch_context(["#CCCCCC"], "  \n\n")
         self.assertIn("render printed no stderr", message)
 
 

@@ -2,7 +2,7 @@
 
 ``tools/render_surface.py``'s ``--file-dialog`` mode opens a kdialog file
 chooser whose engine-drawn frame, title bar and widgets this gate pins; the
-shared capture plumbing lives in ``tests/support/render/gates.py``, the
+shared capture plumbing lives in ``tests/support/render/``, the
 thirteen kdialog widget gates in ``tests/test_render_dialog_gates.py``, the
 calendar gates in ``tests/test_render_calendar_dialog.py``, and
 the applet, desktop and splash gates in ``tests/test_render_surface.py``.
@@ -19,8 +19,8 @@ from support.render import file_dialog_chrome_fixtures as chrome_fixtures
 from support.render import file_dialog_list_fixtures as list_fixtures
 from support.render import file_dialog_sidebar_fixtures as sidebar_fixtures
 from support.platinum_palette import hex_colour
-from support.render.gates import (
-    DialogGate,
+from support.render.gates import DialogGate
+from support.render.skip_guards import (
     assert_gate_skips_only_when_a_tool_is_absent,
     dialog_gate_guard,
 )

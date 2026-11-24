@@ -2,7 +2,7 @@
 
 ``tools/render_surface.py``'s ``--gtk-dialog`` mode captures a themed GTK 4
 zenity window whose engine-drawn widgets this gate byte-compares: the shared
-capture plumbing lives in ``tests/support/render/gates.py``, and the kdialog
+capture plumbing lives in ``tests/support/render/``, and the kdialog
 widget gates live in ``tests/test_render_dialog_gates.py``, the calendar gates in
 ``tests/test_render_calendar_dialog.py``.
 """
@@ -19,8 +19,8 @@ from support.platinum_palette import (
     WHITE,
     hex_colour,
 )
-from support.render.gates import (
-    DialogGate,
+from support.render.gates import DialogGate
+from support.render.skip_guards import (
     assert_gate_skips_only_when_a_tool_is_absent,
     dialog_gate_guard,
 )

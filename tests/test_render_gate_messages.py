@@ -15,15 +15,14 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.render.gates import (
+from support.render.capture_diagnostics import (
     DiagnosticsRootSteering,
-    DialogGate,
-    PixelPins,
-    RenderOutputMessages,
     diagnostics_root,
     preserve_capture,
-    render_output_note,
 )
+from support.render.gates import DialogGate, RenderOutputMessages
+from support.render.pixel_pins import PixelPins
+from support.render.renders import render_output_note
 
 CAPTURE_BYTES = b"\x89PNG probe capture bytes"
 
@@ -175,7 +174,7 @@ class TestCapturePreservation(DiagnosticsRootSteering, unittest.TestCase):
         """
         self._write_capture()
         with mock.patch(
-            "support.render.gates.shutil.copyfile",
+            "support.render.capture_diagnostics.shutil.copyfile",
             side_effect=OSError("no space left on device"),
         ):
             self.assertIsNone(preserve_capture("probe", self.directory, "dialog.png"))
@@ -188,7 +187,7 @@ class TestCapturePreservation(DiagnosticsRootSteering, unittest.TestCase):
         """
         self._write_capture()
         with mock.patch(
-            "support.render.gates.os.listdir",
+            "support.render.capture_diagnostics.os.listdir",
             side_effect=OSError("diagnostics root vanished"),
         ):
             self.assertIsNone(preserve_capture("probe", self.directory, "dialog.png"))
@@ -298,7 +297,7 @@ class TestBandMismatchNamesTheFailingPixel(
         _write_capture(self.directory)
         colours = {(313, 300): (0xCC, 0xCC, 0xCC)}
         with mock.patch(
-            "support.render.gates.pixel_at",
+            "support.render.pixel_pins.pixel_at",
             side_effect=lambda image, x, y: colours.get((x, y), (0xDD, 0xDD, 0xDD)),
         ):
             with self.assertRaises(AssertionError) as caught:
@@ -314,7 +313,7 @@ class TestBandMismatchNamesTheFailingPixel(
 
     def test_a_failing_row_without_a_capture_says_the_render_wrote_none(self):
         with mock.patch(
-            "support.render.gates.pixel_at", return_value=(0xDD, 0xDD, 0xDD)
+            "support.render.pixel_pins.pixel_at", return_value=(0xDD, 0xDD, 0xDD)
         ):
             with self.assertRaises(AssertionError) as caught:
                 self.probe.assert_band(self.BAND, [["#000000"] * 4] * 2)
@@ -328,7 +327,7 @@ class TestBandMismatchNamesTheFailingPixel(
     def test_a_fully_matching_band_creates_no_diagnostics_copy(self):
         _write_capture(self.directory)
         with mock.patch(
-            "support.render.gates.pixel_at", return_value=(0xDD, 0xDD, 0xDD)
+            "support.render.pixel_pins.pixel_at", return_value=(0xDD, 0xDD, 0xDD)
         ):
             self.probe.assert_band(self.BAND, self.ROWS)
         self.assertFalse(os.path.isdir(diagnostics_root()))
@@ -339,7 +338,7 @@ class TestBandMismatchNamesTheFailingPixel(
         # cell differs names that cell, not a later row's.
         colours = {(310, 301): (0xEE, 0xEE, 0xEE)}
         with mock.patch(
-            "support.render.gates.pixel_at",
+            "support.render.pixel_pins.pixel_at",
             side_effect=lambda image, x, y: colours.get((x, y), (0xDD, 0xDD, 0xDD)),
         ):
             with self.assertRaises(AssertionError) as caught:

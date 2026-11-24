@@ -9,8 +9,8 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.render.gates import (
-    DialogGate,
+from support.render.gates import DialogGate
+from support.render.skip_guards import (
     assert_gate_skips_only_when_a_tool_is_absent,
     dialog_gate_guard,
 )

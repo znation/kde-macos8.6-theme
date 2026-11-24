@@ -15,11 +15,10 @@ import unittest
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.render import splash_capture_fixtures
 from support.platinum_palette import hex_colour
-from support.render.gates import (
+from support.render.pixel_pins import PixelPins
+from support.render.renders import Renders, render_output_note
+from support.render.skip_guards import (
     SPLASH_REAL_TOOLS,
-    PixelPins,
-    Renders,
-    render_output_note,
     software_renderer_skip_reason,
 )
 from tools.png import pixel_at, read_png  # noqa: E402
@@ -217,7 +216,7 @@ class TestSplashRender(PixelPins, unittest.TestCase):
 
 # This module's gate waits on the splash render kind; requesting it at import
 # time lets it join the shared batch that the applet and desktop gates start
-# (see Renders in tests/support/render/gates.py). A skip guard that holds never
+# (see Renders in tests/support/render/renders.py). A skip guard that holds never
 # calls ensure, so a host without the tools renders nothing.
 Renders.request("splash")
 

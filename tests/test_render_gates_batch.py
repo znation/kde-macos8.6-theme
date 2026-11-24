@@ -1,4 +1,4 @@
-"""Pin the render batch's bookkeeping in ``support.render.gates.Renders``.
+"""Pin the render batch's bookkeeping in ``support.render.renders.Renders``.
 
 The real capture gates run ``Renders``' batch only on a host with the Plasma
 tools present, and there the observable failure is a wrong capture, not a
@@ -22,12 +22,9 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.render import gates as render_gates
-from support.render.gates import (
-    DiagnosticsRootSteering,
-    FreshRendersState,
-    Renders,
-)
+from support.render import renders as render_renders
+from support.render.capture_diagnostics import DiagnosticsRootSteering
+from support.render.renders import FreshRendersState, Renders
 
 
 @contextlib.contextmanager
@@ -58,10 +55,10 @@ def _stubbed_runner(finish_raises=None):
 
     with (
         mock.patch.object(
-            render_gates.process_runner, "start", side_effect=fake_start
+            render_renders.process_runner, "start", side_effect=fake_start
         ),
         mock.patch.object(
-            render_gates.process_runner, "finish", side_effect=fake_finish
+            render_renders.process_runner, "finish", side_effect=fake_finish
         ),
     ):
         yield started, finished
@@ -106,7 +103,7 @@ class TestRenderBatch(FreshRendersState, unittest.TestCase):
         # The render CLI is started with its capture path and the kind's
         # own flags, and the batch captures what it prints: a failed
         # render's diagnostic is the gate's failure message.
-        self.assertEqual(render_gates.SCRIPT, argv[1])
+        self.assertEqual(render_renders.SCRIPT, argv[1])
         self.assertTrue(argv[2].endswith("splash.png"))
         self.assertEqual(("--splash",), tuple(argv[3:]))
         self.assertTrue(kwargs["capture_output"])
@@ -188,12 +185,12 @@ class TestRenderBatch(FreshRendersState, unittest.TestCase):
         fakes = iter([mock.Mock(returncode=0), mock.Mock(returncode=3)])
         with (
             mock.patch.object(
-                render_gates.process_runner,
+                render_renders.process_runner,
                 "start",
                 side_effect=lambda argv, **kwargs: next(fakes),
             ) as started,
             mock.patch.object(
-                render_gates.process_runner,
+                render_renders.process_runner,
                 "finish",
                 side_effect=lambda process, timeout=None: ("", ""),
             ),
@@ -210,9 +207,9 @@ class TestRenderBatch(FreshRendersState, unittest.TestCase):
         error = RuntimeError("render batch broke")
         with (
             mock.patch.object(
-                render_gates.process_runner, "start", side_effect=error
+                render_renders.process_runner, "start", side_effect=error
             ),
-            mock.patch.object(render_gates.process_runner, "finish"),
+            mock.patch.object(render_renders.process_runner, "finish"),
             mock.patch.object(atexit, "register"),
         ):
             with self.assertRaises(RuntimeError) as first:
@@ -228,7 +225,7 @@ class TestRenderBatch(FreshRendersState, unittest.TestCase):
         # batch's failure must name the kind and quote that partial output,
         # not surface a bare timeout to every sibling gate.
         error = subprocess.TimeoutExpired(
-            [render_gates.SCRIPT, "capture.png"],
+            [render_renders.SCRIPT, "capture.png"],
             150,
             output="partial session log\n",
             stderr="partial diagnostic\n",
@@ -256,7 +253,7 @@ class TestRenderBatch(FreshRendersState, unittest.TestCase):
         # A finish failure that carries no partial output (the re-raised
         # timeout when even the reap bound yields no EOF) still names the
         # kind and its capture path, so a failure is attributable.
-        error = subprocess.TimeoutExpired([render_gates.SCRIPT, "capture.png"], 150)
+        error = subprocess.TimeoutExpired([render_renders.SCRIPT, "capture.png"], 150)
         Renders.request("checkbox")
         with (
             _stubbed_runner(finish_raises=error),
@@ -275,7 +272,7 @@ class TestRenderBatch(FreshRendersState, unittest.TestCase):
         # decoded text with an invalid byte spelled as the replacement
         # character, not the bytes' Python repr and not a decode crash.
         error = subprocess.TimeoutExpired(
-            [render_gates.SCRIPT, "capture.png"],
+            [render_renders.SCRIPT, "capture.png"],
             150,
             output=b"broken \xff seed\n",
             stderr=b"partial diagnostic\n",
@@ -298,7 +295,7 @@ class TestRenderBatch(FreshRendersState, unittest.TestCase):
         # Renders.failure, so a caller matching the original type must
         # reach it through __cause__; dropping the `from error` chain
         # would strand the underlying exception behind the wrapper.
-        error = subprocess.TimeoutExpired([render_gates.SCRIPT, "capture.png"], 150)
+        error = subprocess.TimeoutExpired([render_renders.SCRIPT, "capture.png"], 150)
         Renders.request("checkbox")
         with (
             _stubbed_runner(finish_raises=error),
@@ -339,14 +336,14 @@ class TestFinishFailurePreservesTheCapture(
             Renders.request("checkbox")
             with (
                 mock.patch.object(
-                    render_gates.process_runner,
+                    render_renders.process_runner,
                     "start",
                     side_effect=lambda argv, **kwargs: mock.Mock(
                         returncode=None, argv=argv
                     ),
                 ),
                 mock.patch.object(
-                    render_gates.process_runner, "finish", side_effect=raising_finish
+                    render_renders.process_runner, "finish", side_effect=raising_finish
                 ),
             ):
                 with self.assertRaises(RuntimeError) as raised:
@@ -367,7 +364,7 @@ class TestFinishFailurePreservesTheCapture(
 
     def test_a_finish_failure_without_a_capture_says_so(self):
         self.swap_renders_state_in()
-        error = subprocess.TimeoutExpired([render_gates.SCRIPT, "capture.png"], 150)
+        error = subprocess.TimeoutExpired([render_renders.SCRIPT, "capture.png"], 150)
         try:
             Renders.request("checkbox")
             with _stubbed_runner(finish_raises=error):
