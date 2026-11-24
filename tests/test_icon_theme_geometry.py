@@ -59,7 +59,23 @@ class TestIconGeometry(unittest.TestCase):
         # literal key's path in every family module and require the paths
         # to be distinct, and each key to name its own family's directory
         # so a pin filed under the wrong family cannot hide between them.
-        for family in SHAPE_PIN_FAMILIES:
+        # The package __init__ merges the families into ICON_SHAPES, and a
+        # literal key appended there reaches the built registry just the
+        # same, so visit the merge's literal keys too; a merge literal may
+        # pin any family's file but must still name a family directory, and
+        # no key may be pinned twice across the modules. The package also
+        # replaced the old single-file shape_pins.py, and a pin written into
+        # a recreated copy of it would be dead code the guards never see, so
+        # require that file to stay gone.
+        self.assertFalse(
+            os.path.exists(
+                os.path.join(ROOT, "tests", "support", "icon", "shape_pins.py")
+            )
+        )
+        registries = [(family, "PINS", family) for family in SHAPE_PIN_FAMILIES]
+        registries.append(("__init__", "ICON_SHAPES", None))
+        seen = []
+        for family, registry_name, expected_family in registries:
             module = parsed_module(
                 os.path.join(
                     ROOT, "tests", "support", "icon", "shape_pins", family + ".py"
@@ -71,20 +87,26 @@ class TestIconGeometry(unittest.TestCase):
                 for node in module.body
                 if isinstance(node, ast.Assign)
                 and any(
-                    isinstance(target, ast.Name) and target.id == "PINS"
+                    isinstance(target, ast.Name) and target.id == registry_name
                     for target in node.targets
                 )
             )
             self.assertIsInstance(literal, ast.Dict)
+            # A None key is a ``**family`` merge, not a pinned file.
             paths = [
                 eval(compile(ast.Expression(key), "<pin-key>", "eval"), {"os": os})
                 for key in literal.keys
+                if key is not None
             ]
             self.assertEqual(len(paths), len(set(paths)), family)
             for path in paths:
-                self.assertEqual(
-                    os.path.normpath(path).split(os.sep)[1], family, path
-                )
+                named_family = os.path.normpath(path).split(os.sep)[1]
+                if expected_family is None:
+                    self.assertIn(named_family, SHAPE_PIN_FAMILIES, path)
+                else:
+                    self.assertEqual(named_family, expected_family, path)
+            seen.extend(paths)
+        self.assertEqual(len(seen), len(set(seen)))
 
     def test_each_icon_draws_its_pinned_artwork(self):
         for icon, expected in ICON_SHAPES.items():
