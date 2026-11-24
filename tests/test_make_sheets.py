@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
 import os
 import unittest
 from pathlib import Path
@@ -10,7 +12,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main  # noqa: E402
 from support.tmp_dir import make_tmp_dir
-from tools import make_sheets  # noqa: E402
+from tools import generated_files, make_sheets  # noqa: E402
 from tools.repo_root import ROOT  # noqa: E402
 
 MAX_PARTIAL_LINES = 500
@@ -221,6 +223,63 @@ class TestMain(unittest.TestCase):
         first = self.shipped.read_bytes()
         make_sheets.main([])
         self.assertEqual(self.shipped.read_bytes(), first)
+
+    def _two_families(self):
+        """Patch SHEETS to two pairs and return (second_source, second_shipped)."""
+        second_source = self.root / "theme/src2"
+        second_shipped = self.root / "theme/out2/other.css"
+        write(self.source / "000-a.css", "a {}\n")
+        write(second_source / "000-b.css", "b {}\n")
+        pairs = (
+            ("theme/src", "theme/out/gtk.css"),
+            ("theme/src2", "theme/out2/other.css"),
+        )
+        patch = mock.patch.object(make_sheets, "SHEETS", pairs)
+        patch.start()
+        self.addCleanup(patch.stop)
+        return second_source, second_shipped
+
+    def test_a_failed_first_write_stops_before_the_second_sheet(self):
+        _, second_shipped = self._two_families()
+        real_write = generated_files.write_bytes_atomically
+        attempted = []
+
+        def failing_first(target, data):
+            attempted.append(target)
+            if target == self.shipped:
+                raise OSError("disk full")
+            real_write(target, data)
+
+        stderr = io.StringIO()
+        with mock.patch.object(
+            generated_files, "write_bytes_atomically", side_effect=failing_first
+        ), contextlib.redirect_stderr(stderr):
+            status = make_sheets.main([])
+        self.assertEqual(status, 2)
+        self.assertIn(f"cannot write {self.shipped}", stderr.getvalue())
+        # The loop returns on the first failure: the second sheet is never attempted.
+        self.assertEqual(attempted, [self.shipped])
+        self.assertFalse(second_shipped.exists())
+
+    def test_a_failed_second_write_keeps_the_first_sheet_and_exits_2(self):
+        _, second_shipped = self._two_families()
+        real_write = generated_files.write_bytes_atomically
+
+        def failing_second(target, data):
+            if target == second_shipped:
+                raise OSError("disk full")
+            real_write(target, data)
+
+        stderr = io.StringIO()
+        with mock.patch.object(
+            generated_files, "write_bytes_atomically", side_effect=failing_second
+        ), contextlib.redirect_stderr(stderr):
+            status = make_sheets.main([])
+        self.assertEqual(status, 2)
+        self.assertIn(f"cannot write {second_shipped}", stderr.getvalue())
+        # The earlier sheet was published before the failure, as documented.
+        self.assertEqual(self.shipped.read_bytes(), b"a {}\n")
+        self.assertFalse(second_shipped.exists())
 
 
 if __name__ == "__main__":
