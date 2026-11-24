@@ -220,6 +220,91 @@ names the theme inherits from Breeze.
   test_placeholders test_invariants'` passes, and so does full `make check`
   after the final edit, apart from main's known-red tests.
 
+### Parallel check: print unsuccessful modules last and name them above the summary (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** Make the end of a failed `make check` show what failed.
+`tools/check/parallel_results.py::print_results` prints every module's section
+in discovery order, so a failed module's log is usually far above the summary,
+and the summary gives only a count. The quoted excerpts in several Open render
+quarantines in BUGS.md show the cost: they end with passing `test_xdg_homes`
+lines and `2 modules failed`, and the director's progress notes had to infer
+which module the quoted `AssertionError` came from. Planning-time probe:
+`print_results` on a failed `a_bad` and a passing `b_ok` printed `a_bad`'s
+section first, then `b_ok`'s, then `check: 2 modules, 1 module failed`.
+
+This does not diagnose or close any Open entry; it makes the next recurrence
+attributable. Leave BUGS.md as it is.
+
+**Approach.**
+
+- In `print_results`, keep the section format and the counting as they are,
+  but print in two groups, each in discovery order: first the modules whose
+  category is `ok` or `no_tests`, then those whose category is `failed`,
+  `timed_out` or `not_finished`. A module that ran no tests does not fail the
+  run, so it stays in the first group. Print the first group as it is read;
+  hold back the second group's sections (each log text is already bounded by
+  `_LOG_TAIL_BYTES`). Call `_module_verdict` once per module. Move the
+  section printing into a small helper, with its comment about escaping the
+  module name, so both groups share it.
+- After the last section and before the summary line, print one line for
+  each module of the second group, in discovery order:
+  `check: <module>: <verdict>`, using the verdict text the section header
+  shows and the same control-character escaping of the name. The final
+  `check: N modules, …` summary line stays last and unchanged. A run in
+  which no module is in the second group prints exactly what it does today.
+- Update the docstrings that promise plain discovery order:
+  `print_results`, the module docstring of `tools/check_parallel.py`, and the
+  module docstring of `tests/test_check_parallel.py`.
+- `tests/test_check_parallel_results.py::TestPrintResults`: add tests for the
+  criteria below, giving every log its own distinct text.
+- `tests/test_check_parallel.py::TestCoordinator::test_an_unterminated_log_never_merges_with_the_next_section`:
+  its unterminated failing log now prints after the passing module, so the
+  test would no longer exercise a following header. Add a second failing
+  module that sorts after `test_boom` (the shared `FAILING_MODULE` source),
+  assert that its header starts a line of its own, and expect
+  `2 modules failed`.
+- `docs/installing.md`: the sentence saying the parallel check "prints the
+  modules' outputs in module order" gains the new grouping and the lines
+  above the summary.
+- `docs/invariants.md`: add one row directly after the row on parallel check
+  worker logs being opened as regular files, stating the print order and
+  anchored to the new tests.
+
+Out of scope: the serial `CHECK_PARALLEL=0` and `CHECK_TESTS` paths, worker
+scheduling, log bounds, and the render gates' own messages.
+
+**Files touched.** `tools/check/parallel_results.py`,
+`tools/check_parallel.py` (docstring only), `tests/test_check_parallel.py`,
+`tests/test_check_parallel_results.py`, `docs/installing.md`,
+`docs/invariants.md`.
+
+**Acceptance criteria.**
+
+- Given modules in discovery order `a_bad` (exit 1), `b_ok` (exit 0),
+  `c_empty` (a genuine no-tests run), `d_hung` (timed out after 30s),
+  `e_lost` (no status) and `f_ok` (exit 0), the section headers appear in the
+  order `b_ok`, `c_empty`, `f_ok`, `a_bad`, `d_hung`, `e_lost`. Each supplied
+  log's text appears exactly once, directly under its own header. The output
+  ends with these four lines and the return status is 1:
+
+  ```
+  check: a_bad: exit 1
+  check: d_hung: timed out after 30s (process group killed)
+  check: e_lost: did not finish
+  check: 6 modules, 1 module failed, 1 module timed out, 1 module not finished, 1 module ran no tests
+  ```
+
+- A module with status 0 whose log cannot be read prints in the second group
+  and gets the line `check: <module>: worker log could not be read`.
+- A run of passing and no-tests modules only prints its sections in discovery
+  order, no `check: <module>: …` line and no summary, and returns 0.
+- A failed module whose name holds an ESC byte and a newline prints its
+  `check:` line on one line with neither raw byte.
+- `make check CHECK_TESTS='test_check_parallel test_check_parallel_results
+  test_check_parallel_empty_run test_check_parallel_order test_invariants'`
+  passes, and so does full `make check` after the final edit, apart from
+  main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
