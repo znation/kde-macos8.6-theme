@@ -320,6 +320,145 @@ and the drawing is this theme's own choice.
   `make check` after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw source RPM packages with an original `application-x-source-rpm` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A source RPM file (`*.src.rpm`, `*.spm`, as the file manager
+identifies it) draws Breeze's art beside the Platinum documents and
+folders. Ship one original placeholder icon, `application-x-rpm`'s
+companion `application-x-source-rpm`, at 16x16, 22x22 and 32x32, in
+the same sealed-package series as the deb box, the tar box, the ARJ,
+cpio, RAR and ZIP boxes and the waiting RPM-hat and Flatpak-repository
+entries. Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/x-source-rpm` ("Source RPM package") with no `<icon>`
+element, the `<generic-icon name="package-x-generic"/>` the theme
+already ships, no `<alias>` element, no `<magic>` of its own (the
+matchers come from its parent `<sub-class-of type="application/x-rpm"/>`)
+and the two globs `*.src.rpm` and `*.spm` at the default weight 50;
+the dash-form string `application-x-source-rpm` occurs 0 times
+elsewhere in the database (`str.count` is 0 — `grep -c` counts lines,
+not matches), so one file covers exactly its own name and no per-type
+fallback is in play. The theme's `index.theme` declares
+`Inherits=breeze`, so the lookup falls through to Breeze's exact-name
+file (Breeze ships `application-x-source-rpm.svg` at 16, 22, 24, 32
+and 64 in both `breeze` and `breeze-dark`, each verified with an `ls`
+check). Planning-time probe 2026-11-24 with `kiconfinder6`, the theme
+installed into scratch XDG homes (`XDG_DATA_HOME` naming the installed
+scratch data root, `XDG_DATA_DIRS=/usr/share`,
+`[Icons] Theme=org.macos8.desktop` in the scratch `kdeglobals`,
+`QT_QPA_PLATFORM=offscreen`, no `DISPLAY`): `application-x-source-rpm`
+resolved to `:/icons/breeze/mimetypes/32/application-x-source-rpm.svg`
+while `package-x-generic` resolved to the theme's own 32x32 file — the
+gap is real, not the screened-out shape where the theme's own generic
+art wins. A headless Gio probe agrees: `Gio.content_type_guess` on a
+`test.src.rpm` and on a `test.spm` names `application/x-source-rpm`
+and `Gio.content_type_get_icon(...).get_names()` lists
+`application-x-source-rpm` first. No reference screenshot shows a
+source-RPM-item icon, so no reference pixels are used and the drawing
+is this theme's own choice. Out of scope, one name per entry as in
+the deb plan: this entry draws only `application-x-source-rpm`; the
+binary `application/x-rpm` type keeps its own entry.
+
+**Approach.**
+
+- Add `mimetypes/application-x-source-rpm.svg` under `16x16`, `22x22`
+  and `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme`
+  already declares the three MimeTypes directories. Give each file the
+  XML declaration, the comment `<!-- PLACEHOLDER: original source-RPM
+  illustration pending user-approved artwork. -->`, a short comment
+  saying it is our own drawing in the Platinum palette, not traced
+  from anyone's artwork, and a root with matching `width`, `height`
+  and `viewBox`. The art shares the sealed package box (every drawing
+  element of that size's `package-x-generic.svg`: the outline, lid
+  highlight, white body and grey tape stripe) and holds a black
+  capital letter S (for source), built from five rects in document
+  order — top bar, left stem, middle bar, right stem, bottom bar — an
+  original generic-letter mark distinct from the deb box's capital D,
+  the tar box's capital T, the ARJ box's letter A, the cpio box's Z,
+  the RAR box's diamond, the ZIP box's zipper, the waiting
+  Flatpak-repository box's stepped capital R and the waiting RPM box's
+  hat (it is a letter, not any vendor's logo):
+  - 32x32: the five shared box elements; then, all `#000000`, the
+    top bar `7,15 5×1` (cols 7..11, row 15), the left stem `7,16 1×2`
+    (col 7, rows 16..17), the middle bar `7,18 5×1` (cols 7..11, row
+    18), the right stem `11,19 1×2` (col 11, rows 19..20) and the
+    bottom bar `7,21 5×1` (cols 7..11, row 21); every cell sits on
+    the white body, left of and clear of the tape stripe (cols
+    15..16).
+  - 22x22: the five shared box elements; then, all `#000000`, the
+    top bar `4,10 5×1` (cols 4..8, row 10), the left stem `4,11 1×2`
+    (col 4, rows 11..12), the middle bar `4,13 5×1` (cols 4..8, row
+    13), the right stem `8,14 1×2` (col 8, rows 14..15) and the
+    bottom bar `4,16 5×1` (cols 4..8, row 16); every cell sits on
+    the white body, left of and clear of the tape stripe (cols
+    10..11).
+  - 16x16: the five shared box elements; then, all `#000000`, the
+    top bar `3,7 4×1` (cols 3..6, row 7), the left stem `3,8 1×1`
+    (col 3, row 8), the middle bar `3,9 4×1` (cols 3..6, row 9), the
+    right stem `6,10 1×1` (col 6, row 10) and the bottom bar `3,11
+    4×1` (cols 3..6, row 11); every cell sits on the white body, left
+    of and clear of the tape stripe (cols 7..8).
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the deb-package rows,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three
+  drawings in `PINS` from the lists above (the `*_SEALED_PACKAGE_*`
+  box tuple, then the five letter rects in document order), with the
+  same type-spelled-name comment convention the deb pin carries. The
+  mimetypes-split entry is reshaping `PINS` into per-group modules, so
+  rebase on whatever shape it has landed when picking this up.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-x-source-rpm` in the last cell, as the
+  `application-vnd.debian.binary-package` sentence there does.
+- `docs/installing.md`: add a source-RPM icon to the sentence listing
+  the icon theme's placeholder illustrations and their sizes (beside
+  the deb-package clause).
+- The in-flight `application-x-rpm`, Flatpak-repository and
+  mimetypes-split entries edit the same inventory block, pin registry,
+  invariants row and installing.md sentence; this entry sits behind
+  them in the queue, so rebase on whatever they have landed when
+  picking this up, keeping one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the five box elements
+  matching the `package-x-generic.svg` pin's tuple, in the same
+  order, then the five letter rects in document order), carries a
+  placeholder marker and has a `PLACEHOLDERS.md` row; the existing
+  inventory, palette, geometry and placeholder-register tests cover
+  all three.
+- Changing one letter rect's position, size or fill, or the element
+  order, in one file makes the geometry test fail; dropping a file
+  from one size directory makes the inventory test fail.
+- `rg -n 'application-x-source-rpm' docs/installing.md
+  docs/invariants.md PLACEHOLDERS.md` shows the new clause,
+  provenance sentence and rows, each dated by its stamp.
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch `XDG_DATA_HOME` with a scratch `HOME`,
+  `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset
+  `DISPLAY` and `WAYLAND_DISPLAY`, set `QT_QPA_PLATFORM=offscreen`.
+  `application-x-source-rpm` resolves to the theme's own file and
+  `package-x-generic` still resolves to the theme's file. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ### Platinum icon theme: draw WAVE audio with an original `audio-vnd.wave` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
 
 **Goal.** A WAVE audio file (`*.wav`, as the file manager identifies
