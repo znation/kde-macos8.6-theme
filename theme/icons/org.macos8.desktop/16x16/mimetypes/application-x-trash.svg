@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original backup-file illustration pending user-approved artwork. -->
+<!-- Platinum backup-file icon, 16x16 rendition.
+
+     Our own 16x16 redraw in the Platinum palette: a small window with a
+     #000000 outline, a #DDDDDD title bar with a #FFFFFF highlight and one
+     #999999 stripe, a #FFFFFF body and a black tilde, the classic
+     editor-backup mark. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Window outline. -->
+  <rect x="1" y="2" width="14" height="12" fill="#000000"/>
+  <!-- Title bar face. -->
+  <rect x="2" y="3" width="12" height="3" fill="#DDDDDD"/>
+  <!-- Title bar highlight. -->
+  <rect x="2" y="3" width="12" height="1" fill="#FFFFFF"/>
+  <!-- Title bar stripe. -->
+  <rect x="4" y="4" width="8" height="1" fill="#999999"/>
+  <!-- White body. -->
+  <rect x="2" y="7" width="12" height="6" fill="#FFFFFF"/>
+  <!-- Tilde (editor-backup mark), whole-pixel columns. -->
+  <rect x="3" y="9" width="3" height="1" fill="#000000"/>
+  <rect x="6" y="10" width="4" height="1" fill="#000000"/>
+  <rect x="10" y="9" width="3" height="1" fill="#000000"/>
+</svg>

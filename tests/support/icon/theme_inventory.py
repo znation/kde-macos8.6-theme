@@ -28,7 +28,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # the shared-library `application-x-sharedlib` icon at all three sizes
 # (our own drawing of that window holding a two-bar stack; the name is
 # the type-spelled `application/x-sharedlib` MIME type in the installed
-# shared MIME database),
+# shared MIME database), the backup-file `application-x-trash` icon at
+# all three sizes (our own drawing of that window holding a black tilde;
+# the name is the canonical `application/x-trash` MIME type in the
+# installed shared MIME database, where the `.bak`, `.old`, `.sik`, `~`
+# and `%` globs all map),
 # the PGP-keys `application-pgp-keys` icon at all three sizes
 # (our own drawing of that window holding a skeleton key; the name is
 # the type-spelled icon name of the `application/pgp-keys` MIME type in
@@ -289,6 +293,15 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-sharedlib.svg"),
     os.path.join("16x16", "mimetypes", "application-x-sharedlib.svg"),
     os.path.join("22x22", "mimetypes", "application-x-sharedlib.svg"),
+    # The backup-file `application-x-trash` icon at all three sizes (our
+    # own drawing of that window holding a black tilde; the name is the
+    # canonical `application/x-trash` MIME type in the installed shared
+    # MIME database, which has no `generic-icon`, no aliases and no
+    # per-type fallback, and at the exact name Breeze's own file beats the
+    # theme's otherwise-missing fallback).
+    os.path.join("32x32", "mimetypes", "application-x-trash.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-trash.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-trash.svg"),
     # The PGP-keys `application-pgp-keys` icon at all three sizes (our own
     # drawing of that window holding a skeleton key; the name is the
     # type-spelled icon name of the `application/pgp-keys` MIME type in the

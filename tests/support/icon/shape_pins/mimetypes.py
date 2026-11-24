@@ -103,6 +103,30 @@ PINS = {
         _shape("rect", x="6", y="10", width="10", height="2", fill="#000000"),
         _shape("rect", x="6", y="14", width="10", height="2", fill="#000000"),
     ),
+    # The backup-file item icon KDE draws for `application/x-trash` items
+    # (the canonical icon name of the installed shared MIME database's
+    # `application/x-trash` "Backup file" type, which has no `generic-icon`,
+    # no aliases and no per-type fallback, so one file covers exactly the
+    # canonical name); the drawing shares the program window and holds a
+    # black tilde, the classic editor-backup mark, on the white body.
+    os.path.join("32x32", "mimetypes", "application-x-trash.svg"): (
+        *_PROGRAM_WINDOW_32,
+        _shape("rect", x="7", y="17", width="6", height="1", fill="#000000"),
+        _shape("rect", x="13", y="18", width="8", height="1", fill="#000000"),
+        _shape("rect", x="21", y="17", width="6", height="1", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-x-trash.svg"): (
+        *_PROGRAM_WINDOW_16,
+        _shape("rect", x="3", y="9", width="3", height="1", fill="#000000"),
+        _shape("rect", x="6", y="10", width="4", height="1", fill="#000000"),
+        _shape("rect", x="10", y="9", width="3", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-x-trash.svg"): (
+        *_PROGRAM_WINDOW_22,
+        _shape("rect", x="4", y="11", width="4", height="1", fill="#000000"),
+        _shape("rect", x="8", y="12", width="6", height="1", fill="#000000"),
+        _shape("rect", x="14", y="11", width="4", height="1", fill="#000000"),
+    ),
     # The PGP-keys item icon KDE draws for `application/pgp-keys` items
     # (the type-spelled icon name of the installed shared MIME database's
     # `application/pgp-keys` type, which has no `generic-icon`, no aliases
