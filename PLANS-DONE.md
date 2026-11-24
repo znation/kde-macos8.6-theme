@@ -440,8 +440,11 @@ drawing is this theme's own choice.
   The art shares the generic document's page (every drawing element of
   `mimetypes/text-x-script.svg` at that size except the angle brackets
   and the `#999999` code lines) and holds a pair of black curly
-  braces — the script icon's angle-bracket chains with one middle nub
-  added to each — instead of the angle brackets, with no code lines;
+  braces — chain-built marks in the script icon's bracket style (the
+  32x32 brace is the script chain with one middle nub added per brace,
+  the 22x22 brace is that chain with its middle point pulled in one
+  pixel, and the 16x16 brace reshapes the chain around a middle point
+  and nub) — instead of the angle brackets, with no code lines;
   an original JSON mark distinct from the script icon's open
   `<` `>` pair:
   - 32x32: the page paths `M6 3 h14 l6 6 v20 H6 Z` `#000000`,
@@ -459,14 +462,14 @@ drawing is this theme's own choice.
     `9,14 1×1`; right brace rects `12,8 1×1`, `13,9 1×1`,
     `14,10 1×1`, nub `14,11 1×1`, `14,12 1×1`, `13,13 1×1` and
     `12,14 1×1`; all braces `#000000` (rows 8..14, inside the face
-    rows 2..15, clear of the flap rows 2..6).
+    rows 2..19, clear of the flap rows 2..6).
   - 16x16: the page paths `M3 1 h7 l3 3 v10 H3 Z` `#000000`,
     `M4 2 h5 l3 3 v8 H4 Z` `#FFFFFF` and the flap
     `M9 2 L12 2 L12 5 Z` `#DDDDDD`; left brace rects `6,6 1×1`,
     `5,7 1×1`, `4,8 1×1`, nub `5,8 1×1`, `5,9 1×1` and `6,10 1×1`;
     right brace rects `9,6 1×1`, `10,7 1×1`, `11,8 1×1`, nub
     `10,8 1×1`, `10,9 1×1` and `9,10 1×1`; all braces `#000000`
-    (rows 6..10, inside the face rows 2..12, clear of the flap rows
+    (rows 6..10, inside the face rows 2..13, clear of the flap rows
     2..5).
 
   Validate by XML only, never by rasterizing: `convert`'s MSVG reader
