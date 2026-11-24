@@ -410,9 +410,9 @@ document — so it gets its own pins and no sharing test.
   `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
   provenance of `camera-photo` in the last cell: no reference pixels
   were used, the name is required by the installed KDE camera desktop
-  entry (`kcm_kamera.desktop`) while `libKF6Solid.so.6.13.0` has no
-  `camera-photo` literal, and the body-and-lens drawing is this theme's
-  own choice.
+  entry (`kcm_kamera.desktop`) and read from `libKF6Solid.so.6.13.0`'s
+  bare 8-bit `camera-photo` literal, and the body-and-lens drawing is
+  this theme's own choice.
 - `docs/installing.md`: add the camera icon to the sentence listing the
   icon theme's placeholder illustrations and their sizes.
 
