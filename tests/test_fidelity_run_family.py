@@ -17,6 +17,7 @@ from support import repo_root  # noqa: F401
 from tools.fidelity_lib.run_family import (
     COLUMN_RUN_CALLS,
     HORIZONTAL_RUN_CALLS,
+    _filter_run_report,
     collect_run_family,
 )
 
@@ -179,6 +180,42 @@ class TestCollectRunFamily(unittest.TestCase):
         self.assertEqual(column, horizontal)
         self.assertEqual(column_log, ["runs"])
         self.assertEqual(horizontal_log, ["runs"])
+
+
+class TestFilterRunReport(unittest.TestCase):
+    """The uncapped report's filter-then-page helper keeps its own contract.
+
+    ``collect_run_family`` pages a capped family through
+    ``tools.fidelity_lib/run_page.py::collect_run_page`` and hands an
+    uncapped family's scanned list to :func:`_filter_run_report` only
+    after the paging path is ruled out; no suite test drove that helper
+    itself, so its documented promise -- the paired length filter first,
+    then the eligible records' page -- is pinned here directly.
+    """
+
+    def test_the_length_window_is_inclusive_on_both_bounds(self):
+        # Both refusals the CLI help promises are "shorter than N" and
+        # "longer than N", so N itself survives on either edge.
+        filtered, omitted = _filter_run_report(_runs(2, 3, 4, 5, 6), 3, 5, None)
+        self.assertEqual([run["length"] for run in filtered], [3, 4, 5])
+        self.assertIsNone(omitted)
+
+    def test_the_page_slices_the_eligible_list_and_counts_what_it_omits(self):
+        # The window runs first: of 1, 3, 2, 9 only 3 and 2 are eligible,
+        # so offset 1 limit 1 shows the 2 and omits one eligible run --
+        # not one of the four runs the pre-filter list held.
+        filtered, omitted = _filter_run_report(
+            _runs(1, 3, 2, 9), 2, 8, 1, offset=1)
+        self.assertEqual(filtered, [{"x": 2, "y": 0, "length": 2}])
+        self.assertEqual(omitted, 1)
+
+    def test_a_window_that_keeps_nothing_returns_an_empty_list(self):
+        # The CLI refuses a minimum above its maximum before any read,
+        # but the helper itself meets a refuted window with an empty
+        # list, and no omitted count -- nothing was paged away.
+        filtered, omitted = _filter_run_report(_runs(3, 4), 5, 2, None)
+        self.assertEqual(filtered, [])
+        self.assertIsNone(omitted)
 
 
 if __name__ == "__main__":
