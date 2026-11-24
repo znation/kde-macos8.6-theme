@@ -238,7 +238,9 @@ the same three sizes), a RAR-archive icon
 for RAR archive files (the `application-vnd.rar` name at the same
 three sizes), an ARJ-archive icon
 for ARJ archive files (the `application-x-arj` name at the same
-three sizes), an xz-compressed-tar icon for xz-compressed tar archive
+three sizes), a Flatpak repository-reference icon for Flatpak
+repository-reference files (the `application-vnd.flatpak.ref` name at
+the same three sizes), an xz-compressed-tar icon for xz-compressed tar archive
 files (the `application-x-xz-compressed-tar` name at the same three
 sizes), a bzip2-compressed-tar icon
 for bzip2-compressed tar archive files (the

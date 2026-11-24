@@ -80,6 +80,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-compressed-tar.svg` | original compressed-tar illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.rar.svg` | original RAR-archive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-arj.svg` | original ARJ-archive illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.flatpak.ref.svg` | original Flatpak repository-reference illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-xz-compressed-tar.svg` | original xz-compressed-tar illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-bzip2-compressed-tar.svg` | original bzip2-compressed-tar illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-lzma-compressed-tar.svg` | original LZMA-compressed-tar illustration pending user-approved artwork. |
@@ -181,6 +182,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-compressed-tar.svg` | original compressed-tar illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.rar.svg` | original RAR-archive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-arj.svg` | original ARJ-archive illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.flatpak.ref.svg` | original Flatpak repository-reference illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-xz-compressed-tar.svg` | original xz-compressed-tar illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-bzip2-compressed-tar.svg` | original bzip2-compressed-tar illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-lzma-compressed-tar.svg` | original LZMA-compressed-tar illustration pending user-approved artwork. |
@@ -280,6 +282,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-compressed-tar.svg` | original compressed-tar illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.rar.svg` | original RAR-archive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-arj.svg` | original ARJ-archive illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.flatpak.ref.svg` | original Flatpak repository-reference illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-xz-compressed-tar.svg` | original xz-compressed-tar illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-bzip2-compressed-tar.svg` | original bzip2-compressed-tar illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-lzma-compressed-tar.svg` | original LZMA-compressed-tar illustration pending user-approved artwork. |

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original Flatpak repository-reference illustration pending user-approved artwork. -->
+<!-- Platinum Flatpak repository-reference icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: the sealed box the
+     package icon draws, holding a black repository-reference mark on
+     the white body left of the grey tape stripe (a two-row arrow-head
+     bar, a shaft dropping from it and an open crate under the shaft,
+     a reference dropping into a depot). Drawn for this theme, not
+     traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <rect x="3" y="6" width="26" height="22" fill="#000000"/>
+  <rect x="4" y="7" width="24" height="3" fill="#DDDDDD"/>
+  <rect x="4" y="7" width="24" height="1" fill="#FFFFFF"/>
+  <rect x="4" y="10" width="24" height="17" fill="#FFFFFF"/>
+  <rect x="15" y="10" width="2" height="17" fill="#999999"/>
+  <rect x="9" y="14" width="3" height="1" fill="#000000"/>
+  <rect x="9" y="15" width="3" height="1" fill="#000000"/>
+  <rect x="10" y="16" width="1" height="1" fill="#000000"/>
+  <rect x="10" y="17" width="1" height="5" fill="#000000"/>
+  <rect x="7" y="22" width="1" height="1" fill="#000000"/>
+  <rect x="13" y="22" width="1" height="1" fill="#000000"/>
+  <rect x="7" y="23" width="7" height="1" fill="#000000"/>
+</svg>
