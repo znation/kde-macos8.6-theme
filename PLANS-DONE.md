@@ -495,8 +495,8 @@ choice.
     #DDDDDD`, `path M8 8 L5 3 L3 5 Z #FFFFFF`, `path M8 8 L11 13 L13
     11 Z #FFFFFF`, `circle 8,8 r3 #999999`, `circle 8,8 r2 #FFFFFF`
     and `circle 8,8 r1 #000000`; I rects, all `#000000`: top bar
-    `11,5 3×2` (rows 5..6), stem `12,7 1×2` (rows 7..8) and bottom
-    bar `11,9 3×2` (rows 9..10).
+    `11,5 3×2` (rows 5..6), stem `12,7 1×1` (row 7) and bottom
+    bar `11,8 3×2` (rows 8..9).
 
   Validate by XML only, never by rasterizing: `convert`'s MSVG reader
   bleeds 1px shapes, so the pins below are the drawing contract.

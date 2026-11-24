@@ -813,8 +813,8 @@ PINS = {
         _shape("circle", cx="8", cy="8", r="2", fill="#FFFFFF"),
         _shape("circle", cx="8", cy="8", r="1", fill="#000000"),
         _shape("rect", x="11", y="5", width="3", height="2", fill="#000000"),
-        _shape("rect", x="12", y="7", width="1", height="2", fill="#000000"),
-        _shape("rect", x="11", y="9", width="3", height="2", fill="#000000"),
+        _shape("rect", x="12", y="7", width="1", height="1", fill="#000000"),
+        _shape("rect", x="11", y="8", width="3", height="2", fill="#000000"),
     ),
     os.path.join("22x22", "mimetypes", "application-vnd.efi.iso.svg"): (
         _shape("circle", cx="11", cy="11", r="10", fill="#000000"),
