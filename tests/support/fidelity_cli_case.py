@@ -19,6 +19,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.cli_fixtures import CliTestCase  # noqa: E402
 from support.png_fixtures import make_png, rgb_image, solid_rgb  # noqa: E402
 from tools import fidelity  # noqa: E402
+from tools.fidelity_lib import pixels as fidelity_pixels  # noqa: E402
 from tools.fidelity_lib import run_family as fidelity_run_family  # noqa: E402
 
 
@@ -80,6 +81,26 @@ class FidelityCliTestCase(CliTestCase):
             make_png(4, 3, self.DELTA_PAIR_ROWS),
             make_png(4, 3, [bytes(12)] * 3),
         )
+
+    def assert_default_run_derives_no_deltas(self) -> None:
+        """Pin that a run with no pixel or spatial report derives no deltas.
+
+        Shared by the same-named test in test_fidelity_flags_shared_deltas,
+        test_fidelity_metrics_shared_deltas and
+        test_fidelity_pixels_shared_deltas: both derivation sites raise if a
+        default ``--tolerance 9`` run on the delta pair touches them -- the
+        CLI's own ``fidelity.channel_deltas`` and the reports'
+        ``fidelity_pixels.channel_deltas`` fallback (``_resolved_deltas``) --
+        and the run still FAILs exactly as an unguarded one does.
+        """
+        candidate, reference = self._delta_pair()
+        with mock.patch.object(
+            fidelity, "channel_deltas", side_effect=AssertionError
+        ), mock.patch.object(
+            fidelity_pixels, "channel_deltas", side_effect=AssertionError
+        ):
+            result = self._run_png_pair(candidate, reference, "--tolerance", "9")
+        self._assert_fail(result)
 
     def _write_altered_pair(self, directory: Path) -> tuple[str, str]:
         """Write a 3x3 candidate and a one-pixel-altered copy of it.

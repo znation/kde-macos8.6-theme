@@ -113,14 +113,7 @@ class TestCliSharedFlagsPass(FidelityCliTestCase):
 
     def test_default_run_derives_no_deltas(self):
         """A run with no pixel or spatial report computes no delta pass."""
-        candidate, reference = self._delta_pair()
-        with mock.patch.object(
-            fidelity, "channel_deltas", side_effect=AssertionError
-        ), mock.patch.object(
-            fidelity_pixels, "channel_deltas", side_effect=AssertionError
-        ):
-            result = self._run_png_pair(candidate, reference, "--tolerance", "9")
-        self._assert_fail(result)
+        self.assert_default_run_derives_no_deltas()
 
 
 if __name__ == "__main__":
