@@ -19,7 +19,7 @@ from support.gtk.staging_case import StagingTestCase
 from support.theme_install import write_file
 from support.unlink_failure import unlink_failing_for
 from tools.gtk.staging import commit, stage_all
-from tools.gtk.user_files import ConfigError
+from tools.config_read import ConfigError
 
 
 class TestCommitBackups(StagingTestCase):

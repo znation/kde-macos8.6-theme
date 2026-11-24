@@ -46,24 +46,24 @@ if __package__:
     from tools.diagnostics import report_error, report_note
     from tools.file_lock import installed_data_lock, parent_dir_lock
     from tools.gtk.settings import GTK_ID
+    from tools.config_read import ConfigError
     from tools.gtk.selection import (
         apply as _apply,
         installed_sheets as _installed_sheets,
         remove as _remove,
     )
-    from tools.gtk.user_files import ConfigError
 else:  # run directly: python3 tools/apply_gtk.py
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from diagnostics import report_error, report_note
     from file_lock import installed_data_lock, parent_dir_lock
     from gtk.settings import GTK_ID
+    from config_read import ConfigError
     from gtk.selection import (
         apply as _apply,
         installed_sheets as _installed_sheets,
         remove as _remove,
     )
-    from gtk.user_files import ConfigError
 
 TOOL = "apply_gtk"
 __all__ = ["GTK_ID"]

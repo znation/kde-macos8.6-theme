@@ -3,7 +3,8 @@
 The functions here are pure text transforms: they preserve every foreign
 line with its own line ending, keep a leading UTF-8 BOM, and leave text
 unchanged when removal finds nothing of ours. ``tools/gtk/user_files.py``
-reads the files, ``tools/apply_gtk.py`` drives the selection and
+locates the files and reads them through ``tools/config_read.py``'s bounded
+reader, ``tools/apply_gtk.py`` drives the selection and
 ``tools/gtk/staging.py`` publishes the writes.
 """
 

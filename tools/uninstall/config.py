@@ -63,7 +63,7 @@ def config_home(env: dict[str, str]) -> str | None:
 # A config file is a small settings file the running user owns, so the
 # diagnostics-only reader applies the same 1 MiB cap every other bounded read
 # here applies (``reference_sources``' sources.txt, ``theme_defaults``' defaults
-# file, ``tools.gtk.user_files``' settings and CSS, the Firefox profile files):
+# file, ``tools/config_read.py``' settings and CSS reads, the Firefox profile files):
 # a file bigger than that is unreadable for these warnings' purposes instead
 # of being loaded whole.
 _MAX_CONFIG_BYTES = 1 << 20

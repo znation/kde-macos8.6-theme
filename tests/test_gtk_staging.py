@@ -30,7 +30,7 @@ from tools.gtk.staging import (
     discard,
     stage_all,
 )
-from tools.gtk.user_files import ConfigError
+from tools.config_read import ConfigError
 
 
 class TestStage(StagingTestCase):

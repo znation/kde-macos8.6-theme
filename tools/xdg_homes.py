@@ -9,7 +9,7 @@ resolved, so the caller refuses instead of guessing where to read or write;
 :func:`cache_home` is best-effort and never returns ``None``. When a resolver
 does refuse, :func:`require_home` raises that refusal with the shared
 diagnostic naming the received values, which the GTK and Kvantum selection
-tools raise through their own :class:`~tools.gtk.user_files.ConfigError`.
+tools raise through :class:`~tools.config_read.ConfigError`.
 """
 
 from __future__ import annotations

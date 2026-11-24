@@ -19,6 +19,7 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.theme_install import write_file
+from tools import config_read
 from tools.gtk import user_files as gtk_user_files
 
 
@@ -99,9 +100,9 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         make_fifo(self, fifo)
         open_the_fifo = fifo_swap_opener(fifo)
 
-        with mock.patch.object(gtk_user_files.os, "open", side_effect=open_the_fifo):
-            with self.assertRaises(gtk_user_files.ConfigError) as caught:
-                gtk_user_files.read_config_text(gtk4)
+        with mock.patch.object(config_read.os, "open", side_effect=open_the_fifo):
+            with self.assertRaises(config_read.ConfigError) as caught:
+                config_read.read_config_text(gtk4)
         self.assertIn(f"cannot read {gtk4}", str(caught.exception))
         self.assertIn("not a regular file", str(caught.exception))
 
@@ -159,7 +160,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         gtk4 = self.settings("gtk-4.0")
         gtk4.parent.mkdir(parents=True, exist_ok=True)
         with gtk4.open("wb") as handle:
-            handle.truncate(gtk_user_files.MAX_CONFIG_FILE_BYTES + 1)
+            handle.truncate(config_read.MAX_CONFIG_FILE_BYTES + 1)
 
         result = self.run_tool()
 
@@ -179,7 +180,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         gtk4_before = gtk4.read_bytes()
         css = self.config / "gtk-4.0" / "gtk.css"
         with css.open("wb") as handle:
-            handle.truncate(gtk_user_files.MAX_CONFIG_FILE_BYTES + 1)
+            handle.truncate(config_read.MAX_CONFIG_FILE_BYTES + 1)
 
         result = self.run_tool("--remove")
 
@@ -188,7 +189,7 @@ class TestUnreadableConfig(ApplyGtkTestCase):
         self.assertIn("larger than", result.stderr)
         self.assert_settings_unchanged(gtk3_before, gtk4_before)
         self.assertEqual(
-            gtk_user_files.MAX_CONFIG_FILE_BYTES + 1, css.stat().st_size
+            config_read.MAX_CONFIG_FILE_BYTES + 1, css.stat().st_size
         )
 
     def test_a_settings_file_at_the_1_mib_cap_is_accepted(self):

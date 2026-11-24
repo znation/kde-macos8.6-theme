@@ -26,7 +26,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.gtk.staging_case import StagingTestCase
 from support.theme_install import write_file
 from tools.gtk.staging import commit, stage_all
-from tools.gtk.user_files import ConfigError
+from tools.config_read import ConfigError
 
 
 class TestCommit(StagingTestCase):

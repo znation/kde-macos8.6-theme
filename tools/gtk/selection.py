@@ -13,13 +13,15 @@ from collections.abc import Callable
 from pathlib import Path
 
 if __package__ == "tools.gtk":
+    from tools.config_read import (
+        MAX_CONFIG_FILE_BYTES,
+        ConfigError,
+        read_config_text,
+    )
     from tools.diagnostics import report_failure
     from tools.gtk.settings import GTK_ID, remove_theme_name, set_theme_name
     from tools.gtk.staging import commit, discard, stage_all
     from tools.gtk.user_files import (
-        ConfigError,
-        MAX_CONFIG_FILE_BYTES,
-        read_config_text,
         settings_path,
         user_css_backup,
         user_css_remove,
@@ -27,13 +29,15 @@ if __package__ == "tools.gtk":
     )
     from tools.symlink_refusal import refuse_symlink
 else:  # imported from a directly run tool
+    from config_read import (
+        MAX_CONFIG_FILE_BYTES,
+        ConfigError,
+        read_config_text,
+    )
     from diagnostics import report_failure
     from gtk.settings import GTK_ID, remove_theme_name, set_theme_name
     from gtk.staging import commit, discard, stage_all
     from gtk.user_files import (
-        ConfigError,
-        MAX_CONFIG_FILE_BYTES,
-        read_config_text,
         settings_path,
         user_css_backup,
         user_css_remove,

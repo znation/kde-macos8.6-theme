@@ -46,20 +46,20 @@ if __package__:
     from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
     from tools.atomic_write import write_bytes_atomically
+    from tools.config_read import ConfigError, read_config_text
     from tools.diagnostics import report_error, report_note
     from tools.file_lock import parent_dir_lock
     from tools.gtk.settings import remove_key_from_section
-    from tools.gtk.user_files import ConfigError, read_config_text
     from tools.os_error_refusal import refusing_os_errors
     from tools.symlink_refusal import refuse_symlink
 else:  # run directly: python3 tools/kvantum_selection.py
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_bytes_atomically
+    from config_read import ConfigError, read_config_text
     from diagnostics import report_error, report_note
     from file_lock import parent_dir_lock
     from gtk.settings import remove_key_from_section
-    from gtk.user_files import ConfigError, read_config_text
     from os_error_refusal import refusing_os_errors
     from symlink_refusal import refuse_symlink
 

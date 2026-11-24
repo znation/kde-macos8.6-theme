@@ -17,11 +17,11 @@ from pathlib import Path
 
 if __package__ == "tools.gtk":
     from tools.atomic_write import write_atomically
-    from tools.gtk.user_files import ConfigError
+    from tools.config_read import ConfigError
     from tools.os_error_refusal import refusing_os_errors
 else:  # imported from a directly run tool
     from atomic_write import write_atomically
-    from gtk.user_files import ConfigError
+    from config_read import ConfigError
     from os_error_refusal import refusing_os_errors
 
 

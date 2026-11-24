@@ -8,11 +8,11 @@ import sys
 from pathlib import Path
 
 if __package__.startswith("tools"):
+    from tools.config_read import ConfigError
     from tools.diagnostics import report_error, report_failure
     from tools.png import PngError, read_png
     from tools.process_group import run_logged
     from tools.render.output import publish
-    from tools.gtk.user_files import ConfigError
     from tools.render.splash_client import splash_client
     from tools.render.dialogs import DIALOG_MODES, DialogMode
     from tools.render.capture_diagnosis import capture_is_unpainted, client_exited_during_capture, log_size, report_render_log
@@ -37,11 +37,11 @@ if __package__.startswith("tools"):
     )
     from tools.repo_root import ROOT
 else:  # run directly from render_surface.py
+    from config_read import ConfigError
     from diagnostics import report_error, report_failure
     from png import PngError, read_png
     from process_group import run_logged
     from render.output import publish
-    from gtk.user_files import ConfigError
     from render.splash_client import splash_client
     from render.dialogs import DIALOG_MODES, DialogMode
     from render.capture_diagnosis import capture_is_unpainted, client_exited_during_capture, log_size, report_render_log
