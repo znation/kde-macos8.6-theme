@@ -10,8 +10,7 @@ from pathlib import Path
 from unittest import mock
 
 from support.splash import fixtures as splash_fixtures
-from support import snippet_child
-from support.fifo_fixtures import assert_fifo_read_refused
+from support.fifo_fixtures import assert_read_refused_in_child
 from support.splash.fixtures import object_source, qml_unit_expression, read_qml
 from support.symlink_fixtures import symlinked_repo
 from tools import containment as tools_containment
@@ -237,26 +236,19 @@ class TestSplashQmlContainment(unittest.TestCase):
         # and read_qml has no timeout, so one stray pipe would stall the whole
         # suite with no diagnostic. Run it in a child so the pre-fix hang is a
         # bounded timeout rather than a stalled run.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
+            root = Path(tmp) / "repo"
             fifo = root / "Splash.qml"
-            os.mkfifo(fifo)
-            child = snippet_child.run(
-                [
-                    "import sys; import support.splash.fixtures as f; "
-                    "f.ROOT, f.SPLASH = sys.argv[1], sys.argv[2]; "
-                    "f.read_qml()",
-                    str(root),
-                    str(fifo),
-                ],
+            assert_read_refused_in_child(
+                self,
+                fifo,
+                "import sys; import support.splash.fixtures as f; "
+                "f.ROOT, f.SPLASH = sys.argv[1], sys.argv[2]; "
+                "f.read_qml()",
+                str(root),
+                str(fifo),
                 cwd=os.path.dirname(__file__),
-                timeout=10,
             )
-        assert_fifo_read_refused(self, child, fifo)
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         # Splash.qml is contributor-supplied, and a checked-in symlink can

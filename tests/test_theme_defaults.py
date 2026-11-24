@@ -8,29 +8,10 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support import snippet_child
-from support.fifo_fixtures import assert_fifo_read_refused, make_fifo
+from support.fifo_fixtures import assert_read_refused_in_child
 from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 from tools import theme_defaults  # noqa: E402
-
-
-def _run_defaults_groups_in_child(path):
-    """Run ``defaults_groups`` on *path* in a child; return its result.
-
-    A FIFO makes the reader's ``open()`` block until a writer appears; the
-    child turns that pre-fix hang into a bounded timeout for the test.
-    """
-    return snippet_child.run(
-        [
-            "from pathlib import Path; import sys; "
-            "from tools.theme_defaults import defaults_groups; "
-            "defaults_groups(Path(sys.argv[1]))",
-            str(path),
-        ],
-        cwd=repo_root.ROOT,
-        timeout=10,
-    )
 
 
 class TestDefaultsGroups(unittest.TestCase):
@@ -284,9 +265,15 @@ class TestDefaultsGroups(unittest.TestCase):
         # around this read, so one stray pipe would stall it silently. Refuse
         # the path by name in a child process instead.
         path = make_tmp_dir(self) / "defaults"
-        make_fifo(self, path)
-        child = _run_defaults_groups_in_child(path)
-        assert_fifo_read_refused(self, child, path)
+        assert_read_refused_in_child(
+            self,
+            path,
+            "from pathlib import Path; import sys; "
+            "from tools.theme_defaults import defaults_groups; "
+            "defaults_groups(Path(sys.argv[1]))",
+            str(path),
+            cwd=repo_root.ROOT,
+        )
 
 
 class TestWriteConfigs(unittest.TestCase):

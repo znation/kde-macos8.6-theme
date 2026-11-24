@@ -8,10 +8,12 @@ when one is asked for, if its skip branches broke, or if ``fifo_swap_opener``
 started honouring the flags under test (an ``O_RDONLY``-shaped open would
 block until a writer appears and hang the suite). This module pins those
 behaviours: ``make_fifo`` creates the FIFO (creating parents), skips when the
-platform lacks ``os.mkfifo`` or the node cannot be created, and
+platform lacks ``os.mkfifo`` or the node cannot be created,
 ``fifo_swap_opener`` opens the FIFO ``O_RDWR | O_NONBLOCK`` whatever target,
 flags and keyword arguments the caller passes, using the ``os.open`` it
-captured at call time.
+captured at call time, and ``assert_read_refused_in_child`` chains the three
+steps a suite's FIFO-refusal guard needs: plant, run the reader snippet in a
+bounded child, pin the refusal.
 """
 
 from __future__ import annotations
@@ -24,6 +26,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.fifo_fixtures import assert_read_refused_in_child  # noqa: E402
 from support.fifo_fixtures import fifo_swap_opener  # noqa: E402
 from support.fifo_fixtures import make_fifo  # noqa: E402
 
@@ -91,6 +94,52 @@ class TestFifoSwapOpener(TempRootCase):
             fd = open_the_fifo(fifo, os.O_RDONLY)
         self.addCleanup(os.close, fd)
         self.assertTrue(stat.S_ISFIFO(os.fstat(fd).st_mode))
+
+
+REFUSER_SNIPPET = (
+    "import os, stat, sys\n"
+    "path = sys.argv[1]\n"
+    "if not stat.S_ISREG(os.stat(path).st_mode):\n"
+    "    sys.stderr.write(f'cannot read {path}: not a regular file\\n')\n"
+    "    sys.exit(2)\n"
+)
+
+
+class TestAssertReadRefusedInChild(TempRootCase):
+    """The helper plants the pipe, runs the snippet and pins the refusal."""
+
+    def test_plants_the_fifo_and_pins_the_childs_refusal(self):
+        # The refusal snippet reads its path from sys.argv[1], so a wiring
+        # bug -- an argument dropped or reordered in the helper's run call --
+        # fails here instead of passing while every converted guard breaks.
+        fifo = self.path("nested", "pipe")
+        assert_read_refused_in_child(
+            self, fifo, REFUSER_SNIPPET, str(fifo), cwd=self.root.name
+        )
+        self.assertTrue(stat.S_ISFIFO(os.stat(fifo).st_mode))
+
+    def test_a_snippet_that_does_not_refuse_fails_the_assertion(self):
+        # A reader that exits cleanly without refusing the pipe must not
+        # pass: the helper pins the refusal, not just a completed child.
+        fifo = self.path("pipe")
+        with self.assertRaises(AssertionError):
+            assert_read_refused_in_child(
+                self, fifo, "import sys; sys.exit(0)", cwd=self.root.name
+            )
+
+    def test_skips_when_the_platform_lacks_mkfifo(self):
+        # The plant runs before the child: the skip guard fires before any
+        # snippet runs, as the converted suites relied on their own guards.
+        saved = os.mkfifo
+        del os.mkfifo
+        try:
+            with self.assertRaises(unittest.SkipTest):
+                assert_read_refused_in_child(
+                    self, self.path("pipe"), REFUSER_SNIPPET,
+                    cwd=self.root.name,
+                )
+        finally:
+            os.mkfifo = saved
 
 
 if __name__ == "__main__":

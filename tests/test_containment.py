@@ -20,48 +20,31 @@ from pathlib import Path
 from unittest import mock
 
 from support import containment
-from support import snippet_child
 from support.close_tracking import failing_fdopen, tracking_closes
-from support.fifo_fixtures import assert_fifo_read_refused
+from support.fifo_fixtures import assert_read_refused_in_child
 from support.repo_root import ROOT
 from support.symlink_fixtures import symlinked_repo
 from tools import containment as containment_impl
-
-
-def _run_reader_in_child(reader, path, root):
-    """Run one guarded reader on *path* in a child; return its result.
-
-    A reader handed a FIFO blocks in ``open()`` until a writer appears, so a
-    direct call would stall the suite with no diagnostic. The child makes that
-    hang a hard timeout instead.
-    """
-    return snippet_child.run(
-        [
-            f"import sys; from tools.containment import {reader}; "
-            f"{reader}(sys.argv[1], sys.argv[2])",
-            str(path),
-            str(root),
-        ],
-        cwd=ROOT,
-        timeout=10,
-    )
 
 
 def _assert_fifo_refused_by_child(case, reader, name):
     """Create a FIFO named *name* and assert *reader* refuses it in a child.
 
     Used by the FIFO tests of :func:`containment.read_bytes` and
-    :func:`containment.read_text`; the skip guard and the temporary FIFO are
-    the same for both, only the reader and the file name differ.
+    :func:`containment.read_text`; the temporary FIFO is the same for both,
+    only the reader and the file name differ.
     """
-    if not hasattr(os, "mkfifo"):
-        case.skipTest("os.mkfifo is not available on this platform")
     with tempfile.TemporaryDirectory() as tmp:
-        tmp = Path(tmp)
-        fifo = tmp / name
-        os.mkfifo(fifo)
-        child = _run_reader_in_child(reader, fifo, tmp)
-    assert_fifo_read_refused(case, child, fifo)
+        root = Path(tmp)
+        assert_read_refused_in_child(
+            case,
+            root / name,
+            f"import sys; from tools.containment import {reader}; "
+            f"{reader}(sys.argv[1], sys.argv[2])",
+            str(root / name),
+            str(root),
+            cwd=ROOT,
+        )
 
 
 class TestReadBytes(unittest.TestCase):

@@ -10,6 +10,7 @@ that::
     fifo_swap_opener(fifo)                    # os.open stand-in for a swap
     assert_fifo_refused(self, result, path)
     assert_fifo_read_refused(self, result, path)
+    assert_read_refused_in_child(self, fifo, code, *args, cwd=...)
 
 *result* is a completed child process with decoded-text ``stdout``/``stderr``,
 as ``support.snippet_child.run`` returns. ``assert_fifo_refused`` pins the
@@ -25,6 +26,8 @@ from __future__ import annotations
 
 import os
 import stat
+
+from support import snippet_child
 
 
 def make_fifo(case, path):
@@ -83,3 +86,30 @@ def assert_fifo_read_refused(case, result, path):
     case.assertNotEqual(0, result.returncode, result.stdout + result.stderr)
     case.assertIn("not a regular file", result.stderr)
     case.assertIn(str(path), result.stderr)
+
+
+def assert_read_refused_in_child(case, fifo, code, *args, cwd, timeout=10):
+    """Plant a FIFO at *fifo* and assert the reader *code* refuses it in a child.
+
+    The full choreography of a suite's ``test_refuses_a_fifo_instead_of_blocking``:
+    :func:`make_fifo` plants the pipe (skipping *case* when the platform lacks
+    one), :func:`support.snippet_child.run` runs *code* in a child process with
+    the *args* as its ``sys.argv[1:]`` -- so a reader that blocks is a bounded
+    timeout, not a stalled run -- and :func:`assert_fifo_read_refused` pins the
+    refusal. *cwd* is the child's working directory, passed through; *timeout*
+    bounds the child and defaults to the 10 seconds the suites pinned.
+
+    The single-read guard suites use it: ``test_kde_config``,
+    ``test_package_metadata``, ``test_splash_qml``, ``test_placeholders`` (both
+    reader guards), ``test_theme_defaults``, ``test_desktoptheme_provenance``,
+    ``test_readme_theme_files`` and ``test_containment`` (through its two-reader
+    wrapper). The ``assert_fifo_refused`` suites (``test_fidelity_sources``,
+    ``test_remove_firefox``, ``test_apply_gtk_unreadable_config``) pin the
+    stronger exit-status-2 contract and run their own children, and
+    ``test_aurorae_frame``'s guard drives two readers in one test under
+    ``subTest``, where a :func:`make_fifo` skip would report wrongly, so both
+    keep their own runs.
+    """
+    make_fifo(case, fifo)
+    child = snippet_child.run([code, *args], cwd=cwd, timeout=timeout)
+    assert_fifo_read_refused(case, child, fifo)

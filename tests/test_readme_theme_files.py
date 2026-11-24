@@ -18,9 +18,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from support import snippet_child
 from support.desktoptheme_paths import PACKAGE
-from support.fifo_fixtures import assert_fifo_read_refused, make_fifo
+from support.fifo_fixtures import assert_read_refused_in_child
 from support.repo_root import ROOT
 from support.symlink_fixtures import symlinked_repo
 from support.user_docs import read_user_docs
@@ -137,22 +136,18 @@ class TestReadmeTextContainment(unittest.TestCase):
         # bounded timeout rather than a stalled run.
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "repo"
-            root.mkdir()
             fifo = root / "README.md"
-            make_fifo(self, fifo)
-            code = (
+            assert_read_refused_in_child(
+                self,
+                fifo,
                 "import sys\n"
                 "from unittest import mock\n"
                 "import test_readme_theme_files as reader\n"
                 "with mock.patch.object(reader, 'ROOT', sys.argv[1]):\n"
-                "    reader.readme_text()\n"
-            )
-            child = snippet_child.run(
-                [code, str(root)],
+                "    reader.readme_text()\n",
+                str(root),
                 cwd=os.path.dirname(__file__),
-                timeout=10,
             )
-        assert_fifo_read_refused(self, child, fifo)
 
 
 class TestReadmeTokenParsing(unittest.TestCase):

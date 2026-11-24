@@ -17,9 +17,8 @@ from pathlib import Path
 from unittest import mock
 
 from support import containment
-from support import snippet_child
 from support.desktoptheme_paths import ARROWS_SVG, MENUBARITEM_SVG, VIEWITEM_SVG
-from support.fifo_fixtures import assert_fifo_read_refused, make_fifo
+from support.fifo_fixtures import assert_read_refused_in_child
 from support.repo_root import ROOT
 from support.symlink_fixtures import symlinked_repo
 from tools import containment as tools_containment
@@ -129,17 +128,14 @@ class TestHeaderCommentContainment(unittest.TestCase):
         # hang is a bounded timeout rather than a stalled run.
         with tempfile.TemporaryDirectory() as tmp:
             fifo = Path(tmp) / "viewitem.svg"
-            make_fifo(self, fifo)
-            child = snippet_child.run(
-                [
-                    "import sys; from test_desktoptheme_provenance import "
-                    "header_comment; header_comment(sys.argv[1])",
-                    str(fifo),
-                ],
+            assert_read_refused_in_child(
+                self,
+                fifo,
+                "import sys; from test_desktoptheme_provenance import "
+                "header_comment; header_comment(sys.argv[1])",
+                str(fifo),
                 cwd=os.path.dirname(__file__),
-                timeout=10,
             )
-        assert_fifo_read_refused(self, child, fifo)
 
 
 class TestHeaderCommentScanning(unittest.TestCase):

@@ -8,15 +8,13 @@ whitespace never starts a value continuation — and that the file is explicitly
 decoded as UTF-8 with a leading BOM stripped.
 """
 
-import os
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from support import kde_config
-from support import snippet_child
-from support.fifo_fixtures import assert_fifo_read_refused
+from support.fifo_fixtures import assert_read_refused_in_child
 from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 
@@ -143,20 +141,15 @@ class TestReadKdeConfig(unittest.TestCase):
         # a FIFO at one of those paths would block open() forever. The read
         # must refuse it by name. Run in a child so the pre-fix hang is a
         # bounded timeout, not a stalled suite.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         path = make_tmp_dir(self) / "defaults"
-        os.mkfifo(path)
-        child = snippet_child.run(
-            [
-                "from pathlib import Path; import sys; "
-                "from support.kde_config import read; read(Path(sys.argv[1]))",
-                str(path),
-            ],
+        assert_read_refused_in_child(
+            self,
+            path,
+            "from pathlib import Path; import sys; "
+            "from support.kde_config import read; read(Path(sys.argv[1]))",
+            str(path),
             cwd=Path(__file__).resolve().parent,
-            timeout=10,
         )
-        assert_fifo_read_refused(self, child, path)
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         # A theme INI is contributor-supplied, and a checked-in symlink can

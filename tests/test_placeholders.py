@@ -22,29 +22,12 @@ from support.placeholders import (
     markers,
     register_entries,
 )
-from support import snippet_child
 from support.error_assertions import assert_escapes_escape_character
-from support.fifo_fixtures import assert_fifo_read_refused
+from support.fifo_fixtures import assert_read_refused_in_child
 from support.repo_root import ROOT
 from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from tools import containment as tools_containment
-
-
-def _run_reader_in_child(call, path):
-    """Run one ``placeholders`` reader on *path* in a child; return its result.
-
-    A reader handed a FIFO blocks in ``open()`` until a writer appears, so a
-    direct call would stall the suite with no diagnostic. The child makes
-    that hang a hard timeout instead; ``snippet_child.run`` kills it when the
-    timeout expires.
-    """
-    return snippet_child.run(
-        [f"import sys; from support.placeholders import {call}; "
-         f"{call}(sys.argv[1])", str(path)],
-        cwd=ROOT / "tests",
-        timeout=10,
-    )
 
 
 class TestHelpers(unittest.TestCase):
@@ -218,26 +201,32 @@ class TestHelpers(unittest.TestCase):
         # until a writer appears; the marker read has no timeout, so one stray
         # pipe in theme/ would stall make check with no diagnostic. The
         # checker must refuse a non-regular file by name instead.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         tmp = make_tmp_dir(self)
         fifo = tmp / "theme" / "a.svg"
         fifo.parent.mkdir(parents=True)
-        os.mkfifo(fifo)
-        child = _run_reader_in_child("markers", tmp)
-        assert_fifo_read_refused(self, child, fifo)
+        assert_read_refused_in_child(
+            self,
+            fifo,
+            "import sys; from support.placeholders import markers; "
+            "markers(sys.argv[1])",
+            str(tmp),
+            cwd=ROOT / "tests",
+        )
 
     def test_register_entries_rejects_a_fifo_instead_of_blocking(self):
         # The register is opened the same way, so a FIFO at PLACEHOLDERS.md
         # would hang the run at the reader instead of failing it; refuse it by
         # name like a theme asset.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         tmp = make_tmp_dir(self)
         register = tmp / "PLACEHOLDERS.md"
-        os.mkfifo(register)
-        child = _run_reader_in_child("register_entries", register)
-        assert_fifo_read_refused(self, child, register)
+        assert_read_refused_in_child(
+            self,
+            register,
+            "import sys; from support.placeholders import register_entries; "
+            "register_entries(sys.argv[1])",
+            str(register),
+            cwd=ROOT / "tests",
+        )
 
     def test_markers_rejects_an_oversize_asset_instead_of_reading_it_whole(self):
         # A text asset is contributor-supplied and can be arbitrarily large (a
