@@ -38,8 +38,11 @@ _MAGIC = b"KREFDC01"
 # Cache dir, mirroring the durations cache's XDG layout.
 _CACHE_DIR = ("kde-macos8.6-theme", "reference-decodes")
 
-# Entries unused for this long are pruned whenever a new one is written, so a
-# changed reference set or retired decode shape cannot grow the cache forever.
+# Entries last written more than this long ago are pruned whenever a new one
+# is written, so a changed reference set or retired decode shape cannot grow
+# the cache forever. A read never touches an entry's mtime, so pruning is by
+# last write: an entry read every day is still pruned (and re-decoded on its
+# next read) once it is this old.
 _MAX_AGE_SECONDS = 30 * 24 * 60 * 60
 
 
