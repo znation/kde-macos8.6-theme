@@ -10,11 +10,9 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.render.gates import (
-    DIALOG_REAL_TOOLS,
     DialogGate,
+    assert_gate_skips_only_when_a_tool_is_absent,
     dialog_gate_guard,
-    probe_gate_skip,
-    software_renderer_skip_reason,
 )
 from support.platinum_palette import hex_colour
 from tools.png import pixel_at
@@ -64,18 +62,7 @@ class TestRadioDialogGateSkipGuards(unittest.TestCase):
     """The radio gate skips only when a required tool is absent."""
 
     def test_the_radio_dialog_gate_skips_only_when_a_tool_is_absent(self):
-        import shutil
-
-        expected = software_renderer_skip_reason() is not None or not all(
-            shutil.which(tool) for tool in DIALOG_REAL_TOOLS
-        )
-        self.assertEqual(expected, TestRadioDialogRender.__unittest_skip__)
-        for missing in (None, *DIALOG_REAL_TOOLS):
-            with self.subTest(missing=missing):
-                self.assertEqual(
-                    missing is not None,
-                    probe_gate_skip(dialog_gate_guard, missing),
-                )
+        assert_gate_skips_only_when_a_tool_is_absent(self, TestRadioDialogRender)
 
 
 if __name__ == "__main__":

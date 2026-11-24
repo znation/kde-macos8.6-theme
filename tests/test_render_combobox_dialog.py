@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-import shutil
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.platinum_palette import hex_colour
 from support.render.gates import (
-    DIALOG_REAL_TOOLS,
     DialogGate,
+    assert_gate_skips_only_when_a_tool_is_absent,
     dialog_gate_guard,
-    probe_gate_skip,
-    software_renderer_skip_reason,
 )
 from tools.png import pixel_at
 
@@ -88,16 +85,7 @@ class TestComboboxDialogGateSkipGuards(unittest.TestCase):
     """Pin the combobox gate's tool and software-renderer skip condition."""
 
     def test_the_combobox_dialog_gate_skips_only_when_a_tool_is_absent(self):
-        expected = software_renderer_skip_reason() is not None or not all(
-            shutil.which(tool) for tool in DIALOG_REAL_TOOLS
-        )
-        self.assertEqual(expected, TestComboboxDialogRender.__unittest_skip__)
-        for missing in (None, *DIALOG_REAL_TOOLS):
-            with self.subTest(missing=missing):
-                self.assertEqual(
-                    missing is not None,
-                    probe_gate_skip(dialog_gate_guard, missing),
-                )
+        assert_gate_skips_only_when_a_tool_is_absent(self, TestComboboxDialogRender)
 
 
 if __name__ == "__main__":

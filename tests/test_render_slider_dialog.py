@@ -8,16 +8,13 @@ kdialog widget gates live in ``tests/test_render_dialog_gates.py``.
 
 from __future__ import annotations
 
-import shutil
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.render.gates import (
-    DIALOG_REAL_TOOLS,
     DialogGate,
+    assert_gate_skips_only_when_a_tool_is_absent,
     dialog_gate_guard,
-    probe_gate_skip,
-    software_renderer_skip_reason,
 )
 
 
@@ -95,18 +92,7 @@ class TestSliderDialogGateSkipGuards(unittest.TestCase):
     """
 
     def test_the_slider_dialog_gate_skips_only_when_a_tool_is_absent(self):
-        expected = software_renderer_skip_reason() is not None or not all(
-            shutil.which(tool) for tool in DIALOG_REAL_TOOLS
-        )
-        self.assertEqual(expected, TestSliderDialogRender.__unittest_skip__)
-        # Reapply the real guard to disposable classes: never alter the
-        # render gate or start a session while simulating missing tools.
-        for missing in (None, *DIALOG_REAL_TOOLS):
-            with self.subTest(missing=missing):
-                self.assertEqual(
-                    missing is not None,
-                    probe_gate_skip(dialog_gate_guard, missing),
-                )
+        assert_gate_skips_only_when_a_tool_is_absent(self, TestSliderDialogRender)
 
 
 if __name__ == "__main__":

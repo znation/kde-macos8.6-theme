@@ -9,7 +9,6 @@ widget gates live in ``tests/test_render_dialog_gates.py``, the calendar gates i
 
 from __future__ import annotations
 
-import shutil
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -21,11 +20,9 @@ from support.platinum_palette import (
     hex_colour,
 )
 from support.render.gates import (
-    DIALOG_REAL_TOOLS,
     DialogGate,
+    assert_gate_skips_only_when_a_tool_is_absent,
     dialog_gate_guard,
-    probe_gate_skip,
-    software_renderer_skip_reason,
 )
 from tools.png import pixel_at  # noqa: E402
 
@@ -282,18 +279,7 @@ class TestGtkDialogGateSkipGuards(unittest.TestCase):
     """
 
     def test_the_gtk_dialog_gate_skips_only_when_a_tool_is_absent(self):
-        expected = software_renderer_skip_reason() is not None or not all(
-            shutil.which(tool) for tool in DIALOG_REAL_TOOLS
-        )
-        self.assertEqual(expected, TestGtkDialogRender.__unittest_skip__)
-        # Reapply the real guard to disposable classes: never alter the
-        # render gate or start a session while simulating missing tools.
-        for missing in (None, *DIALOG_REAL_TOOLS):
-            with self.subTest(missing=missing):
-                self.assertEqual(
-                    missing is not None,
-                    probe_gate_skip(dialog_gate_guard, missing),
-                )
+        assert_gate_skips_only_when_a_tool_is_absent(self, TestGtkDialogRender)
 
 
 if __name__ == "__main__":

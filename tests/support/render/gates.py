@@ -546,3 +546,31 @@ def probe_gate_skip(guard, missing):
     ):
         guarded = guard()(type("Probe", (), {}))
     return guarded.__unittest_skip__
+
+
+def assert_gate_skips_only_when_a_tool_is_absent(case, gate):
+    """Pin one dialog gate's skip flag with the shared guard choreography.
+
+    The dialog gate suites repeat the same two-part pin beside their gates:
+    the gate must skip exactly where its render CLI refuses on tools (the
+    software-renderer reason applies or one of ``DIALOG_REAL_TOOLS`` is
+    absent), and reapplying the real ``dialog_gate_guard`` to a disposable
+    class with each tool removed in turn must skip, while the untouched
+    guard must not -- never altering a real gate or starting a session
+    while simulating missing tools (see :func:`probe_gate_skip`).
+    *gate* is the guarded class whose ``__unittest_skip__`` flag the pin
+    asserts; *case* is the test case whose failure messages and subTests
+    the pin reports through. The multi-gate pin in
+    ``tests/test_render_dialog_gates.py`` and the desktop gate's variant in
+    ``tests/test_render_surface.py`` keep their own shapes.
+    """
+    expected = software_renderer_skip_reason() is not None or not all(
+        shutil.which(tool) for tool in DIALOG_REAL_TOOLS
+    )
+    case.assertEqual(expected, gate.__unittest_skip__)
+    for missing in (None, *DIALOG_REAL_TOOLS):
+        with case.subTest(missing=missing):
+            case.assertEqual(
+                missing is not None,
+                probe_gate_skip(dialog_gate_guard, missing),
+            )
