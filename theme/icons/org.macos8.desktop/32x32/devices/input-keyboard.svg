@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original keyboard illustration pending user-approved artwork. -->
+<!-- Platinum keyboard icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: a raised #DDDDDD face
+     with a 1px #000000 body outline and the Platinum bevel (#FFFFFF top
+     and left, #999999 bottom and right), three rows of black keys and a
+     black space bar. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Body outline and #DDDDDD face. -->
+  <rect x="2" y="8" width="28" height="16" fill="#000000"/>
+  <rect x="3" y="9" width="26" height="14" fill="#DDDDDD"/>
+  <!-- Platinum bevel: white along the top and left, grey along the bottom
+       and right. -->
+  <rect x="3" y="9" width="26" height="1" fill="#FFFFFF"/>
+  <rect x="3" y="9" width="1" height="14" fill="#FFFFFF"/>
+  <rect x="3" y="22" width="26" height="1" fill="#999999"/>
+  <rect x="28" y="9" width="1" height="14" fill="#999999"/>
+  <!-- Key rows. -->
+  <rect x="5" y="11" width="3" height="2" fill="#000000"/>
+  <rect x="9" y="11" width="3" height="2" fill="#000000"/>
+  <rect x="13" y="11" width="3" height="2" fill="#000000"/>
+  <rect x="17" y="11" width="3" height="2" fill="#000000"/>
+  <rect x="21" y="11" width="3" height="2" fill="#000000"/>
+  <rect x="25" y="11" width="2" height="2" fill="#000000"/>
+  <rect x="5" y="14" width="3" height="2" fill="#000000"/>
+  <rect x="9" y="14" width="3" height="2" fill="#000000"/>
+  <rect x="13" y="14" width="3" height="2" fill="#000000"/>
+  <rect x="17" y="14" width="3" height="2" fill="#000000"/>
+  <rect x="21" y="14" width="3" height="2" fill="#000000"/>
+  <rect x="25" y="14" width="2" height="2" fill="#000000"/>
+  <rect x="5" y="17" width="3" height="2" fill="#000000"/>
+  <rect x="9" y="17" width="3" height="2" fill="#000000"/>
+  <rect x="13" y="17" width="3" height="2" fill="#000000"/>
+  <rect x="17" y="17" width="3" height="2" fill="#000000"/>
+  <rect x="21" y="17" width="3" height="2" fill="#000000"/>
+  <rect x="25" y="17" width="2" height="2" fill="#000000"/>
+  <!-- Space bar row. -->
+  <rect x="5" y="20" width="3" height="2" fill="#000000"/>
+  <rect x="9" y="20" width="14" height="2" fill="#000000"/>
+  <rect x="25" y="20" width="2" height="2" fill="#000000"/>
+</svg>

@@ -5,6 +5,99 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw keyboards with an original `input-keyboard` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** The keyboard is the device icon KDE's input panels and device
+views draw, and on this host it still resolves to Breeze: a planning-time
+probe on 2026-11-24 (`kiconfinder6` against a scratch install of the
+theme, the `x-office-document` control resolving to the theme's 32x32
+file) showed `input-keyboard` resolving to Breeze's 64x32 device art.
+Ship one original placeholder icon, `input-keyboard`, at 16x16, 22x22
+and 32x32.
+
+**Approach.**
+
+- Add `devices/input-keyboard.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original keyboard illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a Platinum keyboard: the raised
+  #DDDDDD face with the 1px #000000 body and the #FFFFFF/#999999 bevel on
+  the face, rows of #000000 keys and a #000000 space bar. Each file holds
+  these elements in order, written `x,y width×height fill`:
+  - 32x32: `2,8 28×16 #000000`; `3,9 26×14 #DDDDDD`; `3,9 26×1 #FFFFFF`;
+    `3,9 1×14 #FFFFFF`; `3,22 26×1 #999999`; `28,9 1×14 #999999`; key
+    rows at y 11, 14 and 17, each row `5,11 3×2`, `9,11 3×2`, `13,11
+    3×2`, `17,11 3×2`, `21,11 3×2`, `25,11 2×2` (all #000000, each row
+    shifted to its own y); space bar row `5,20 3×2`, `9,20 14×2`,
+    `25,20 2×2` (all #000000).
+  - 22x22: `1,5 20×12 #000000`; `2,6 18×10 #DDDDDD`; `2,6 18×1
+    #FFFFFF`; `2,6 1×10 #FFFFFF`; `2,15 18×1 #999999`; `19,6 1×10
+    #999999`; key rows at y 8, 10 and 12, each row `3,y 2×1`, `6,y
+    2×1`, `9,y 2×1`, `12,y 2×1`, `15,y 4×1` (all #000000); space bar row
+    `3,14 2×1`, `6,14 10×1`, `17,14 2×1` (all #000000).
+  - 16x16: `1,5 14×8 #000000`; `2,6 12×6 #DDDDDD`; `2,6 12×1 #FFFFFF`;
+    `2,6 1×6 #FFFFFF`; `2,11 12×1 #999999`; `13,6 1×6 #999999`; key
+    rows at y 7 and y 9, each row `3,y 2×1`, `6,y 2×1`, `9,y 4×1` (all
+    #000000); space bar `4,10 6×1 #000000`.
+
+  The element lists were checked for geometric consistency at planning
+  time (every rect lies inside its face, keys keep a 1px gap between
+  rows and the bevel); no rendered-pixel claim is made, since the
+  shape pins pin the XML, not a raster.
+- `PLACEHOLDERS.md`: one row per file beside that size's `drive-harddisk`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `devices` paths, and name the keyboard
+  in the comment above it.
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `input-keyboard` in the last cell: no reference pixels
+  were used; the name is a KDE-required device value that the installed
+  `libKF6Solid.so.6.13.0` builds by concatenation (a strings scan found
+  the bare ASCII device names `keyboard` and `keyboard_mouse` in it but
+  no `input-keyboard` and no `ID_INPUT_*` udev property literals, so the
+  plan's original claim about those literals was corrected here), and
+  the keys-and-space-bar drawing is this theme's own choice.
+- `docs/installing.md`: add the keyboard to the sentence listing the icon
+  theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and has
+  a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing an element's position, size or fill, or the element order, in
+  one file makes `test_each_icon_draws_its_pinned_artwork` fail; dropping
+  a file while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME`
+  and `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `input-keyboard` resolves to the theme's
+  32x32 file, and `input-mouse`, `printer`, `video-display`,
+  `camera-photo`, `phone`, `network-wireless` and `battery` stay on
+  Breeze. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw mice with an original `input-mouse` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** When KDE lists an input device — the `input-` device-icon

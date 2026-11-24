@@ -74,6 +74,9 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # database), the desktop-computer `computer` icon at all three sizes
 # (our own drawing of a monitor over a desktop case; the name is a
 # KDE-required value read from `libKF6Solid.so.6`), the
+# `input-keyboard` keyboard at all three sizes (our own drawing of a raised
+# face holding rows of keys and a space bar; the name is a KDE-required
+# device value read from `libKF6Solid.so.6`), the
 # `media-optical` optical disc at all three sizes (our own drawing of a
 # CD or DVD: a disc with white glints and a hub), the mouse
 # `input-mouse` icon at all three sizes (our own drawing of a rounded
@@ -101,6 +104,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "computer.svg"),
     os.path.join("16x16", "devices", "computer.svg"),
     os.path.join("22x22", "devices", "computer.svg"),
+    os.path.join("32x32", "devices", "input-keyboard.svg"),
+    os.path.join("16x16", "devices", "input-keyboard.svg"),
+    os.path.join("22x22", "devices", "input-keyboard.svg"),
     os.path.join("32x32", "devices", "input-mouse.svg"),
     os.path.join("16x16", "devices", "input-mouse.svg"),
     os.path.join("22x22", "devices", "input-mouse.svg"),

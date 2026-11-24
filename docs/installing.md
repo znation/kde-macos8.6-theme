@@ -162,9 +162,10 @@ name at the same three sizes), a flash-media card icon for memory cards
 image icon for picture and graphics files (the `image-x-generic`
 name at the same three sizes), an audio icon for sound files (the
 `audio-x-generic` name at the same three sizes), a font icon for font
-files (the `font-x-generic` name at the same three sizes), a
-desktop-computer icon for the machine root (the `computer` name at the
-same three sizes), for the
+files (the `font-x-generic` name at the same three sizes), a keyboard
+icon for input devices (the `input-keyboard` name at the same three
+sizes), a desktop-computer icon for the machine root (the `computer`
+name at the same three sizes), for the
 Home and Desktop places and the standard Documents, Downloads, Music, Pictures, Videos,
 Templates, Public and Temporary Files places (the same Platinum folder at every size),
 and for the menu bar's kicker logo (`start-here-kde-symbolic`, our own mark rather than Apple's)
