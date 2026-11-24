@@ -386,8 +386,8 @@ structural cause behind several flaky-check excusals: a render test waits a fixe
 KWin session, the client or the splash to settle, and the wait expires under a full parallel
 `make check`. The naming part is done: every render Python wait goes through `run_logged`, and a
 timeout now logs which wait expired. What is left is the budgets themselves: the `--settle` and
-`--timeout` defaults in `tools/render_workflow.py` and the settle/timeout values in
-`tools/render_session.py`. The splash entry records that lengthening the settle can make the race
+`--timeout` defaults in `tools/render/surface_options.py` and the settle/timeout values in
+`tools/render/session.py`. The splash entry records that lengthening the settle can make the race
 worse, so a bigger number is not an obvious repair.
 
 **Options.**
@@ -413,7 +413,7 @@ rate is tolerable.
 
 **Context.** You answered option 3: wait on the session's own "settle done" marker, keeping the
 current budget as a ceiling. The marker exists, but it is echoed *after* the fixed
-`sleep "$settle"` in `tools/render_session.py::session_script`, so waiting on it would still wait
+`sleep "$settle"` in `tools/render/session_script.py::session_script`, so waiting on it would still wait
 out the full sleep and change nothing. Option 3 needs a signal that the client is ready before the
 capture, and the session script has none: the focus-settle loop only watches its own `.done`
 sentinel. Building that signal means a KWin-side or client-side readiness write, and it can only
@@ -440,7 +440,7 @@ rate is tolerable. (Bugfix role, 2026-11-15.)
 (asked 2026-11-16 by the bugfix role, follow-up to "What should the settle wait on instead of a fixed sleep?")
 
 **Context.** You chose option 2: each client writes `$RENDER_SESSION_READY_FILE` once its window is
-shown. The session side is in place (`tools/render_session.py::session_script`). For the splash,
+shown. The session side is in place (`tools/render/session_script.py::session_script`). For the splash,
 the client is `ksplashqml --test --nofork <package>`, an upstream binary (`/usr/bin/ksplashqml`) that
 the theme does not build. A wrapper cannot see when its window maps without a helper, and touching
 the file right after launch would be a fixed budget under another name, which is the flake the
