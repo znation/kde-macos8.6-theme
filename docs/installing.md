@@ -207,7 +207,9 @@ three sizes), an xz-compressed-tar icon for xz-compressed tar archive
 files (the `application-x-xz-compressed-tar` name at the same three
 sizes), a bzip2-compressed-tar icon
 for bzip2-compressed tar archive files (the
-`application-x-bzip2-compressed-tar` name at the same three sizes), a
+`application-x-bzip2-compressed-tar` name at the same three sizes), an
+LZMA-compressed-tar icon for LZMA-compressed tar archive files (the
+`application-x-lzma-compressed-tar` name at the same three sizes), a
 flash-media card
 icon for
 memory cards (the `media-flash` name at the same three sizes), a floppy-disk

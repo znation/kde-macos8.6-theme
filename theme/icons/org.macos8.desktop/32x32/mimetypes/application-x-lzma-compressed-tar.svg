@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original LZMA-compressed-tar illustration pending user-approved artwork. -->
+<!-- Platinum LZMA-compressed-tar icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: the sealed box the
+     package icon draws, with a capital L on the white body left of the
+     grey tape stripe. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <rect x="3" y="6" width="26" height="22" fill="#000000"/>
+  <rect x="4" y="7" width="24" height="3" fill="#DDDDDD"/>
+  <rect x="4" y="7" width="24" height="1" fill="#FFFFFF"/>
+  <rect x="4" y="10" width="24" height="17" fill="#FFFFFF"/>
+  <rect x="15" y="10" width="2" height="17" fill="#999999"/>
+  <rect x="4" y="13" width="3" height="10" fill="#000000"/>
+  <rect x="7" y="21" width="8" height="2" fill="#000000"/>
+</svg>

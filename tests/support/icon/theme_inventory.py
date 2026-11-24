@@ -282,8 +282,9 @@ SHIPPED_ICONS = (
     # `application/x-tar`, `application/x-7z-compressed`,
     # `application/gzip`, `application/vnd.debian.binary-package`,
     # `application/x-compressed-tar`, `application/vnd.rar`,
-    # `application/x-xz-compressed-tar` and
-    # `application/x-bzip2-compressed-tar`), which gives the types the
+    # `application/x-xz-compressed-tar`,
+    # `application/x-bzip2-compressed-tar` and
+    # `application/x-lzma-compressed-tar`), which gives the types the
     # `package-x-generic` generic icon and no icon of their own; at the
     # exact names Breeze's own files beat the theme's generic-icon
     # fallback.
@@ -314,6 +315,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-bzip2-compressed-tar.svg"),
     os.path.join("16x16", "mimetypes", "application-x-bzip2-compressed-tar.svg"),
     os.path.join("22x22", "mimetypes", "application-x-bzip2-compressed-tar.svg"),
+    os.path.join("32x32", "mimetypes", "application-x-lzma-compressed-tar.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-lzma-compressed-tar.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-lzma-compressed-tar.svg"),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"),
     os.path.join("16x16", "mimetypes", "x-office-document.svg"),
     os.path.join("22x22", "mimetypes", "x-office-document.svg"),
