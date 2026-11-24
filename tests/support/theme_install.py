@@ -92,7 +92,7 @@ def write_file(path, body):
     tools/check/references_selftest.py stages inline in ``tools`` rather
     than importing test support. The mkdir-only fixtures that prepare a
     symlink or unreadable path (which write nothing) stay direct too.
-    tests/test_gtk_staging.py's, tests/test_gtk_staging_commit.py's and
+    tests/test_gtk_staging_commit.py's and
     tests/test_gtk_staging_backups.py's mkdir-then-write pairs now call write_file, and so do tests/test_apply_gtk_errors.py's
     symlink-target and unreadable-file fixtures (its write_bytes pair near line 142 and the link-side
     mkdir+symlink_to pairs stay direct) and tests/test_apply_gtk_unreadable_config.py's
