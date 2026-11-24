@@ -169,6 +169,37 @@ class TestGeneratedFiles(unittest.TestCase):
             f"test-generator: error: cannot write {second}: disk full\n",
         )
 
+    def test_a_write_failure_on_the_first_pair_attempts_no_later_pair(self):
+        root = make_tmp_dir(self)
+        directory = root / "package"
+        first = directory / "first.bin"
+        second = directory / "second.bin"
+        attempted = []
+
+        def failing_write(target: Path, data: bytes) -> None:
+            attempted.append(target)
+            raise OSError("permission denied")
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            result = write_generated_files(
+                "test-generator",
+                root,
+                directory,
+                [(first, b"first bytes"), (second, b"second bytes")],
+                write=failing_write,
+            )
+
+        # The run stops at the first failure: the later pair is never
+        # attempted, so no later file can be published after an error.
+        self.assertEqual(result, 2)
+        self.assertEqual(attempted, [first])
+        self.assertFalse(second.exists())
+        self.assertEqual(
+            stderr.getvalue(),
+            f"test-generator: error: cannot write {first}: permission denied\n",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
