@@ -759,6 +759,8 @@ reference pixels are used and the drawing is this theme's own choice.
 
 ### Platinum icon theme: draw gzip archives with an original `application-gzip` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
+**Retirement 2026-11-24 by the plan role: the duplicate un-stamped Planned copy of this entry was retired 2026-11-24 by the plan role.** The feature implementer's plan-defect note named this done record and its merge 85d3f5536 (the copy survived because that merge touched only PLANS-DONE.md, not PLANS.md); the Planned copy is now removed from PLANS.md, and no `requires part` clause in PLANS.md names this entry.
+
 **Goal.** KIO requests an `application/gzip` item's icon under the
 shared MIME database's type-spelled name `application-gzip`, and on
 this host that exact name draws Breeze's art even though the database's
