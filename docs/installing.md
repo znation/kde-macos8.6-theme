@@ -150,7 +150,8 @@ package icon for archive, compressed and package files (the `package-x-generic` 
 the same three sizes), an office-document icon for document files (the
 `x-office-document` name at the same three sizes), a
 web-document icon for HTML, XHTML and XML files (the `text-html`
-name at the same three sizes), for the
+name at the same three sizes), a flash-media card icon for memory cards
+(the `media-flash` name at the same three sizes), for the
 Home and Desktop places and the standard Documents, Downloads, Music, Pictures, Videos,
 Templates, Public and Temporary Files places (the same Platinum folder at every size),
 and for the menu bar's kicker logo (`start-here-kde-symbolic`, our own mark rather than Apple's)

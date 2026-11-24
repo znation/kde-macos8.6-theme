@@ -35,7 +35,12 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # line; the name is the `generic-icon` of the document MIME types in the
 # installed shared MIME database), the web-document
 # `text-html` icon at all three sizes (our own drawing of a window
-# holding a globe), the
+# holding a globe), the flash-media `media-flash`
+# icon at all three sizes (our own drawing of an upright card standing on
+# its contact pins; the name is a KDE-required value read from
+# `libKF6Solid.so.6`, which also loads it with the reduced subnames
+# `media-flash-sd-mmc`, `media-flash-memory-stick` and
+# `media-flash-smart-media` that one file covers), the
 # `media-optical` optical disc at all three sizes (our own drawing of a
 # CD or DVD: a disc with white glints and a hub),
 # the kicker logo the menu bar's top-left button shows at the two panel sizes,
@@ -54,6 +59,9 @@ SHIPPED_ICONS = (
     os.path.join("16x16", "devices", "media-optical.svg"),
     os.path.join("22x22", "devices", "drive-optical.svg"),
     os.path.join("22x22", "devices", "media-optical.svg"),
+    os.path.join("32x32", "devices", "media-flash.svg"),
+    os.path.join("16x16", "devices", "media-flash.svg"),
+    os.path.join("22x22", "devices", "media-flash.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "text-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "text-x-generic.svg"),
