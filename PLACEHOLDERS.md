@@ -84,6 +84,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/image-x-generic.svg` | original image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/video-x-generic.svg` | original video illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/audio-x-generic.svg` | original audio illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/mimetypes/application-ogg.svg` | original Ogg multimedia-container illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/text-x-generic.svg` | original document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/text-x-generic-template.svg` | original template illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/text-x-script.svg` | original script illustration pending user-approved artwork. |
@@ -181,6 +182,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/image-x-generic.svg` | original image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/video-x-generic.svg` | original video illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/audio-x-generic.svg` | original audio illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/mimetypes/application-ogg.svg` | original Ogg multimedia-container illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/text-x-generic.svg` | original document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/text-x-generic-template.svg` | original template illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/text-x-script.svg` | original script illustration pending user-approved artwork. |
@@ -276,6 +278,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/image-x-generic.svg` | original image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/video-x-generic.svg` | original video illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/audio-x-generic.svg` | original audio illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/mimetypes/application-ogg.svg` | original Ogg multimedia-container illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/text-x-generic.svg` | original document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/text-x-generic-template.svg` | original template illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/text-x-script.svg` | original script illustration pending user-approved artwork. |

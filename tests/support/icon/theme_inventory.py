@@ -177,10 +177,10 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # database), the video
 # `video-x-generic` icon at all three sizes (our own drawing of a display
 # screen with a play triangle and a stand; the name is the `generic-icon`
-# of 14 video MIME types in the installed shared MIME database —
+# of 13 video MIME types in the installed shared MIME database —
 # `application/smil+xml`, `application/vnd.ms-wpl`, `video/x-flv`,
 # `video/x-javafx`, `video/vnd.youtube.yt`, `application/x-matroska`,
-# `application/mxf`, `application/annodex`, `application/ogg`,
+# `application/mxf`, `application/annodex`,
 # `application/x-quicktime-media-link`,
 # `application/vnd.adobe.flash.movie`, `application/vnd.rn-realmedia`,
 # `application/x-netshow-channel` and `application/sdp` — and, through
@@ -253,6 +253,15 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "video-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "video-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "video-x-generic.svg"),
+    # The Ogg multimedia-container `application-ogg` icon at all three sizes
+    # (our own drawing of the generic document's page with a black
+    # film-strip band; the name is the type-spelled icon name of the
+    # `application/ogg` MIME type in the installed shared MIME database,
+    # whose `generic-icon` is the shipped `video-x-generic`, and at the
+    # exact name Breeze's own file beats the theme's generic-icon fallback).
+    os.path.join("32x32", "mimetypes", "application-ogg.svg"),
+    os.path.join("16x16", "mimetypes", "application-ogg.svg"),
+    os.path.join("22x22", "mimetypes", "application-ogg.svg"),
     os.path.join("32x32", "devices", "printer.svg"),
     os.path.join("16x16", "devices", "printer.svg"),
     os.path.join("22x22", "devices", "printer.svg"),

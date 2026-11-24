@@ -269,7 +269,9 @@ Bluetooth headset devices (the `audio-headset` name at the same three sizes), a
 scanner icon for scanner devices (the `scanner` name at the same three sizes),
 an image icon for picture and graphics files (the `image-x-generic` name at the
 same three sizes), a video icon for movie files without their own art (the
-`video-x-generic` name at the same three sizes), an audio icon for sound files
+`video-x-generic` name at the same three sizes), an Ogg
+multimedia-container icon for Ogg multimedia container files (the
+`application-ogg` name at the same three sizes), an audio icon for sound files
 (the `audio-x-generic` name at the same three sizes), a font icon for font
 files (the `font-x-generic` name at the same three sizes), a keyboard icon for
 input devices (the `input-keyboard` name at the same three sizes), a

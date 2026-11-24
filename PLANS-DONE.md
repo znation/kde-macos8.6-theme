@@ -5,6 +5,147 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw Ogg multimedia containers with an original `application-ogg` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** An Ogg multimedia container file (`*.ogx`) draws Breeze's
+art beside the Platinum documents and folders. Ship one original
+placeholder icon, `application-ogg`, at 16x16, 22x22 and 32x32, in
+the same mimetype-item series as the landed `application-json`,
+`application-pgp-signature` and `application-vnd.iccprofile` files.
+Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/ogg` ("Ogg multimedia file") with no `<icon>` element,
+no `<sub-class-of>` element, one `<generic-icon
+name="video-x-generic"/>` element, one `<alias
+type="application/x-ogg"/>` element, the single glob
+`<glob pattern="*.ogx">` at the default weight 50 (owned by no other
+MIME type) and one `<magic>` matcher at the default priority (the
+string `OggS` at offset 0); the string `application-ogg` occurs 0
+times in the database (`str.count` is 0 — `grep -c` counts lines,
+not matches), so one file covers exactly its own name and no alias
+file is shipped for `application/x-ogg`. The theme now ships
+`video-x-generic.svg` at all three sizes (the landed video plan), but
+`index.theme` declares `Inherits=breeze`, and
+`/usr/share/icons/breeze/mimetypes/` ships the exact-name
+`application-ogg.svg` at 16, 22, 24, 32 and 64 (breeze-dark likewise)
+— Breeze's exact-name file beats the theme's generic-icon fallback,
+so a `.ogx` item draws Breeze's art unless the theme ships the name.
+The separate `audio/ogg` type (`*.oga`, `*.ogg`, `*.opus`) and its
+Breeze exact-name `audio-ogg.svg` are a different candidate and stay
+out of this entry. No reference screenshot shows a multimedia-
+container item icon, so no reference pixels are used and the drawing
+is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/application-ogg.svg` under `16x16`, `22x22` and
+  `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme`
+  already declares the three MimeTypes directories. Give each file
+  the XML declaration, the comment `<!-- PLACEHOLDER: original Ogg
+  multimedia-container illustration pending user-approved artwork.
+  -->`, a short comment saying it is our own drawing in the Platinum
+  palette, not traced from anyone's artwork, and a root with matching
+  `width`, `height` and `viewBox`. The art shares the generic
+  document's page (every drawing element of that size's
+  `x-office-document.svg` except the heading band, body lines and
+  signature line — the `*_PAGE_*` tuples) and holds a black
+  film-strip band — two rows of white sprocket holes around a white
+  frame window, the container that holds a multimedia stream,
+  distinct from JSON's curly braces, the shell script's `>_` prompt,
+  the bzip2-compressed-tar's lowercase b, deb's hollow capital D,
+  tar's T, the ISO disc's capital I, cpio's capital C, xz's
+  stair-stepped X, the QCOW disc's white Q, the crash core's square
+  ring with centre dot and the video screen's play triangle (no
+  shipped mimetype page mark is a film-strip band; the two sprocket
+  rows and the frame window separate it from every one of them at
+  every size). Every cell was verified by script to sit on the white
+  page and clear of the folded corner:
+  - 32x32: the `*_PAGE_32` page paths, then a `#000000` band
+    `9,14 14×8` (rows 14..21), four `#FFFFFF` sprocket cells `2×1`
+    at `10,15`, `13,15`, `16,15` and `19,15`, the `#FFFFFF` frame
+    window `11,17 10×2` (rows 17..18) and four `#FFFFFF` sprocket
+    cells `2×1` at `10,20`, `13,20`, `16,20` and `19,20`.
+  - 22x22: the `*_PAGE_22` page paths, then a `#000000` band
+    `6,10 10×8` (rows 10..17), three `#FFFFFF` sprocket cells `2×1`
+    at `7,11`, `10,11` and `13,11`, the `#FFFFFF` frame window
+    `8,13 6×2` (rows 13..14) and three `#FFFFFF` sprocket cells
+    `2×1` at `7,16`, `10,16` and `13,16`.
+  - 16x16: the `*_PAGE_16` page paths, then a `#000000` band
+    `5,6 6×6` (rows 6..11), two `#FFFFFF` sprocket cells `1×1` at
+    `6,7` and `8,7`, the `#FFFFFF` frame window `6,8 4×2` (rows
+    8..9) and two `#FFFFFF` sprocket cells `1×1` at `6,10` and
+    `8,10`.
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the mimetype rows,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`, and update the
+  `video-x-generic` pin's comment there so it no longer counts
+  `application/ogg` among the types the generic fallback covers (it
+  now resolves to its own exact-name file).
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three
+  drawings in `PINS` from the lists above (the `*_PAGE_*` page tuple,
+  then the band, the sprocket cells, the window and the lower
+  sprocket cells).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-ogg` in the last cell, as the
+  `application-pgp-keys` sentence there does.
+- `docs/installing.md`: add the Ogg-container icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes.
+- The `application/ogg` work shares the inventory block, `PINS`
+  registry, invariants row and installing.md sentence with the
+  waiting mimetype entries; this entry sits behind them in the
+  queue, so rebase on whatever they have landed when picking this
+  up, keeping one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the page elements
+  matching the `x-office-document.svg` pin's page tuple, in the same
+  order, then the band, the sprocket cells, the window and the lower
+  sprocket cells), carries a placeholder marker and has a
+  `PLACEHOLDERS.md` row; the existing inventory, palette, geometry
+  and placeholder-register tests cover all three.
+- Changing one band, sprocket or window cell's position, size or
+  fill, or the element order, in one file makes the geometry test
+  fail; dropping a file while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The `#000000`, `#FFFFFF` and `#DDDDDD` fills stay inside
+  `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present and can be steered to
+  the installed scratch theme (the scratch-homes recipe the landed
+  `application-pkix-cert` entry records): install the theme into a
+  scratch data root, use scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`),
+  `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY` and
+  `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`;
+  `application-ogg` resolves to the theme's 32x32
+  `mimetypes/application-ogg.svg` (at planning time the theme ships
+  no such file, so the name fell through to Breeze's),
+  `text-x-generic` still resolves to the theme's own file, and the
+  same probe against a data root without the theme resolves
+  `application-ogg` to Breeze's `:/icons/breeze/mimetypes/32/`
+  file. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ### Platinum icon theme: draw PKCS#12 certificate bundles with an original `application-pkcs12` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A PKCS#12 certificate-bundle file (`*.p12` or `*.pfx`, as
