@@ -86,7 +86,8 @@ class TestGtkChildProbeSupport(unittest.TestCase):
             _GTK3_PIXEL_HEAD,
         )
         self.assertIn(
-            'return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])',
+            'red, green, blue = pixels[y * stride + x * n:][:3]\n'
+            '    return f"#{red:02X}{green:02X}{blue:02X}"',
             _GTK3_PIXEL_HEAD,
         )
 

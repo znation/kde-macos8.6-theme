@@ -82,7 +82,7 @@ DESKTOP_ICONS = {"arrangement": 1, "alignment": 1, "iconSize": 1, "textLines": 1
 def clock_variable(text):
     """Return the variable the clock widget is assigned to, or ``None``."""
     match = re.search(
-        r'^var\s+(\w+)\s*=\s*panel\.addWidget\("%s"\)\s*;' % re.escape(CLOCK_ID),
+        rf'^var\s+(\w+)\s*=\s*panel\.addWidget\("{re.escape(CLOCK_ID)}"\)\s*;',
         text,
         re.M,
     )

@@ -269,10 +269,10 @@ while True:
         at(x, y)
         for x, y in ((0, 0), (219, 0), (0, 59), (219, 59), (110, 55))]
     if result is not None and all(pixel == (255, 255, 255) for pixel in result):
-        print("disabled field pixels %r" % result)
+        print(f"disabled field pixels {result!r}")
         break
     if time.monotonic() >= deadline:
-        raise AssertionError("disabled field did not settle white: %r" % result)
+        raise AssertionError(f"disabled field did not settle white: {result!r}")
     time.sleep(0.01)
 window.destroy()
 '''

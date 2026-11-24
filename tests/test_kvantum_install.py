@@ -85,7 +85,7 @@ class TestInstall(unittest.TestCase):
                 '    printf partial > "$dest"\n'
                 "    exit 1;;\n"
                 "esac\n"
-                'exec "%s" "$@"\n' % real_install,
+                f'exec "{real_install}" "$@"\n',
             )
             result = install(tmp, env=env, packages="kvantum")
             assert_failed(self, result)
@@ -123,7 +123,7 @@ class TestInstall(unittest.TestCase):
                 '    printf partial > "$dest"\n'
                 "    exit 1;;\n"
                 "esac\n"
-                'exec "%s" "$@"\n' % real_install,
+                f'exec "{real_install}" "$@"\n',
             )
 
             result = install(tmp, env=env, packages="kvantum")
