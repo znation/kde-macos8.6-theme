@@ -718,21 +718,10 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         # (x=395..473, live ink demanded instead). Rows 183..251, the empty
         # rows below the listing, are flat #FFFFFF: a lost alternate-row
         # trough, a stray paint or art in the empty rows fails here.
+        image = self.candidate_image()
         for start, face, rects in list_fixtures.ROW_BANDS:
             with self.subTest(row_band=start):
                 self._pin_row_band(start, face, rects)
-
-    def _pin_row_band(self, start, face, rects):
-        """Pin one row band's face across its span, skipping pinned rects."""
-        for y in range(start, start + list_fixtures.ROW_BAND_HEIGHT):
-            for x in range(152, 474):
-                if any(a <= x <= b and c <= y <= d for a, b, c, d in rects):
-                    continue
-                if 395 <= x <= 473:
-                    continue
-                self.assert_pixel(x, y, face)
-        image = self.candidate_image()
-        for start, face, _ in list_fixtures.ROW_BANDS:
             with self.subTest(date_ink=start):
                 self.assertTrue(
                     any(
@@ -745,6 +734,16 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         for y in range(list_fixtures.EMPTY_ROWS[0], list_fixtures.EMPTY_ROWS[1] + 1):
             for x in range(152, 474):
                 self.assert_pixel(x, y, "#FFFFFF")
+
+    def _pin_row_band(self, start, face, rects):
+        """Pin one row band's face across its span, skipping pinned rects."""
+        for y in range(start, start + list_fixtures.ROW_BAND_HEIGHT):
+            for x in range(152, 474):
+                if any(a <= x <= b and c <= y <= d for a, b, c, d in rects):
+                    continue
+                if 395 <= x <= 473:
+                    continue
+                self.assert_pixel(x, y, face)
 
     def test_the_file_rows_draw_their_type_icons(self):
         # The three type-icon cells, byte-pinned to their measured pixel
@@ -777,10 +776,9 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
 class TestFileDialogGateSkipGuards(unittest.TestCase):
     """The file-dialog gate skips wherever its render CLI refuses on a tool.
 
-    The shared guard condition and the widget gates' flags are pinned in
-    ``tests/test_render_dialog_gates.py``, ``tests/test_render_calendar_dialog.py``
-    and ``tests/test_render_gtk_dialog.py`` pins the GTK 4 gate's; this module pins its
-    own gate's flag beside the gate it guards.
+    The shared guard condition and the other widget gates' flags are pinned in
+    ``tests/test_render_dialog_gates.py``; this module pins its own gate's flag
+    beside the gate it guards.
     """
 
     def test_the_file_dialog_gate_skips_only_when_a_tool_is_absent(self):
