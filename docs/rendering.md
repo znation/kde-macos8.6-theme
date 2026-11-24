@@ -60,7 +60,11 @@ path that is a directory, or whose parent is missing, is not a directory or is
 not writable, exits 2 naming the problem before any session starts. It installs
 into a scratch data home and leaves your own Plasma configuration alone; the
 session's cache home is a scratch directory too, so its clients' caches
-(fontconfig, ksycoca, the icon cache) are written and read only there. The
+(fontconfig, ksycoca, the icon cache) are written and read only there.
+Relative `XDG_DATA_DIRS` entries in the invoking environment are dropped as
+the XDG Base Directory spec requires (the same filter the applet preflight's
+data-root search applies), so a caller-relative data directory cannot reach
+the capture. The
 scratch config home takes its `[kwinrc][org.kde.kdecoration2]` selection from
 the look-and-feel `defaults` (`library=org.kde.kwin.aurorae`,
 `theme=org.macos8.desktop`), the `KWin/Decoration` package id KWin matches

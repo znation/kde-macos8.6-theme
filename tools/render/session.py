@@ -74,6 +74,28 @@ def _session_directories(root: Path) -> tuple[Path, Path, Path, Path, Path, Path
     return runtime, config, data, home, cache, root / "surface.png"
 
 
+def _absolute_data_dirs(value: str) -> str | None:
+    """Return *value*'s absolute ``XDG_DATA_DIRS`` entries, or ``None``.
+
+    The XDG Base Directory spec makes a relative entry invalid and requires
+    ignoring it, not resolving it against the working directory; the tree's
+    own readers (``render_applet``'s data-root search,
+    ``apply_konsole_font``'s profile search) already drop empty and relative
+    entries. The session must not hand its clients a value the spec makes
+    invalid: a relative entry resolves against the render's working
+    directory, so the caller's working-directory contents could reach the
+    capture, and the applet refusal's searched-locations list, which drops
+    those entries, would disagree with what the session's clients search.
+    ``None`` removes the variable, whose unset form gives the clients the
+    spec's default system directories, exactly what an unset caller gets.
+    """
+    absolute = [
+        entry for entry in value.split(":")
+        if entry and os.path.isabs(entry)
+    ]
+    return ":".join(absolute) if absolute else None
+
+
 def _session_environment(
     runtime: Path, config: Path, data: Path, home: Path, cache: Path,
 ) -> dict[str, str]:
@@ -85,6 +107,10 @@ def _session_environment(
         key: value for key, value in os.environ.items()
         if key not in dropped_environment
     }
+    kept_data_dirs = (
+        _absolute_data_dirs(environment["XDG_DATA_DIRS"])
+        if "XDG_DATA_DIRS" in environment else None
+    )
     # The cache home is pinned like the other scratch homes: the session's
     # clients write caches under it (fontconfig, ksycoca, the icon cache),
     # so the caller's XDG_CACHE_HOME would both leak those writes into the
@@ -98,6 +124,10 @@ def _session_environment(
         XDG_CACHE_HOME=str(cache),
         LANG=MEASUREMENT_LOCALE, LC_ALL=MEASUREMENT_LOCALE,
     )
+    if kept_data_dirs is None:
+        environment.pop("XDG_DATA_DIRS", None)
+    else:
+        environment["XDG_DATA_DIRS"] = kept_data_dirs
     return environment
 
 # The locale the scratch session pins over the caller's. A client's

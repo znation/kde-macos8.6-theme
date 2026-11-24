@@ -137,6 +137,33 @@ class TestSessionSetup(unittest.TestCase):
             with self.subTest(key=key):
                 self.assertNotIn(key, environment)
 
+    def test_environment_keeps_only_absolute_data_dirs(self):
+        ambient = {
+            "XDG_DATA_DIRS": "/ambient/share:relative/entry:/ambient/more",
+        }
+        with mock.patch.dict(os.environ, ambient):
+            with render_session.Session.create() as session:
+                environment = session.environment
+        # The XDG spec makes a relative entry invalid and requires ignoring
+        # it, and the tree's readers already drop one: a kept relative entry
+        # would resolve against the render's working directory, so the
+        # caller's cwd contents could reach the capture, and the applet
+        # refusal's searched-locations list would disagree with what the
+        # session's clients search. The absolute entries keep their order.
+        self.assertEqual(
+            "/ambient/share:/ambient/more", environment["XDG_DATA_DIRS"]
+        )
+
+    def test_environment_drops_an_all_relative_data_dirs(self):
+        ambient = {"XDG_DATA_DIRS": "relative/entry::another:relative"}
+        with mock.patch.dict(os.environ, ambient):
+            with render_session.Session.create() as session:
+                environment = session.environment
+        # With no absolute entry left the variable is removed, whose unset
+        # form gives the clients the spec's default system directories --
+        # exactly what an unset caller gets, so both callers see one search.
+        self.assertNotIn("XDG_DATA_DIRS", environment)
+
     def test_environment_pins_the_measurement_locale(self):
         ambient = {
             "LANG": "de_DE.UTF-8",
