@@ -103,14 +103,14 @@ class TestInstall(unittest.TestCase):
                 "install",
                 "#!/bin/sh\n"
                 'case "$1" in\n'
-                '  -d) exec "%s" "$@";;\n'
+                f'  -d) exec "{real_install}" "$@";;\n'
                 "  -D*)\n"
                 "    for last; do :; done\n"
                 '    mkdir -p "$(dirname "$last")"\n'
                 '    printf partial > "$last"\n'
                 "    exit 1;;\n"
                 "esac\n"
-                'exec "%s" "$@"\n' % (real_install, real_install),
+                f'exec "{real_install}" "$@"\n',
             )
             result = install(tmp, env=env, packages="color-scheme")
             assert_failed(self, result)

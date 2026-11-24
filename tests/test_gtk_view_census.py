@@ -124,7 +124,7 @@ def _run_child(source, *args):
 CENSUS_CHILD = _CHILD_HEAD + '''
 for make in (Gtk.TextView, Gtk.IconView, Gtk.ListView):
     widget = make()
-    print("%s %r" % (widget.get_css_name(), widget.get_css_classes()))
+    print(f"{widget.get_css_name()} {widget.get_css_classes()!r}")
 window = Gtk.Window()
 window.present()
 deadline = time.monotonic() + 2.0
@@ -133,7 +133,7 @@ while True:
     if window.is_visible() or time.monotonic() >= deadline:
         break
     time.sleep(0.01)
-print("%s %r" % (window.get_css_name(), window.get_css_classes()))
+print(f"{window.get_css_name()} {window.get_css_classes()!r}")
 '''
 
 UNREACHABLE_CHILD = _CHILD_HEAD + '''
@@ -156,8 +156,9 @@ while True:
     pending()
     count = widget_count(text_view)
     if count != 0:
-        print("children appeared after %.3fs: %d" % (
-            2.0 - (deadline - time.monotonic()), count))
+        print(
+            f"children appeared after "
+            f"{2.0 - (deadline - time.monotonic()):.3f}s: {count}")
         sys.exit(1)
     if time.monotonic() >= deadline:
         break
@@ -220,8 +221,9 @@ while True:
     if result is not None:
         matches, corners = result
         if all(at(x, y) == SELECTION for x, y in corners):
-            print("selection band %d px; flat bounding box %r" % (
-                len(matches), corners))
+            print(
+                f"selection band {len(matches)} px; "
+                f"flat bounding box {corners!r}")
             break
     if time.monotonic() >= deadline:
         if result is None:

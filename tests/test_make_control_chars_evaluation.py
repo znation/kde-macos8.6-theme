@@ -43,8 +43,8 @@ class TestControlCharsListIsEvaluatedOnce(unittest.TestCase):
             str(destdir),
             "awk",
             "#!/bin/sh\n"
-            'printf "x\\n" >> "%s"\n'
-            'exec "%s" "$@"\n' % (log, _REAL_AWK),
+            f'printf "x\\n" >> "{log}"\n'
+            f'exec "{_REAL_AWK}" "$@"\n',
         )
         result = theme_install.run_make(
             ["-n", "install", f"DESTDIR={destdir}"], env=env
