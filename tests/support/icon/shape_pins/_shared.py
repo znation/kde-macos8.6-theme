@@ -37,6 +37,36 @@ _PAGE_32 = (
     _shape("path", d="M19 4 L25 4 L25 10 Z", fill="#DDDDDD"),
 )
 
+# The program window: the small window the executable icon draws (the black
+# outline, the #DDDDDD title-bar face with its #FFFFFF highlight and one
+# #999999 stripe, and the #FFFFFF body), one tuple per size. The mimetypes
+# registry spreads it as the prefix of the `application-x-executable` and
+# `application-x-sharedlib` pins per size, so a window edit lands in one
+# place and both pins stay in step; the pins test in
+# ``test_icon_theme_geometry`` still compares each pin with its shipped
+# file element by element.
+_PROGRAM_WINDOW_16 = (
+    _shape("rect", x="1", y="2", width="14", height="12", fill="#000000"),
+    _shape("rect", x="2", y="3", width="12", height="3", fill="#DDDDDD"),
+    _shape("rect", x="2", y="3", width="12", height="1", fill="#FFFFFF"),
+    _shape("rect", x="4", y="4", width="8", height="1", fill="#999999"),
+    _shape("rect", x="2", y="7", width="12", height="6", fill="#FFFFFF"),
+)
+_PROGRAM_WINDOW_22 = (
+    _shape("rect", x="2", y="3", width="18", height="16", fill="#000000"),
+    _shape("rect", x="3", y="4", width="16", height="3", fill="#DDDDDD"),
+    _shape("rect", x="3", y="4", width="16", height="1", fill="#FFFFFF"),
+    _shape("rect", x="5", y="5", width="12", height="1", fill="#999999"),
+    _shape("rect", x="3", y="8", width="16", height="10", fill="#FFFFFF"),
+)
+_PROGRAM_WINDOW_32 = (
+    _shape("rect", x="3", y="5", width="26", height="22", fill="#000000"),
+    _shape("rect", x="4", y="6", width="24", height="4", fill="#DDDDDD"),
+    _shape("rect", x="4", y="6", width="24", height="1", fill="#FFFFFF"),
+    _shape("rect", x="6", y="8", width="20", height="1", fill="#999999"),
+    _shape("rect", x="4", y="11", width="24", height="15", fill="#FFFFFF"),
+)
+
 
 def _raised_panel(x, y, w, h):
     """Return the six shapes of one raised panel: the recipe the devices

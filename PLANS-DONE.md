@@ -5,6 +5,149 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw shared libraries with an original `application-x-sharedlib` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** A `.so` item maps to the shared MIME database's canonical type
+`application/x-sharedlib`, which the database gives no `generic-icon`
+and no `<icon>` element, so there is no fallback file for the lookup to
+reach, and Breeze ships the exact name: under this theme a `.so` item
+draws Breeze's shared-library art with nothing of this theme's series
+beside it — ship one original placeholder icon, `application-x-sharedlib`,
+at 16x16, 22x22 and 32x32, in the same mimetype-item series as the
+shipped `application-x-executable` program window. Provenance: the
+installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/x-sharedlib` ("Shared library") with no `<generic-icon>`
+element, no `<icon>` element, no `<alias>` elements, the globs
+`<glob pattern="*.so">` and `<glob weight="60" pattern="*.so.[0-9]*">`
+and one `<magic>` matcher, and holds zero occurrences of the hyphenated
+name `application-x-sharedlib` (`str.count` is 0 — `grep -c` counts
+lines, not matches), so one file covers exactly the canonical name and
+no alias file is shipped. The planning-time probe on 2026-11-24 with
+`kiconfinder6`, the theme installed into scratch XDG homes
+(`XDG_DATA_DIRS` naming the scratch data root, `[Icons]
+Theme=org.macos8.desktop` in the scratch `kdeglobals`,
+`QT_QPA_PLATFORM=offscreen`, no `DISPLAY`): `application-x-sharedlib`
+resolved to Breeze's
+`:/icons/breeze/mimetypes/32/application-x-sharedlib.svg` while
+`application-x-executable` and `text-x-generic` resolved to the theme's
+own 32x32 files — Breeze's exact-name file is the only art the lookup
+can find, so the theme must ship the name to put a `.so` item in the
+series. No reference screenshot shows a shared-library icon, so no
+reference pixels are used and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/application-x-sharedlib.svg` under `16x16`, `22x22`
+  and `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme`
+  already declares the three MimeTypes directories. Give each file the
+  XML declaration, the comment `<!-- PLACEHOLDER: original
+  shared-library illustration pending user-approved artwork. -->`, a
+  short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art shares the program window (every
+  drawing element of `mimetypes/application-x-executable.svg` at that
+  size except the triangle: the `#000000` outline, the `#DDDDDD`
+  title-bar face with its `#FFFFFF` highlight and `#999999` stripe, and
+  the `#FFFFFF` body) and holds a black two-bar stack in the body — an
+  original shared-library mark distinct from the executable's
+  right-pointing triangle, the shell-script console prompt, the archive
+  letters and marks (deb's hollow capital D, tar's T, 7z's stepped 7,
+  zip's slider, gzip's arrow, cpio's capital C, the rar diamond, xz's
+  stair-stepped X, bzip2's lowercase b, LZMA's capital L), the
+  in-flight ISO capital I, the waiting JSON braces and the pending Perl
+  capital P:
+  - 32x32: the window elements `rect 3,5 26×22 #000000`, `rect 4,6
+    24×4 #DDDDDD`, `rect 4,6 24×1 #FFFFFF`, `rect 6,8 20×1 #999999`
+    and `rect 4,11 24×15 #FFFFFF`; stack bars, all `#000000`: `rect
+    8,14 16×3` (rows 14..16) and `rect 8,19 16×3` (rows 19..21), with
+    the gap rows 17..18 (both bars sit inside the body rows 11..25 and
+    columns 4..27).
+  - 22x22: the window elements `rect 2,3 18×16 #000000`, `rect 3,4
+    16×3 #DDDDDD`, `rect 3,4 16×1 #FFFFFF`, `rect 5,5 12×1 #999999`
+    and `rect 3,8 16×10 #FFFFFF`; stack bars, all `#000000`: `rect
+    6,10 10×2` (rows 10..11) and `rect 6,14 10×2` (rows 14..15), with
+    the gap rows 12..13 (inside the body rows 8..17 and columns
+    3..18).
+  - 16x16: the window elements `rect 1,2 14×12 #000000`, `rect 2,3
+    12×3 #DDDDDD`, `rect 2,3 12×1 #FFFFFF`, `rect 4,4 8×1 #999999`
+    and `rect 2,7 12×6 #FFFFFF`; stack bars, all `#000000`: `rect
+    4,8 8×2` (rows 8..9) and `rect 4,11 8×1` (row 11), with the gap
+    row 10 (inside the body rows 7..12 and columns 2..13).
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `tests/support/icon/shape_pins/_shared.py`: add `_PROGRAM_WINDOW_16`,
+  `_PROGRAM_WINDOW_22` and `_PROGRAM_WINDOW_32` tuples holding the
+  five window elements listed above per size, beside `_PAGE_*`, and
+  spread them into the three existing `application-x-executable` pins
+  in `shape_pins/mimetypes.py` in place of their first five inline
+  shapes (the element lists stay identical, so the executable's pins
+  still pass unchanged).
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `application-x-executable` row, described as the marker describes
+  it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`, and extend the
+  mimetypes comment above them to name the shared library in the
+  type-spelled series.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings
+  in `PINS` from the lists above, spreading the new `*_PROGRAM_WINDOW_*`
+  tuple for the window elements, then the two stack bars.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-x-sharedlib` in the last cell, as the
+  `application-x-executable` sentence there does.
+- `docs/installing.md`: add the shared-library icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes.
+- The in-flight ISO entry and the waiting JSON and pending Perl
+  entries edit the same inventory block, `PINS` registry, invariants
+  row and installing.md sentence; this entry sits behind them in the
+  queue, so rebase on whatever they have landed when picking it up,
+  keeping one row per icon.
+
+**Files touched.** Three new SVGs,
+`tests/support/icon/shape_pins/_shared.py`, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the window elements
+  matching the same size's `application-x-executable.svg` window, in
+  the same order, then the two stack bars), carries a placeholder
+  marker and has a `PLACEHOLDERS.md` row; the existing inventory,
+  palette, geometry and placeholder-register tests cover all three.
+- Changing one stack-bar rectangle's position, size or fill, or the
+  element order, in one file makes the geometry test fail; dropping a
+  file while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The stack bars' `#000000` fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch `XDG_DATA_HOME`, use a scratch `HOME`,
+  `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset
+  `DISPLAY` and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `application-x-sharedlib` resolves to the theme's 32x32
+  `mimetypes/application-x-sharedlib.svg` (at planning time, before
+  this change, it resolved to Breeze's
+  `:/icons/breeze/mimetypes/32/application-x-sharedlib.svg`), and
+  `application-x-executable` still resolves to the theme's own file.
+  Report the output in VERIFIED.
+- The existing icon files keep their drawings (the executable's three
+  files are untouched; only their pins spread the new window tuple),
+  and `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ### Platinum icon theme: draw Perl scripts with an original `application-x-perl` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A `.pl`, `.pm`, `.pod` or `.t` item maps to the shared MIME

@@ -25,6 +25,10 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # at 16x16 the body is two pixels taller so the disc fits inside the bevel),
 # the program `application-x-executable` icon at
 # all three sizes (our own drawing of a window holding a play triangle),
+# the shared-library `application-x-sharedlib` icon at all three sizes
+# (our own drawing of that window holding a two-bar stack; the name is
+# the type-spelled `application/x-sharedlib` MIME type in the installed
+# shared MIME database),
 # the shell-script `application-x-shellscript` icon at all three sizes
 # (our own drawing of a document with a terminal prompt), the package
 # `package-x-generic` icon at all three sizes (our own drawing of a sealed
@@ -274,6 +278,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-executable.svg"),
     os.path.join("16x16", "mimetypes", "application-x-executable.svg"),
     os.path.join("22x22", "mimetypes", "application-x-executable.svg"),
+    os.path.join("32x32", "mimetypes", "application-x-sharedlib.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-sharedlib.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-sharedlib.svg"),
     os.path.join("32x32", "mimetypes", "application-x-shellscript.svg"),
     os.path.join("16x16", "mimetypes", "application-x-shellscript.svg"),
     os.path.join("22x22", "mimetypes", "application-x-shellscript.svg"),
