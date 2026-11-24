@@ -56,6 +56,127 @@ desktoptheme, kvantum and render tests).
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw PDF documents with an original `application-pdf` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** KIO requests a `application/pdf` item's icon under the
+shared MIME database's type-spelled name `application-pdf`, and on
+this host that exact name draws Breeze's art even though the
+database's `generic-icon` for the type is the theme's own shipped
+`x-office-document` file: ship one original placeholder icon,
+`application-pdf`, at 16x16, 22x22 and 32x32, in the same
+mimetype-item series as the landed `text-html`, `x-office-*` and
+`text-x-generic` files. Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/pdf` with `generic-icon name="x-office-document"` and no
+`<icon>` element, no alias and no `generic-icon` reference names
+`application-pdf`, so one file covers exactly its own name — no alias
+files and no per-type fallback are in play. Breeze ships the exact
+name under `mimetypes/`, and at the exact name Breeze's own file beats
+the theme's generic-icon fallback. Planning-time probe on 2026-11-24
+with `kiconfinder6`, the theme installed into scratch XDG homes
+(`XDG_DATA_DIRS` naming the scratch data root, `QT_QPA_PLATFORM=offscreen`, no `DISPLAY`): `application-pdf` resolved to
+Breeze's `:/icons/breeze/mimetypes/32/application-pdf.svg` while
+`x-office-document` resolved to the theme's own file, so the theme
+must ship the exact name to win it; a stand-in file dropped into the
+installed copy's `32x32/mimetypes/` resolved the name to that copy,
+confirming the mimetype placement wins the request. No reference
+screenshot shows a PDF document icon, so no reference pixels are used
+and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/application-pdf.svg` under `16x16`, `22x22` and
+  `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme` already
+  declares the three directories. Give each file the XML declaration,
+  the comment `<!-- PLACEHOLDER: original PDF-document illustration pending user-approved artwork. -->`, a short comment saying it is
+  our own drawing in the Platinum palette, not traced from anyone's
+  artwork, and a root with matching `width`, `height` and `viewBox`.
+  The art shares the generic document's page (the first three drawing
+  elements of `mimetypes/text-x-generic.svg` at each size: the 1px
+  #000000 page outline with the cut top-right corner, the #FFFFFF
+  page and the #DDDDDD folded flap) and holds a black seal plate
+  beside grey text lines:
+  - 32x32: the page paths `M6 3 h14 l6 6 v20 H6 Z` `#000000`,
+    `M7 4 h12 l6 6 v18 H7 Z` `#FFFFFF`, `M19 4 L25 4 L25 10 Z`
+    `#DDDDDD`; text lines rect `10,12 12×1` and rect `10,15 8×1`
+    `#999999`; seal rect `16,18 8×8` `#000000` and face rect
+    `17,19 6×6` `#DDDDDD`.
+  - 22x22: the page paths `M4 1 h10 l4 4 v15 H4 Z` `#000000`,
+    `M5 2 h8 l4 4 v13 H5 Z` `#FFFFFF`, `M13 2 L17 2 L17 6 Z`
+    `#DDDDDD`; text line rect `7,8 8×1` `#999999`; seal rect
+    `11,11 5×5` `#000000` and face rect `12,12 3×3` `#DDDDDD`.
+  - 16x16: the page paths `M3 1 h7 l3 3 v10 H3 Z` `#000000`,
+    `M4 2 h5 l3 3 v8 H4 Z` `#FFFFFF`, `M9 2 L12 2 L12 5 Z` `#DDDDDD`;
+    text line rect `5,6 6×1` `#999999`; seal rect `7,8 5×5`
+    `#000000` and face rect `8,9 3×3` `#DDDDDD`.
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside that size's `text-html`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths where
+  the other `mimetypes` paths are listed in `SHIPPED_ICONS` (the base
+  tuple or one of the `SHIPPED_ICONS += tuple(...)` blocks), and name
+  the PDF icon in the comment above the list beside `text-html`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings
+  in its `PINS` table from the lists above (the table feeds
+  `ICON_SHAPES` in `tests/support/icon/shape_pins/__init__.py`), with
+  a comment recording that the name is the PDF item icon and shares
+  the generic document's page.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, append the
+  provenance of `application-pdf` to the row's last cell: no reference
+  pixels were used; the name is the type-spelled icon name of the
+  installed shared MIME database's `application/pdf` type, whose
+  `generic-icon` is the shipped `x-office-document`, while no `<icon>`
+  element, alias or `generic-icon` reference names `application-pdf`,
+  so one file covers exactly its own name; Breeze's own exact-name
+  file was beaten by shipping the name at the theme's sizes (before
+  the change, `kiconfinder6 application-pdf` with the theme installed
+  into scratch XDG homes resolved to Breeze's
+  `:/icons/breeze/mimetypes/32/application-pdf.svg` while
+  `x-office-document` resolved to the theme's file), and the page with
+  seal-and-lines drawing is this theme's own choice.
+- `docs/installing.md`: add the PDF icon to the sentence listing the
+  icon theme's placeholder illustrations and their sizes, beside the
+  web-document sentence.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size, carries a placeholder
+  marker and has a `PLACEHOLDERS.md` row; the existing inventory,
+  palette, geometry and placeholder-register tests cover all three.
+- Changing an element's position, size, fill or order, or the seal
+  plate's rectangle, in one file makes
+  `test_each_icon_draws_its_pinned_artwork` fail; dropping a file
+  while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME`
+  and `XDG_RUNTIME_DIR`, set `XDG_DATA_DIRS` to name the scratch data
+  root ahead of the system paths, unset `DISPLAY` and `WAYLAND_DISPLAY`,
+  and set `QT_QPA_PLATFORM=offscreen`. `application-pdf` resolves to the
+  theme's 32x32 file (at planning time, before this change, it resolved
+  to Breeze's `:/icons/breeze/mimetypes/32/application-pdf.svg`), and
+  `x-office-document` and `text-html` stay on the theme's files. Report
+  the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
