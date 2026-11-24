@@ -127,7 +127,14 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # read from `libKF6BluezQt.so.6`, the installed
 # `libKF6BluezQt.so.6.13.0` carries the bare `audio-headset` literal, and the
 # shared MIME database gives the name no `generic-icon` binding, so one file
-# covers exactly its own name), the phone
+# covers exactly its own name), the scanner
+# `scanner` icon at all three sizes (our own drawing of a flatbed scanner
+# seen from above: a landscape body with an outline and bevels, a closed lid
+# holding a white glass strip with a scan-lamp bar and a status LED at the
+# larger sizes; the name is a KDE-required value read from the installed
+# print-manager's `libkcupslib.so.6.3.5`, which carries the bare `scanner`
+# literal, and the shared MIME database gives the name no `generic-icon`
+# binding, so one file covers exactly its own name), the phone
 # `phone` icon at all three sizes (our own drawing of an upright smartphone
 # with a screen, a speaker slot above it and a home button below; the name
 # is the device name KDE's device views draw for phones and the dash
@@ -178,6 +185,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "audio-headset.svg"),
     os.path.join("16x16", "devices", "audio-headset.svg"),
     os.path.join("22x22", "devices", "audio-headset.svg"),
+    os.path.join("32x32", "devices", "scanner.svg"),
+    os.path.join("16x16", "devices", "scanner.svg"),
+    os.path.join("22x22", "devices", "scanner.svg"),
     os.path.join("32x32", "devices", "phone.svg"),
     os.path.join("16x16", "devices", "phone.svg"),
     os.path.join("22x22", "devices", "phone.svg"),
