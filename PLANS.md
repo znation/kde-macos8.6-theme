@@ -244,7 +244,145 @@ excerpt extraction, which lives outside this repository.
   test_render_gates_batch'` passes, and so does full `make check`
   after the final edit, apart from main's known-red tests.
 
+### Platinum icon theme: draw LZMA-compressed tar archives with an
+original `application-x-lzma-compressed-tar` icon (planned 2026-11-24 by
+the plan role; independent of the waiting plans)
+
+**Goal.** KIO requests an `application/x-lzma-compressed-tar` item's
+icon under the shared MIME database's type-spelled name
+`application-x-lzma-compressed-tar`, and on this host that exact name
+draws Breeze's art even though the database's `generic-icon` for the
+type is the theme's own shipped `package-x-generic` file: ship one
+original placeholder icon, `application-x-lzma-compressed-tar`, at
+16x16, 22x22 and 32x32, in the same mimetype-item series as the
+landed `application-octet-stream`, `text-html`, `application-pdf`,
+`application-zip`, `application-x-tar`, `application-x-7z-compressed`
+and `application-gzip` files and the waiting compressed-tar,
+bzip2-compressed-tar, xz-compressed-tar, deb and RAR plans.
+Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/x-lzma-compressed-tar` ("Tar archive (LZMA-compressed)")
+with `generic-icon name="package-x-generic"`, no `<icon>` element and
+no aliases, and the database holds zero occurrences of the hyphenated
+name `application-x-lzma-compressed-tar` anywhere (`grep -c` counts
+0, so no `<icon>` or `generic-icon` reference can name it), so one
+file covers exactly its canonical name — no alias files and no
+per-type fallback are in play; the type's `sub-class-of
+application/x-lzma` link changes no icon resolution, since the probe
+below shows the type's own spelled name is the one requested. Breeze
+ships the exact name under `mimetypes/` at all three sizes, and at
+the exact name Breeze's own file beats the theme's generic-icon
+fallback. Planning-time probe on 2026-11-24 with `kiconfinder6`, the
+theme installed into scratch XDG homes (`XDG_DATA_DIRS` naming the
+scratch data root, `QT_QPA_PLATFORM=offscreen`, no `DISPLAY`):
+`application-x-lzma-compressed-tar` resolved to Breeze's
+`:/icons/breeze/mimetypes/32/application-x-lzma-compressed-tar.svg`
+while `package-x-generic` resolved to the theme's own 32x32
+`mimetypes/package-x-generic.svg`, so the theme must ship the exact
+name to win it. No reference screenshot shows an LZMA-compressed tar
+icon, so no reference pixels are used and the drawing is this theme's
+own choice.
+
+**Approach.**
+
+- Add `mimetypes/application-x-lzma-compressed-tar.svg` under `16x16`,
+  `22x22` and `32x32` of `theme/icons/org.macos8.desktop/`.
+  `index.theme` already declares the three directories. Give each
+  file the XML declaration, the comment `<!-- PLACEHOLDER: original
+  LZMA-compressed-tar illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum
+  palette, not traced from anyone's artwork, and a root with matching
+  `width`, `height` and `viewBox`. The art shares the sealed package
+  box (every drawing element of `mimetypes/package-x-generic.svg` at
+  that size) and holds a capital L — a full-height left stem and a
+  full-width bottom bar meeting at the lower-left corner — on the
+  white face left of the grey tape stripe (the L reads as LZMA's
+  first letter and stays clear of the tar icon's T bar-and-stem, the
+  7z icon's stepped 7, the zip icon's slider, the gzip icon's
+  downward arrow, the compressed-tar plan's stepped Z, whose top bar
+  and diagonal the L lacks, the bzip2 plan's solid lowercase b, the
+  xz plan's stair-stepped X, the deb icon's hollow D and the RAR
+  plan's stepped diamond):
+  - 32x32: the box rects `3,6 26×22` `#000000`, `4,7 24×3` `#DDDDDD`,
+    `4,7 24×1` `#FFFFFF`, `4,10 24×17` `#FFFFFF` and the tape
+    `15,10 2×17` `#999999`; letter rects `4,13 3×10` `#000000`
+    (left stem) and `7,21 8×2` `#000000` (bottom bar).
+  - 22x22: the box rects `2,4 18×16` `#000000`, `3,5 16×2` `#DDDDDD`,
+    `3,5 16×1` `#FFFFFF`, `3,7 16×12` `#FFFFFF` and the tape
+    `10,7 2×12` `#999999`; letter rects `3,9 2×6` `#000000` (left
+    stem) and `5,14 5×1` `#000000` (bottom bar).
+  - 16x16: the box rects `1,3 14×11` `#000000`, `2,4 12×2` `#DDDDDD`,
+    `2,4 12×1` `#FFFFFF`, `2,6 12×7` `#FFFFFF` and the tape
+    `7,6 2×7` `#999999`; letter rects `2,7 1×5` `#000000` (left
+    stem) and `3,11 4×1` `#000000` (bottom bar).
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `package-x-generic` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`, and extend the
+  mimetypes comment above them to name the type-spelled
+  package/archive series.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three
+  drawings in `PINS` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-x-lzma-compressed-tar` in the last cell,
+  as the `application-zip` sentence there does.
+- `docs/installing.md`: add the LZMA-compressed-tar icon to the
+  sentence listing the icon theme's placeholder illustrations and
+  their sizes.
+- The in-flight `application-vnd.debian.binary-package` and
+  `application-vnd.rar` plans and the waiting compressed-tar,
+  bzip2-compressed-tar and xz-compressed-tar plans edit the same
+  inventory block, `PINS` registry, invariants row and
+  installing.md sentence; this entry sits behind them in the queue,
+  so rebase on whatever they have landed when picking it up.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the rectangles listed for that size (the box elements
+  matching `package-x-generic.svg`'s pinned list, in the same order,
+  then the L elements in the listed order), carries a placeholder
+  marker and has a `PLACEHOLDERS.md` row; the existing inventory,
+  palette, geometry and placeholder-register tests cover all three.
+- Changing an L rectangle's position, size or fill, or the element
+  order, in one file makes the geometry test fail; dropping a file
+  while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The L's `#000000` fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch `XDG_DATA_HOME`, use a scratch `HOME`,
+  `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset
+  `DISPLAY` and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `application-x-lzma-compressed-tar` resolves to the theme's 32x32
+  `mimetypes` file (at planning time, before this change, it resolved
+  to Breeze's
+  `:/icons/breeze/mimetypes/32/application-x-lzma-compressed-tar.svg`),
+  and `package-x-generic` still resolves to the theme's own file (the
+  generic fallback keeps its own drawing). Report the output in
+  VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ## Done
+
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
 
