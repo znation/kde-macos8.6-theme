@@ -49,7 +49,9 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # (our own drawing of the generic document's page with angle brackets and
 # code lines; the name is the `generic-icon` of 30 script MIME types in
 # the installed shared MIME database, one of which,
-# `application/x-shellscript`, already draws its own shipped icon), the
+# `application/x-shellscript`, already draws its own shipped icon and
+# another, `application/x-perl`, now ships its own type-spelled icon
+# beside these paths), the
 # office-presentation
 # `x-office-presentation` icon at all three sizes (our own drawing of the
 # generic document's page holding a slide; the name is the `generic-icon`
@@ -287,6 +289,15 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-json.svg"),
     os.path.join("16x16", "mimetypes", "application-json.svg"),
     os.path.join("22x22", "mimetypes", "application-json.svg"),
+    # The Perl-script `application-x-perl` icon at all three sizes (our own
+    # drawing of the generic document's page with a black capital P; the
+    # name is the type-spelled icon name of the `application/x-perl` MIME
+    # type in the installed shared MIME database, whose `generic-icon` is
+    # the shipped `text-x-script`, and at the exact name Breeze's own file
+    # beats the theme's generic-icon fallback).
+    os.path.join("32x32", "mimetypes", "application-x-perl.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-perl.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-perl.svg"),
     os.path.join("32x32", "mimetypes", "package-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "package-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "package-x-generic.svg"),

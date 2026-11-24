@@ -180,7 +180,9 @@ same three sizes), a program icon for program files (the
 `application-x-executable` name at the same three sizes), a shell-script icon
 for script files (the `application-x-shellscript` name at the same three
 sizes), a script icon for the script types without their own shipped name (the
-`text-x-script` name at the same three sizes), a package icon for archive,
+`text-x-script` name at the same three sizes), a Perl-script icon for Perl
+script files (the `application-x-perl` name at the same three sizes), a
+package icon for archive,
 compressed and package files (the `package-x-generic` name at the same three
 sizes), a ZIP-archive icon for ZIP archive files (the `application-zip` name
 at the same three sizes), a tar-archive icon for tar archive files (the
