@@ -562,6 +562,14 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-vnd.iccprofile.svg"),
     os.path.join("16x16", "mimetypes", "application-vnd.iccprofile.svg"),
     os.path.join("22x22", "mimetypes", "application-vnd.iccprofile.svg"),
+    # The offline wiki archive `application-x-openzim` icon at all three
+    # sizes (the shell-script document's page holding a black band with a
+    # white wireframe globe; the name is the type-spelled icon name of the
+    # `application/x-openzim` MIME type in the installed shared MIME
+    # database).
+    os.path.join("32x32", "mimetypes", "application-x-openzim.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-openzim.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-openzim.svg"),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"),
     os.path.join("16x16", "mimetypes", "x-office-document.svg"),
     os.path.join("22x22", "mimetypes", "x-office-document.svg"),

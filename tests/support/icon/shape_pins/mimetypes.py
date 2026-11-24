@@ -1287,6 +1287,43 @@ PINS = {
         _shape("rect", x="8", y="13", width="3", height="3", fill="#999999"),
         _shape("rect", x="12", y="13", width="3", height="3", fill="#DDDDDD"),
     ),
+    # The offline wiki archive item icon KDE draws for `application/x-openzim`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/x-openzim` "OpenZIM file" type, which has no
+    # `generic-icon`, no aliases and no per-type fallback, so one file
+    # covers exactly its own name); the drawing shares the shell-script
+    # document's page and holds a black band with a white wireframe globe,
+    # a round ring with a meridian bar and an equator line (the single
+    # interior row of the 16x16 and 22x22 bands leaves no room for a
+    # meridian at those sizes).
+    os.path.join("32x32", "mimetypes", "application-x-openzim.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="10", y="15", width="12", height="7", fill="#000000"),
+        _shape("rect", x="13", y="16", width="6", height="1", fill="#FFFFFF"),
+        _shape("rect", x="13", y="20", width="6", height="1", fill="#FFFFFF"),
+        _shape("rect", x="13", y="17", width="1", height="3", fill="#FFFFFF"),
+        _shape("rect", x="18", y="17", width="1", height="3", fill="#FFFFFF"),
+        _shape("rect", x="15", y="17", width="2", height="3", fill="#FFFFFF"),
+        _shape("rect", x="14", y="18", width="4", height="1", fill="#FFFFFF"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-x-openzim.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="5", y="6", width="6", height="5", fill="#000000"),
+        _shape("rect", x="6", y="7", width="4", height="1", fill="#FFFFFF"),
+        _shape("rect", x="6", y="9", width="4", height="1", fill="#FFFFFF"),
+        _shape("rect", x="6", y="8", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="9", y="8", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="7", y="8", width="2", height="1", fill="#FFFFFF"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-x-openzim.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="7", y="10", width="8", height="5", fill="#000000"),
+        _shape("rect", x="9", y="11", width="4", height="1", fill="#FFFFFF"),
+        _shape("rect", x="9", y="13", width="4", height="1", fill="#FFFFFF"),
+        _shape("rect", x="9", y="12", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="12", y="12", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="10", y="12", width="2", height="1", fill="#FFFFFF"),
+    ),
     # The JSON-document item icon KDE draws for `application/json` items
     # (the type-spelled icon name of the installed shared MIME database's
     # `application/json` type, whose `generic-icon` is the shipped
