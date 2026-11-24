@@ -5,6 +5,101 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw spreadsheets with an original `x-office-spreadsheet` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** A spreadsheet file in the file manager is drawn with Breeze's
+sheet beside the Platinum documents. Ship one original placeholder icon,
+`x-office-spreadsheet`, at 16x16, 22x22 and 32x32. The name is the
+`generic-icon` of 32 MIME types in the installed shared MIME database
+(`grep -c '<generic-icon name="x-office-spreadsheet"'
+/usr/share/mime/packages/freedesktop.org.xml`): the spreadsheet, CSV and
+related office-table types, so it is the icon Dolphin shows for every
+sheet a user opens.
+
+Planning-time probe with `kiconfinder6` under scratch `XDG_DATA_HOME`,
+`XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+`kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, with `DISPLAY` and
+`WAYLAND_DISPLAY` unset and `QT_QPA_PLATFORM=offscreen`:
+`x-office-spreadsheet` resolved to
+`:/icons/breeze/mimetypes/32/x-office-spreadsheet.svg` while the shipped
+`x-office-document` and `text-x-generic` resolved to this theme's files.
+No repo file mentions `x-office-spreadsheet`, and neither the pending
+`image-x-generic`, `media-flash` and `text-html` plans nor any finished
+plan covers it. Out of scope: ship no alias files and nothing but
+`x-office-spreadsheet`.
+
+**Approach.**
+
+- Add `mimetypes/x-office-spreadsheet.svg` under `16x16`, `22x22` and
+  `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme` already
+  declares the three directories. Give each file the XML declaration, the
+  comment `<!-- PLACEHOLDER: original office-spreadsheet illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is the generic document's page (the
+  `x-office-document` icon's outline, page and folded-corner paths at
+  that size, so both office icons share one sheet) holding a table: a
+  black frame, a white cell field, a grey heading row and grey column and
+  row rules. Each file holds the three shared `path` elements (identical
+  to `x-office-document.svg` at the same size) followed by these `rect`
+  elements in order, written `x,y width×height fill`:
+  - 32x32: `9,12 14×13 #000000`; `10,13 12×11 #FFFFFF`;
+    `10,13 12×2 #DDDDDD`; `14,15 1×9 #999999`; `19,15 1×9 #999999`;
+    `10,18 12×1 #999999`; `10,21 12×1 #999999`.
+  - 22x22: `6,8 10×9 #000000`; `7,9 8×7 #FFFFFF`; `7,9 8×2 #DDDDDD`;
+    `10,11 1×5 #999999`; `13,11 1×5 #999999`; `7,12 8×1 #999999`;
+    `7,14 8×1 #999999`.
+  - 16x16: `4,6 8×6 #000000`; `5,7 6×4 #FFFFFF`; `5,7 6×1 #DDDDDD`;
+    `7,8 1×3 #999999`; `5,9 6×1 #999999`.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `x-office-document` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `mimetypes` paths, name the spreadsheet
+  icon in the inventory comment above them, and say in the comment that
+  the name is the `generic-icon` of the spreadsheet and office-table MIME
+  types in the installed shared MIME database.
+- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+  `ICON_SHAPES` from the paths and lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, extend the
+  guarantee cell to say the `x-office-spreadsheet` spreadsheet shares the
+  generic document's page under its grid, and record the provenance of
+  `x-office-spreadsheet` in the last cell: no reference pixels were used,
+  the name is the `generic-icon` of the spreadsheet and office-table MIME
+  types in the installed shared MIME database (`freedesktop.org.xml`,
+  32 MIME types), and the document-with-grid drawing is this theme's own
+  choice.
+- `docs/installing.md`: add the spreadsheet icon to the sentence listing
+  the icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding the
+  `x-office-document` page paths followed by exactly the rectangles listed
+  for that size, carries a placeholder marker and has a `PLACEHOLDERS.md`
+  row; the existing inventory, palette, geometry and placeholder-register
+  tests cover all three.
+- Changing a path, a rectangle's position, size or fill, or the element
+  order, in one file makes the geometry test fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME`
+  and `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `x-office-spreadsheet` resolves to the
+  theme's new 32x32 file, and `x-office-document` and `text-x-generic`
+  stay on their shipped theme files. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw images with an original `image-x-generic` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A photograph or graphics file in the file manager is drawn with

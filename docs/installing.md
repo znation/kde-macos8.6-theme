@@ -148,7 +148,9 @@ files (the `application-x-executable` name at the same three sizes), a shell-scr
 icon for script files (the `application-x-shellscript` name at the same three sizes), a
 package icon for archive, compressed and package files (the `package-x-generic` name at
 the same three sizes), an office-document icon for document files (the
-`x-office-document` name at the same three sizes), a
+`x-office-document` name at the same three sizes), a spreadsheet icon for
+spreadsheet and office-table files (the `x-office-spreadsheet` name at the
+same three sizes), a
 web-document icon for HTML, XHTML and XML files (the `text-html`
 name at the same three sizes), a flash-media card icon for memory cards
 (the `media-flash` name at the same three sizes), an

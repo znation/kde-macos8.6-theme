@@ -33,7 +33,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `x-office-document` icon at all three sizes (our own drawing of the
 # generic document's page with a heading band, body lines and a signature
 # line; the name is the `generic-icon` of the document MIME types in the
-# installed shared MIME database), the web-document
+# installed shared MIME database), the office-spreadsheet
+# `x-office-spreadsheet` icon at all three sizes (our own drawing of the
+# generic document's page holding a table; the name is the `generic-icon`
+# of the spreadsheet and office-table MIME types in the installed shared
+# MIME database), the web-document
 # `text-html` icon at all three sizes (our own drawing of a window
 # holding a globe), the flash-media `media-flash`
 # icon at all three sizes (our own drawing of an upright card standing on
@@ -81,6 +85,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "x-office-document.svg"),
     os.path.join("16x16", "mimetypes", "x-office-document.svg"),
     os.path.join("22x22", "mimetypes", "x-office-document.svg"),
+    os.path.join("32x32", "mimetypes", "x-office-spreadsheet.svg"),
+    os.path.join("16x16", "mimetypes", "x-office-spreadsheet.svg"),
+    os.path.join("22x22", "mimetypes", "x-office-spreadsheet.svg"),
     os.path.join("32x32", "mimetypes", "text-html.svg"),
     os.path.join("16x16", "mimetypes", "text-html.svg"),
     os.path.join("22x22", "mimetypes", "text-html.svg"),

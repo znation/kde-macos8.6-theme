@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original office-spreadsheet illustration pending user-approved artwork. -->
+<!-- Platinum office-spreadsheet icon, 16x16.
+
+     Our own 16x16 drawing in the Platinum palette: the generic document's
+     page (black outline, white page and folded corner) holding a
+     spreadsheet table with a black frame, a white cell field, a grey
+     heading row and a grey row rule. Drawn for this theme, not traced
+     from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M3 1 h7 l3 3 v10 H3 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M4 2 h5 l3 3 v8 H4 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M9 2 L12 2 L12 5 Z" fill="#DDDDDD"/>
+  <!-- Table frame. -->
+  <rect x="4" y="6" width="8" height="6" fill="#000000"/>
+  <!-- Cell field. -->
+  <rect x="5" y="7" width="6" height="4" fill="#FFFFFF"/>
+  <!-- Heading row. -->
+  <rect x="5" y="7" width="6" height="1" fill="#DDDDDD"/>
+  <!-- Column rule. -->
+  <rect x="7" y="8" width="1" height="3" fill="#999999"/>
+  <!-- Row rule. -->
+  <rect x="5" y="9" width="6" height="1" fill="#999999"/>
+</svg>

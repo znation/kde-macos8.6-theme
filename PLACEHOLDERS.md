@@ -32,6 +32,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/image-x-generic.svg` | original image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/text-x-generic.svg` | original document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/x-office-document.svg` | original office-document illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/mimetypes/x-office-spreadsheet.svg` | original office-spreadsheet illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/unknown.svg` | original blank-document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/places/folder-documents.svg` | original Documents place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/places/folder-download.svg` | original Downloads place illustration pending user-approved artwork. |
@@ -63,6 +64,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/image-x-generic.svg` | original image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/text-x-generic.svg` | original document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/x-office-document.svg` | original office-document illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/mimetypes/x-office-spreadsheet.svg` | original office-spreadsheet illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/unknown.svg` | original blank-document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/places/folder-documents.svg` | original Documents place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/places/folder-download.svg` | original Downloads place illustration pending user-approved artwork. |
@@ -94,6 +96,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/image-x-generic.svg` | original image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/text-x-generic.svg` | original document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/x-office-document.svg` | original office-document illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/mimetypes/x-office-spreadsheet.svg` | original office-spreadsheet illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/unknown.svg` | original blank-document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/places/folder-documents.svg` | original Documents place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/places/folder-download.svg` | original Downloads place illustration pending user-approved artwork. |
