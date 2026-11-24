@@ -286,6 +286,128 @@ network-card-with-padlock drawing is this theme's own choice.
   test_placeholders test_invariants'` passes, and so does full `make check`
   after the final edit, apart from main's known-red tests.
 
+### Platinum icon theme: draw floppy disks with an original `media-floppy` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A floppy disk is drawn with Breeze's art beside the Platinum
+placeholders. Ship one original placeholder icon, `media-floppy`, at
+16x16, 22x22 and 32x32, in the same devices series as the landed
+`computer`, `media-flash`, `printer`, `phone`, `battery` and
+`camera-photo` files and the waiting `video-x-generic`,
+`network-server` and `network-vpn` entries. Provenance: the installed
+`libKF6Solid.so.6.13.0` carries the bare `media-floppy` literal
+(`strings -e l`), the same Solid-literal pattern as `battery`, and the
+installed shared MIME database makes the name the `generic-icon` of the
+`application/x-raw-floppy-disk-image` MIME type (globs `*.fd` and
+`*.qd`) in `freedesktop.org.xml`, so Dolphin and file dialogs draw it
+for raw floppy images. Breeze ships the name under `devices/16/22/24`
+plus symbolic and scaled renditions; this theme declares devices
+directories at 16x16, 22x22 and 32x32 and no symbolic or scaled
+directories, so exactly three files go in `devices/` and the symbolic
+and scaled renditions stay out of scope. Planning-time probe with
+`kiconfinder6` and the theme installed into scratch XDG homes (as in
+the printer and flash-media plans): `media-floppy` resolved to Breeze's
+`devices/22` file, and after `media-floppy.svg` copies were added to the
+staged copy's three `devices` directories it resolved to the theme's
+32x32 file while `media-flash`, `printer` and `x-office-document`
+stayed on the theme's files — one file per size covers its own name,
+no alias files, nothing but `media-floppy` (Solid carries no reduced
+`media-floppy-*` subnames). The flash-media plan recorded `media-floppy`
+as out of its own scope; this is a separate drawing — a floppy disk is
+not a flash card — and either order works. No reference screenshot
+shows a floppy icon: no reference pixels are used, and the drawing is
+this theme's own choice.
+
+**Approach.**
+
+- Add `devices/media-floppy.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original floppy-disk illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a flat Platinum floppy disk seen
+  from the front: a square disk body with the 1px #000000 outline and
+  the #FFFFFF/#999999 bevel, a metal shutter window with a slot at the
+  top, and a white label plate outlined in black at the bottom. Each
+  file holds these elements in order, written `x,y width×height fill`
+  for rects:
+  - 32x32: `3,3 26×26 #000000`; `4,4 24×24 #DDDDDD`; `4,4 24×1
+    #FFFFFF`; `4,4 1×24 #FFFFFF`; `4,27 24×1 #999999`; `27,4 1×24
+    #999999`; `12,6 12×7 #000000`; `13,7 10×5 #DDDDDD`; `17,7 2×5
+    #000000`; `8,16 16×10 #000000`; `9,17 14×8 #FFFFFF`; `11,19 10×1
+    #999999`.
+  - 22x22: `2,2 18×18 #000000`; `3,3 16×16 #DDDDDD`; `3,3 16×1
+    #FFFFFF`; `3,3 1×16 #FFFFFF`; `3,18 16×1 #999999`; `18,3 1×16
+    #999999`; `8,5 9×5 #000000`; `9,6 7×3 #DDDDDD`; `12,6 1×3
+    #000000`; `6,11 10×7 #000000`; `7,12 8×5 #FFFFFF`; `9,13 4×1
+    #999999`.
+  - 16x16: `1,1 14×14 #000000`; `2,2 12×12 #DDDDDD`; `2,2 12×1
+    #FFFFFF`; `2,2 1×12 #FFFFFF`; `2,13 12×1 #999999`; `13,2 1×12
+    #999999`; `6,3 5×4 #000000`; `7,4 3×2 #DDDDDD`; `8,4 1×2
+    #000000`; `4,8 8×5 #000000`; `5,9 6×3 #FFFFFF`.
+
+  In each list the first six elements are the body outline, fill and
+  bevels, the next three are the shutter frame, plate and slot, and the
+  last two or three are the label frame, plate and (at 22x22 and 32x32)
+  label line. Validate by XML only, never by rasterizing: `convert`'s
+  MSVG reader bleeds 1px rects, so the pins below are the drawing
+  contract.
+- `PLACEHOLDERS.md`: one row per file beside that size's `media-flash`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `devices` paths, and name the
+  media-floppy icon in the comment above the list where `media-flash`
+  is named.
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `media-floppy` in the last cell: no reference pixels
+  were used, the name is a KDE-required value read from
+  `libKF6Solid.so.6` (the installed `libKF6Solid.so.6.13.0` carries the
+  bare `media-floppy` literal) and is the `generic-icon` of the
+  `application/x-raw-floppy-disk-image` MIME type in the installed
+  shared MIME database, and the disk-with-shutter-and-label drawing is
+  this theme's own choice.
+- `docs/installing.md`: add the floppy-disk icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes,
+  beside the flash-media sentence.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and has
+  a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing an element's position, size, fill or order, the shutter's
+  position or size, or the label's position or size, in one file makes
+  `test_each_icon_draws_its_pinned_artwork` fail; dropping a file while
+  leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `media-floppy` resolves to the theme's
+  32x32 file (at planning time, before this change, it resolved to
+  Breeze's `devices/22` file), and `x-office-document` stays on the
+  theme's 32x32 file. Also record what `network-server`,
+  `network-wireless` and `video-display` resolve to, without pinning
+  them. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
