@@ -347,5 +347,85 @@ class TestSearchBases(StubKonsoleToolsTestCase):
         self.assertEqual(bases, [self.data])
 
 
+class TestWriteKeyLogs(StubKonsoleToolsTestCase):
+    """Each kwriteconfig6 write logs under the written key's name.
+
+    ``_write_keys`` names every write's log ``kwriteconfig6-<key>.log`` so a
+    failure diagnostic's tail comes from the write that failed, not from a
+    sibling write that shares its group. A stub that echoes the ``--key``
+    argument pins the mapping: each named log holds its own write's output.
+    """
+
+    ECHO_WRITER = """\
+#!/usr/bin/env python3
+import sys
+args = sys.argv[1:]
+print("wrote " + args[args.index("--key") + 1])
+"""
+    # The reader logs its value through run_required_output, which removes
+    # both its logs once the value is read, so a successful apply's scratch
+    # holds the writer logs alone.
+
+    def setUp(self):
+        super().setUp()
+        self._write_stub(self.writer, self.ECHO_WRITER)
+
+    def scratch_log_names(self):
+        return sorted(path.name for path in (self.root / "scratch").iterdir())
+
+    def log_text(self, name):
+        return (self.root / "scratch" / name).read_text(encoding="utf-8")
+
+    def test_a_font_write_logs_under_the_written_key_s_name(self):
+        self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
+        self.write_profile(self.data, "Mine.profile", FOREIGN_PROFILE)
+        status, stderr = self.apply_font()
+        self.assertIsNone(status, stderr)
+        self.assertEqual(
+            ["kwriteconfig6-Font.log"],
+            self.scratch_log_names(),
+        )
+        self.assertEqual("wrote Font\n", self.log_text("kwriteconfig6-Font.log"))
+
+    def test_the_scheme_write_logs_under_its_own_key_s_name(self):
+        write_file(
+            self.profile_dir / "MacOS8.colorscheme", "[General]\nName=MacOS8\n"
+        )
+        self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
+        self.write_profile(self.data, "Mine.profile", FOREIGN_PROFILE)
+        status, stderr = self.apply_font()
+        self.assertIsNone(status, stderr)
+        self.assertEqual(
+            ["kwriteconfig6-ColorScheme.log", "kwriteconfig6-Font.log"],
+            self.scratch_log_names(),
+        )
+        self.assertEqual("wrote Font\n", self.log_text("kwriteconfig6-Font.log"))
+        self.assertEqual(
+            "wrote ColorScheme\n", self.log_text("kwriteconfig6-ColorScheme.log")
+        )
+
+    def test_the_fallback_writes_log_under_each_written_key_s_name(self):
+        status, stderr = self.apply_font()
+        self.assertIsNone(status, stderr)
+        self.assertEqual(
+            [
+                "kwriteconfig6-DefaultProfile.log",
+                "kwriteconfig6-Font.log",
+                "kwriteconfig6-Name.log",
+                "kwriteconfig6-Parent.log",
+            ],
+            self.scratch_log_names(),
+        )
+        self.assertEqual("wrote Name\n", self.log_text("kwriteconfig6-Name.log"))
+        self.assertEqual(
+            "wrote Parent\n", self.log_text("kwriteconfig6-Parent.log")
+        )
+        self.assertEqual("wrote Font\n", self.log_text("kwriteconfig6-Font.log"))
+        self.assertEqual(
+            "wrote DefaultProfile\n",
+            self.log_text("kwriteconfig6-DefaultProfile.log"),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
