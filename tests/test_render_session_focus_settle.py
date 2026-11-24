@@ -184,8 +184,7 @@ class TestSessionFocusSettle(unittest.TestCase):
         # A stubbed one-window session: the spectacle stub returns at once,
         # the client only waits to be stopped, and PATH holds just the
         # tools the script needs plus whatever qdbus stub the test adds.
-        apply = root / "plasma-apply-colorscheme"
-        write_executable(apply, "#!/bin/sh\nexit 0\n")
+        environment = write_colorscheme_apply_ok(root, dict(os.environ, PATH=path))
         client = root / "client.py"
         client.write_text("import signal; signal.pause()\n", encoding="utf-8")
         return render_workflow.run_logged(
@@ -196,7 +195,7 @@ class TestSessionFocusSettle(unittest.TestCase):
                 "sh", "1", str(root / "capture.png"), sys.executable,
                 str(client),
             ],
-            {**os.environ, "PATH": f"{root}:{path}"},
+            environment,
             root / "session.log", 10, root,
         )
 
@@ -284,8 +283,7 @@ class TestSessionFocusSettle(unittest.TestCase):
         # marks the capture's start by touching root/capturing, the client
         # only waits to be stopped, and PATH holds just the tools the
         # script needs plus whatever qdbus stub the test adds.
-        apply = root / "plasma-apply-colorscheme"
-        write_executable(apply, "#!/bin/sh\nexit 0\n")
+        environment = write_colorscheme_apply_ok(root, dict(os.environ, PATH=path))
         client = root / "client.py"
         client.write_text("import signal; signal.pause()\n", encoding="utf-8")
         return render_workflow.run_logged(
@@ -296,7 +294,7 @@ class TestSessionFocusSettle(unittest.TestCase):
                 "sh", "1", str(root / "capture.png"), sys.executable,
                 str(client),
             ],
-            {**os.environ, "PATH": f"{root}:{path}"},
+            environment,
             root / "session.log", 10, root,
         )
 
