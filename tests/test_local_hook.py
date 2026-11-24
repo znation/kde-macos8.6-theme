@@ -155,8 +155,9 @@ class TestInstall(unittest.TestCase):
     def test_a_hook_of_exactly_the_cap_is_refused_as_foreign_not_oversize(self):
         # The cap refusal starts strictly above _MAX_HOOK_BYTES: the boundary
         # file stays readable, so the ownership check names it foreign and the
-        # oversize diagnostic never fires. A read of _MAX_HOOK_BYTES bytes or
-        # a >= cap check would turn exactly this hook into an oversize one.
+        # oversize diagnostic never fires. A >= cap check would turn exactly
+        # this hook into an oversize one (a capped read would instead truncate
+        # over-cap hooks, which the oversize test above catches).
         assert_exactly_cap_hook_is_refused_as_foreign(self, "install")
 
     def test_refuses_a_dangling_symlinked_hook_without_writing_through(self):

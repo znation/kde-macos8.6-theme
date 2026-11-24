@@ -144,9 +144,12 @@ def assert_exactly_cap_hook_is_refused_as_foreign(case, command):
     The reader reads one byte past the cap and refuses only
     ``len(data) > _MAX_HOOK_BYTES``, so a hook of exactly the cap is not an
     oversize hook: the ownership check runs on its bytes and rejects it as
-    foreign. An off-by-one on either side -- ``read(_MAX_HOOK_BYTES)`` or a
-    ``>=`` cap check -- would flip exactly this file to the oversize refusal.
-    Both subcommands share the boundary, so each suite pins its own verdict.
+    foreign. A ``>=`` cap check would flip exactly this file to the oversize
+    refusal. (A capped ``read(_MAX_HOOK_BYTES)`` would leave this file's
+    verdict alone -- it fills the read either way -- but would truncate
+    over-cap hooks below the cap, which ``assert_refuses_an_oversize_hook``
+    already catches.) Both subcommands share the boundary, so each suite
+    pins its own verdict.
     """
     repo, hook = make_repo_with_hook(case)
     at_cap = b"#!/bin/sh\n" + b"x" * (local_hook._MAX_HOOK_BYTES - 10)
