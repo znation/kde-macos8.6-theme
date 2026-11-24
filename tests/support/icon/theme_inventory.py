@@ -20,6 +20,8 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # the removable-drive `drive-removable-media` icon at all three sizes (our own
 # drawing of a drive with a media slot and eject button, sharing the hard
 # disk's body and bevel),
+# the `media-optical` optical disc at all three sizes (our own drawing of a
+# CD or DVD: a disc with white glints and a hub),
 # the kicker logo the menu bar's top-left button shows at the two panel sizes,
 # and the `go-next-symbolic` submenu arrow the reference's open Apple menu
 # draws.
@@ -30,6 +32,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "drive-removable-media.svg"),
     os.path.join("16x16", "devices", "drive-removable-media.svg"),
     os.path.join("22x22", "devices", "drive-removable-media.svg"),
+    os.path.join("32x32", "devices", "media-optical.svg"),
+    os.path.join("16x16", "devices", "media-optical.svg"),
+    os.path.join("22x22", "devices", "media-optical.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "text-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "text-x-generic.svg"),

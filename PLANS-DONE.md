@@ -5,6 +5,83 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw optical discs with an original `media-optical` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** An inserted CD or DVD is drawn with Breeze's art beside the
+Platinum hard disk. Ship one original placeholder icon, `media-optical`, at
+16x16, 22x22 and 32x32. The installed `libKF6Solid.so.6` contains
+`media-optical` and eight longer names: `media-optical-` followed by `data`,
+`audio`, `video`, `dvd`, `dvd-video`, `mixed-cd`, `recordable` and `blu-ray`.
+Planning-time probe with `kiconfinder6` and a copy of the theme selected
+through scratch XDG homes: all nine resolved to Breeze; after
+`media-optical.svg` was added to the copy's three `devices` directories, all
+nine resolved to its 32x32 file. Do not ship alias files for the longer names.
+
+`drive-optical` (the drive, which stayed on Breeze in the probe), flash media
+and floppies are out of scope. This plan shares files, but no drawing, with
+the removable-drive and blank-document icon plans; either order works.
+
+**Approach.**
+
+- Add `devices/media-optical.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the three
+  directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original optical-disc illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette, not
+  traced from anyone's artwork, and a root with matching `width`, `height`
+  and `viewBox`. The art is a black-outlined disc, two white glints and a
+  hub. Each file holds these seven elements in order; every circle is centred
+  on the canvas (`cx` = `cy` = 16, 11 or 8) and is written `r fill`, and both
+  paths are filled `#FFFFFF`:
+  - 32x32: `14 #000000`; `13 #DDDDDD`; `M16 16 L8 6 L6 8 Z`;
+    `M16 16 L24 26 L26 24 Z`; `5 #999999`; `4 #FFFFFF`; `2 #000000`.
+  - 22x22: `10 #000000`; `9 #DDDDDD`; `M11 11 L6 4 L4 6 Z`;
+    `M11 11 L16 18 L18 16 Z`; `4 #999999`; `3 #FFFFFF`; `1 #000000`.
+  - 16x16: `7 #000000`; `6 #DDDDDD`; `M8 8 L5 3 L3 5 Z`;
+    `M8 8 L11 13 L13 11 Z`; `3 #999999`; `2 #FFFFFF`; `1 #000000`.
+
+  These were rendered at planning time and read as a disc at each size.
+- `PLACEHOLDERS.md`: one row per file beside that size's `drive-harddisk`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `devices` paths, and name the optical disc
+  in the comment above it.
+- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `media-optical` in the last cell: no reference pixels were
+  used, the name is a KDE-required value read from `libKF6Solid.so.6`, and
+  the drawing is this theme's own choice.
+- `docs/installing.md`: add the optical-disc icon to the sentence listing the
+  icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the seven elements listed for that size, carries a placeholder marker and
+  has a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing a radius, centre, path, fill or the element order in one file
+  makes the geometry test fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts the
+  three files in the installed theme, and uninstalling removes them (the
+  existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. The nine Solid names all resolve to the
+  theme's `media-optical.svg`. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Parallel check: print unsuccessful modules last and name them above the summary (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** Make the end of a failed `make check` show what failed.

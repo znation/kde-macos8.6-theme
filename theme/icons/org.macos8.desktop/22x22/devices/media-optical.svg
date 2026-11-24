@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original optical-disc illustration pending user-approved artwork. -->
+<!-- Platinum optical-disc icon.
+
+     Our own 22x22 drawing in the Platinum palette, not traced from anyone's
+     artwork: a black-outlined #DDDDDD disc with two white glints, a grey
+     rim and a white hub. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <circle cx="11" cy="11" r="10" fill="#000000"/>
+  <circle cx="11" cy="11" r="9" fill="#DDDDDD"/>
+  <path d="M11 11 L6 4 L4 6 Z" fill="#FFFFFF"/>
+  <path d="M11 11 L16 18 L18 16 Z" fill="#FFFFFF"/>
+  <circle cx="11" cy="11" r="4" fill="#999999"/>
+  <circle cx="11" cy="11" r="3" fill="#FFFFFF"/>
+  <circle cx="11" cy="11" r="1" fill="#000000"/>
+</svg>
