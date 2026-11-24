@@ -9,7 +9,9 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from support.executable_stubs import write_colorscheme_apply_ok, write_executable
+from support.executable_stubs import (
+    fakes_bin, write_colorscheme_apply_ok, write_executable,
+)
 from tools.render import session as render_session, workflow as render_workflow  # noqa: E402
 
 
@@ -33,8 +35,7 @@ class TestRenderReadiness(unittest.TestCase):
 
     def test_a_dbus_readiness_signal_ends_the_settle_and_reaps_its_listener(self):
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
+        bindir = fakes_bin(root, "sleep", "mkfifo")
         monitor_pid = root / "monitor.pid"
         write_executable(
             bindir / "dbus-monitor",
@@ -44,8 +45,6 @@ class TestRenderReadiness(unittest.TestCase):
             "exec sleep 30\n",
         )
         write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
-        for tool in ("sleep", "mkfifo"):
-            (bindir / tool).symlink_to(f"/usr/bin/{tool}")
         started = time.monotonic()
         status = self._session(root, f"{bindir}:/usr/bin:/bin", 15)
         log = (root / "session.log").read_text(encoding="utf-8")
@@ -60,8 +59,7 @@ class TestRenderReadiness(unittest.TestCase):
 
     def test_qdbus_is_used_when_qdbus6_is_unavailable(self):
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
+        bindir = fakes_bin(root, "sleep", "mkfifo", "date", "rm", "touch", "sed")
         calls = root / "qdbus.calls"
         write_executable(
             bindir / "dbus-monitor",
@@ -73,8 +71,6 @@ class TestRenderReadiness(unittest.TestCase):
             f"echo \"$*\" >> {calls}\n"
             "case \"$*\" in *loadScript*) echo 7;; esac\n",
         )
-        for tool in ("sleep", "mkfifo", "date", "rm", "touch", "sed"):
-            (bindir / tool).symlink_to(f"/usr/bin/{tool}")
 
         status = self._session(root, str(bindir), 15)
         log = (root / "session.log").read_text(encoding="utf-8")
@@ -88,8 +84,7 @@ class TestRenderReadiness(unittest.TestCase):
 
     def test_the_listener_ignores_unrelated_dbus_members_until_client_ready(self):
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
+        bindir = fakes_bin(root, "sleep", "mkfifo")
         premature_ready = root / "premature-ready"
         ready_emitted = root / "ready-emitted"
         write_executable(
@@ -103,8 +98,6 @@ class TestRenderReadiness(unittest.TestCase):
             "exec sleep 30\n",
         )
         write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
-        for tool in ("sleep", "mkfifo"):
-            (bindir / tool).symlink_to(f"/usr/bin/{tool}")
 
         started = time.monotonic()
         status = self._session(root, f"{bindir}:/usr/bin:/bin", 15)
@@ -264,11 +257,9 @@ class TestRenderReadiness(unittest.TestCase):
 
     def test_the_listener_waits_its_ceiling_without_a_signal(self):
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
+        bindir = fakes_bin(root, "sleep")
         write_executable(bindir / "dbus-monitor", "#!/bin/sh\nexec sleep 30\n")
         write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
-        (bindir / "sleep").symlink_to("/usr/bin/sleep")
         status = self._session(root, f"{bindir}:/usr/bin:/bin", 1)
         log = (root / "session.log").read_text(encoding="utf-8")
         self.assertEqual(0, status)
@@ -276,12 +267,9 @@ class TestRenderReadiness(unittest.TestCase):
 
     def test_an_early_closed_monitor_fifo_falls_back_to_the_settle_ceiling(self):
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch", "mkfifo")
         write_executable(bindir / "dbus-monitor", "#!/bin/sh\nexit 0\n")
         write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
-        for name in ("sleep", "date", "rm", "touch", "mkfifo"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
 
         status = self._session(root, f"{bindir}:/usr/bin:/bin", 1)
         log = (root / "session.log").read_text(encoding="utf-8")
@@ -292,10 +280,7 @@ class TestRenderReadiness(unittest.TestCase):
 
     def test_a_missing_dbus_monitor_names_the_tool_and_keeps_the_ceiling(self):
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
-        for name in ("sleep", "date", "rm", "touch"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch")
         status = self._session(root, str(bindir), 3)
         log = (root / "session.log").read_text(encoding="utf-8")
         self.assertEqual(0, status, log)
@@ -304,16 +289,13 @@ class TestRenderReadiness(unittest.TestCase):
 
     def test_a_missing_qdbus_names_the_tool_and_starts_no_listener(self):
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch", "mkfifo")
         started_marker = root / "monitor.started"
         write_executable(
             bindir / "dbus-monitor",
             f"#!/bin/sh\ntouch {started_marker}\nexec sleep 30\n",
         )
         # mkfifo is present so only the qdbus guard keeps the listener off.
-        for name in ("sleep", "date", "rm", "touch", "mkfifo"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
         status = self._session(root, str(bindir), 1)
         log = (root / "session.log").read_text(encoding="utf-8")
         self.assertEqual(0, status, log)
@@ -323,8 +305,7 @@ class TestRenderReadiness(unittest.TestCase):
 
     def test_a_failed_fifo_creation_starts_no_readiness_listener(self):
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch")
         started_marker = root / "monitor.started"
         write_executable(
             bindir / "dbus-monitor",
@@ -332,8 +313,6 @@ class TestRenderReadiness(unittest.TestCase):
         )
         write_executable(bindir / "mkfifo", "#!/bin/sh\nexit 1\n")
         write_executable(bindir / "qdbus6", "#!/bin/sh\necho 7\n")
-        for name in ("sleep", "date", "rm", "touch"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
 
         status = self._session(root, str(bindir), 1)
         log = (root / "session.log").read_text(encoding="utf-8")
@@ -345,8 +324,7 @@ class TestRenderReadiness(unittest.TestCase):
 
     def test_a_non_numeric_readiness_id_is_not_run_and_the_ceiling_still_ends_the_session(self):
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch", "mkfifo")
         monitor_pid = root / "monitor.pid"
         monitor = bindir / "dbus-monitor"
         write_executable(
@@ -361,8 +339,6 @@ class TestRenderReadiness(unittest.TestCase):
             "#!/bin/sh\n"
             f"case \"$*\" in *run*) touch {run_marker};; *) echo x;; esac\n",
         )
-        for name in ("sleep", "date", "rm", "touch", "mkfifo"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
         status = self._session(root, f"{bindir}:/usr/bin:/bin", 1)
         log = (root / "session.log").read_text(encoding="utf-8")
         self.assertEqual(0, status, log)
@@ -377,8 +353,7 @@ class TestRenderReadiness(unittest.TestCase):
 
     def test_a_readiness_script_whose_run_fails_is_reported_and_the_ceiling_still_ends_the_session(self):
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch", "mkfifo")
         monitor = bindir / "dbus-monitor"
         write_executable(monitor, "#!/bin/sh\nexec sleep 30\n")
         # loadScript yields a numeric id, but the script's run call exits 1.
@@ -388,8 +363,6 @@ class TestRenderReadiness(unittest.TestCase):
             "#!/bin/sh\n"
             "case \"$*\" in *run*) exit 1;; *) echo 7;; esac\n",
         )
-        for name in ("sleep", "date", "rm", "touch", "mkfifo"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
         status = self._session(root, str(bindir), 1)
         log = (root / "session.log").read_text(encoding="utf-8")
         self.assertEqual(0, status, log)

@@ -18,6 +18,20 @@ def write_executable(path, text):
     return path
 
 
+def fakes_bin(root, *tools):
+    """Create *root*/bin, symlink each named tool from /usr/bin, return it.
+
+    The session suites shadow individual tools by writing a stub with
+    :func:`write_executable` into the returned directory afterwards; the
+    symlinks provide only the tools a test needs unstubbed.
+    """
+    bindir = Path(root) / "bin"
+    bindir.mkdir()
+    for name in tools:
+        (bindir / name).symlink_to(f"/usr/bin/{name}")
+    return bindir
+
+
 def write_colorscheme_apply_ok(root, env=None):
     """Write the instant-success ``plasma-apply-colorscheme`` stub into *root*
     and return *env* (default: a copy of the process environment) with *root*

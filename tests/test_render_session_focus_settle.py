@@ -11,7 +11,9 @@ from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from support.executable_stubs import write_colorscheme_apply_ok, write_executable
+from support.executable_stubs import (
+    fakes_bin, write_colorscheme_apply_ok, write_executable,
+)
 from tools.render import session as render_session, workflow as render_workflow  # noqa: E402
 
 
@@ -204,10 +206,7 @@ class TestSessionFocusSettle(unittest.TestCase):
         # the session must name the missing tool, run no settle loop, and
         # still finish the capture and reach its settle ceiling.
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
-        for name in ("sleep", "date", "rm", "touch"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch")
         status = self._run_focus_session(
             root, str(bindir), "/scratch/inactive-dialog-focus-settle.js"
         )
@@ -223,8 +222,7 @@ class TestSessionFocusSettle(unittest.TestCase):
         # report that the script did not load and never run it: any
         # invocation other than the load is recorded in runs.log.
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch")
         runs = root / "runs.log"
         qdbus = bindir / "qdbus6"
         write_executable(
@@ -235,8 +233,6 @@ class TestSessionFocusSettle(unittest.TestCase):
             f"  *) echo \"$*\" >> {runs};;\n"
             "esac\n",
         )
-        for name in ("sleep", "date", "rm", "touch"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
         status = self._run_focus_session(
             root, str(bindir), "/scratch/inactive-dialog-focus-settle.js"
         )
@@ -252,8 +248,7 @@ class TestSessionFocusSettle(unittest.TestCase):
         # report the script did not load, start no settle loop, and still
         # reach its ceiling so the capture runs.
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch")
         runs = root / "runs.log"
         qdbus = bindir / "qdbus6"
         write_executable(
@@ -264,8 +259,6 @@ class TestSessionFocusSettle(unittest.TestCase):
             f"  *) echo \"$*\" >> {runs};;\n"
             "esac\n",
         )
-        for name in ("sleep", "date", "rm", "touch"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
         status = self._run_focus_session(
             root, str(bindir), "/scratch/inactive-dialog-focus-settle.js"
         )
@@ -303,10 +296,7 @@ class TestSessionFocusSettle(unittest.TestCase):
         # so the session must name the missing tool and still finish the
         # capture: the report is evidence, never a gate.
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
-        for name in ("sleep", "date", "rm", "touch"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch")
         status = self._run_report_session(
             root, str(bindir), "/scratch/render-window-report.js"
         )
@@ -324,10 +314,7 @@ class TestSessionFocusSettle(unittest.TestCase):
         # diagnosis reads the failed report as an empty window list -- the
         # client's window never mapped -- when the report never ran at all.
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
-        for name in ("sleep", "date", "rm", "touch"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch")
         write_executable(
             bindir / "qdbus6",
             "#!/bin/sh\n"
@@ -351,10 +338,7 @@ class TestSessionFocusSettle(unittest.TestCase):
         # flight, so the loaded script's single run must be recorded before
         # any capture marker and never during it.
         root = tmp_dir.make_tmp_dir(self)
-        bindir = root / "bin"
-        bindir.mkdir()
-        for name in ("sleep", "date", "rm", "touch"):
-            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        bindir = fakes_bin(root, "sleep", "date", "rm", "touch")
         calls = root / "qdbus-calls"
         capturing = root / "capturing"
         write_executable(
