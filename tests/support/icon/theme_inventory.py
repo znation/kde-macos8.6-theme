@@ -132,6 +132,11 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "battery.svg"),
     os.path.join("16x16", "devices", "battery.svg"),
     os.path.join("22x22", "devices", "battery.svg"),
+    # The digital-camera control module's camera (the name is required by
+    # the installed `kcm_kamera.desktop` entry).
+    os.path.join("32x32", "devices", "camera-photo.svg"),
+    os.path.join("16x16", "devices", "camera-photo.svg"),
+    os.path.join("22x22", "devices", "camera-photo.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "text-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "text-x-generic.svg"),

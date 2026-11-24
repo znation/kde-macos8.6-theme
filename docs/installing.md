@@ -168,6 +168,7 @@ sizes), a desktop-computer icon for the machine root (the `computer`
 name at the same three sizes), a printer icon for the print queue and printer configuration windows (the `printer`
 name at the same three sizes), a phone icon for phones (the `phone`
 name at the same three sizes), a battery icon for battery devices (the `battery`
+name at the same three sizes), a camera icon for the digital-camera control module (the `camera-photo`
 name at the same three sizes), for the
 Home and Desktop places and the standard Documents, Downloads, Music, Pictures, Videos,
 Templates, Public and Temporary Files places (the same Platinum folder at every size),
