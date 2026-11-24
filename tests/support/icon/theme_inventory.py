@@ -116,7 +116,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `application-vnd.debian.binary-package` icon at all three sizes (the
 # sealed package box holding a black capital letter D; the name is the
 # type-spelled icon name of the `application/vnd.debian.binary-package`
-# MIME type in the installed shared MIME database), the
+# MIME type in the installed shared MIME database), the RPM-package
+# `application-x-rpm` icon at all three sizes (the sealed
+# package box holding a black hat; the name is the type-spelled
+# icon name of the `application/x-rpm` MIME type in the installed shared
+# MIME database), the
 # gzip-compressed-tar-archive
 # `application-x-compressed-tar` icon at all three sizes (the sealed
 # package box holding a stepped capital Z; the name is the type-spelled
@@ -546,6 +550,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-vnd.debian.binary-package.svg"),
     os.path.join("16x16", "mimetypes", "application-vnd.debian.binary-package.svg"),
     os.path.join("22x22", "mimetypes", "application-vnd.debian.binary-package.svg"),
+    os.path.join("32x32", "mimetypes", "application-x-rpm.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-rpm.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-rpm.svg"),
     os.path.join("32x32", "mimetypes", "application-x-compressed-tar.svg"),
     os.path.join("16x16", "mimetypes", "application-x-compressed-tar.svg"),
     os.path.join("22x22", "mimetypes", "application-x-compressed-tar.svg"),

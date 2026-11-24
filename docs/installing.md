@@ -232,7 +232,9 @@ icon for 7z archive files (the `application-x-7z-compressed` name at the
 same three sizes), a gzip-archive icon for gzip archive files (the
 `application-gzip` name at the same three sizes), a deb-package icon
 for Debian package files (the `application-vnd.debian.binary-package`
-name at the same three sizes), a compressed-tar icon for
+name at the same three sizes), an RPM-package icon for RPM package
+files (the `application-x-rpm` name at the same three sizes), a
+compressed-tar icon for
 gzip-compressed tar files (the `application-x-compressed-tar` name at
 the same three sizes), a RAR-archive icon
 for RAR archive files (the `application-vnd.rar` name at the same

@@ -217,6 +217,29 @@ PINS = {
         _shape("rect", x="8", y="10", width="1", height="5", fill="#000000"),
         _shape("rect", x="4", y="15", width="5", height="1", fill="#000000"),
     ),
+    # The RPM-package item icon KDE draws for `application/x-rpm`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/x-rpm` type, whose `generic-icon`
+    # is the shipped `package-x-generic`); one file covers exactly its
+    # own name, and the drawing shares the sealed package box and holds
+    # a black hat on the white body left of the grey tape stripe (a
+    # plain crown above a wide brim, a mark distinct from the letter
+    # and geminate marks the archive icons draw on the same box).
+    os.path.join("32x32", "mimetypes", "application-x-rpm.svg"): (
+        *_SEALED_PACKAGE_32,
+        _shape("rect", x="7", y="16", width="5", height="5", fill="#000000"),
+        _shape("rect", x="5", y="21", width="9", height="1", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-x-rpm.svg"): (
+        *_SEALED_PACKAGE_16,
+        _shape("rect", x="4", y="8", width="2", height="2", fill="#000000"),
+        _shape("rect", x="3", y="10", width="4", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-x-rpm.svg"): (
+        *_SEALED_PACKAGE_22,
+        _shape("rect", x="5", y="11", width="3", height="3", fill="#000000"),
+        _shape("rect", x="4", y="14", width="5", height="1", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "application-vnd.rar.svg"): (
         *_SEALED_PACKAGE_32,
         _shape("rect", x="9", y="16", width="1", height="1", fill="#000000"),
