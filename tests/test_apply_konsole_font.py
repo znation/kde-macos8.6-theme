@@ -242,6 +242,25 @@ class TestColorScheme(StubKonsoleToolsTestCase):
         self.assertNotIn("ColorScheme", self.read(profile))
         self.assertEqual("", self.read_key(profile, "Appearance", "ColorScheme"))
 
+    def test_a_directory_at_the_scheme_path_is_not_an_installed_scheme(self):
+        """Only an installed file selects the scheme; a directory of that name does not."""
+        profile = self.write_profile(self.data, "Mine.profile", FOREIGN_PROFILE)
+        (self.profile_dir / "MacOS8.colorscheme").mkdir()
+        self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
+        status, stderr = self.apply_font()
+        self.assertIsNone(status, stderr)
+        self.assertNotIn("ColorScheme", self.read(profile))
+
+    def test_a_dangling_link_at_the_scheme_path_is_not_an_installed_scheme(self):
+        """A link whose target is missing is no installed scheme either."""
+        profile = self.write_profile(self.data, "Mine.profile", FOREIGN_PROFILE)
+        scheme = self.profile_dir / "MacOS8.colorscheme"
+        scheme.symlink_to(self.profile_dir / "missing.colorscheme")
+        self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
+        status, stderr = self.apply_font()
+        self.assertIsNone(status, stderr)
+        self.assertNotIn("ColorScheme", self.read(profile))
+
     def test_a_system_default_copy_gets_the_scheme(self):
         self.install_scheme()
         self.write_konsolerc("[Desktop Entry]\nDefaultProfile=Mine.profile\n")
