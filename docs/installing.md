@@ -244,6 +244,8 @@ LZMA-compressed-tar icon for LZMA-compressed tar archive files (the
 cpio-archive icon for cpio archive files (the `application-x-cpio` name
 at the same three sizes), an
 ISO disc-image icon for disc-image files (the `application-vnd.efi.iso`
+name at the same three sizes), a Snap-package icon for Snap package
+files (the `application-vnd.snap`
 name at the same three sizes), a Squashfs filesystem-image icon for
 Squashfs filesystem image files (the `application-vnd.squashfs`
 name at the same three sizes), an ICC color-profile icon for ICC

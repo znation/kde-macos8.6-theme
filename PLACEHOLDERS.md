@@ -27,6 +27,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/devices/drive-optical.svg` | original optical-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/devices/media-optical.svg` | original optical-disc illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.efi.iso.svg` | original ISO disc-image illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.snap.svg` | original Snap package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.squashfs.svg` | original Squashfs filesystem-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.iccprofile.svg` | original ICC color-profile illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-qemu-disk.svg` | original QCOW disk-image illustration pending user-approved artwork. |
@@ -121,6 +122,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/22x22/devices/drive-optical.svg` | original optical-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/devices/media-optical.svg` | original optical-disc illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.efi.iso.svg` | original ISO disc-image illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.snap.svg` | original Snap package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.squashfs.svg` | original Squashfs filesystem-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.iccprofile.svg` | original ICC color-profile illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-qemu-disk.svg` | original QCOW disk-image illustration pending user-approved artwork. |
@@ -213,6 +215,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/32x32/devices/drive-optical.svg` | original optical-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/devices/media-optical.svg` | original optical-disc illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.efi.iso.svg` | original ISO disc-image illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.snap.svg` | original Snap package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.squashfs.svg` | original Squashfs filesystem-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.iccprofile.svg` | original ICC color-profile illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-qemu-disk.svg` | original QCOW disk-image illustration pending user-approved artwork. |

@@ -1225,6 +1225,36 @@ PINS = {
         _shape("rect", x="6", y="10", width="10", height="2", fill="#FFFFFF"),
         _shape("rect", x="7", y="13", width="8", height="2", fill="#FFFFFF"),
     ),
+    # The Snap-package item icon KDE draws for `application/vnd.snap`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/vnd.snap` "Snap package" type, which has no
+    # `icon` element, no `generic-icon`, no aliases and no `magic`, so one
+    # file covers exactly its own name); the drawing shares the generic
+    # document's page and holds a strapped crate — a closed box with a
+    # black lid seam and one vertical black strap down the middle, a
+    # sealed-package mark distinct from the Squashfs disc-stack's white
+    # tapering bands of its declared superclass.
+    os.path.join("32x32", "mimetypes", "application-vnd.snap.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="10", y="12", width="12", height="11", fill="#000000"),
+        _shape("rect", x="11", y="13", width="10", height="9", fill="#DDDDDD"),
+        _shape("rect", x="10", y="16", width="12", height="1", fill="#000000"),
+        _shape("rect", x="15", y="12", width="2", height="11", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-vnd.snap.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="5", y="6", width="6", height="5", fill="#000000"),
+        _shape("rect", x="6", y="7", width="4", height="3", fill="#DDDDDD"),
+        _shape("rect", x="5", y="8", width="6", height="1", fill="#000000"),
+        _shape("rect", x="7", y="6", width="2", height="5", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-vnd.snap.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="7", y="8", width="8", height="8", fill="#000000"),
+        _shape("rect", x="8", y="9", width="6", height="6", fill="#DDDDDD"),
+        _shape("rect", x="7", y="11", width="8", height="1", fill="#000000"),
+        _shape("rect", x="10", y="8", width="2", height="8", fill="#000000"),
+    ),
     # The QCOW disk-image item icon KDE draws for `application/x-qemu-disk`
     # items (the type-spelled icon name of the installed shared MIME
     # database's `application/x-qemu-disk` "QEMU QCOW disk image" type,

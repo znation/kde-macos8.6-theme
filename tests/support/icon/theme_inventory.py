@@ -545,6 +545,13 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-vnd.squashfs.svg"),
     os.path.join("16x16", "mimetypes", "application-vnd.squashfs.svg"),
     os.path.join("22x22", "mimetypes", "application-vnd.squashfs.svg"),
+    # The Snap-package `application-vnd.snap` icon at all three sizes (the
+    # generic document's page holding a strapped crate; the name is the
+    # type-spelled icon name of the `application/vnd.snap` MIME type in the
+    # installed shared MIME database).
+    os.path.join("32x32", "mimetypes", "application-vnd.snap.svg"),
+    os.path.join("16x16", "mimetypes", "application-vnd.snap.svg"),
+    os.path.join("22x22", "mimetypes", "application-vnd.snap.svg"),
     # The QCOW disk-image `application-x-qemu-disk` icon at all three sizes
     # (the optical disc the media-optical icon draws holding a white Q;
     # the name is the type-spelled icon name of the `application/x-qemu-disk`

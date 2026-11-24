@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original Snap package illustration pending user-approved artwork. -->
+<!-- Platinum Snap-package icon, 16x16 rendition.
+
+     Our own 16x16 drawing in the Platinum palette: the generic document's
+     page with a strapped crate — a closed box with a black lid seam and
+     one vertical black strap down the middle, the sealed-package mark
+     that keeps the Snap type distinct from its Squashfs filesystem-image
+     superclass. Drawn for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M3 1 h7 l3 3 v10 H3 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M4 2 h5 l3 3 v8 H4 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M9 2 L12 2 L12 5 Z" fill="#DDDDDD"/>
+  <!-- Crate frame. -->
+  <rect x="5" y="6" width="6" height="5" fill="#000000"/>
+  <!-- Crate face. -->
+  <rect x="6" y="7" width="4" height="3" fill="#DDDDDD"/>
+  <!-- Lid seam. -->
+  <rect x="5" y="8" width="6" height="1" fill="#000000"/>
+  <!-- Vertical strap. -->
+  <rect x="7" y="6" width="2" height="5" fill="#000000"/>
+</svg>
