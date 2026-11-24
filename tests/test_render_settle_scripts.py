@@ -14,6 +14,7 @@ the window rules the pair matches on are pinned in
 
 from __future__ import annotations
 
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -44,6 +45,26 @@ class _FakeSession:
         self.root = root if root is not None else config
 
 
+def _assert_writes_script_bytes(
+    test: unittest.TestCase,
+    writer,
+    script_name: str,
+    text: str,
+    **kwargs,
+) -> None:
+    """Pin one settle-script writer in a scratch root.
+
+    The writer must return the scratch-root path under ``script_name``
+    and put exactly the pinned ``text`` bytes there. Covers the four
+    writer pins in this suite; it has no other call sites.
+    """
+    with tempfile.TemporaryDirectory() as root:
+        session = _FakeSession(Path(root) / "cfg", Path(root))
+        path = writer(session, **kwargs)
+        test.assertEqual(Path(root) / script_name, path)
+        test.assertEqual(text.encode("utf-8"), path.read_bytes())
+
+
 class TestSettleScripts(unittest.TestCase):
     def test_readiness_script_reports_existing_and_new_render_windows(self):
         script = readiness_settle_text()
@@ -65,13 +86,10 @@ class TestSettleScripts(unittest.TestCase):
         )
 
     def test_write_readiness_settle_script_writes_the_script_into_the_scratch_root(self):
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as root:
-            session = _FakeSession(Path(root) / "cfg", Path(root))
-            path = write_readiness_settle_script(session)
-            self.assertEqual(Path(root) / READINESS_SETTLE_SCRIPT, path)
-            self.assertEqual(readiness_settle_text().encode("utf-8"), path.read_bytes())
+        _assert_writes_script_bytes(
+            self, write_readiness_settle_script, READINESS_SETTLE_SCRIPT,
+            readiness_settle_text(),
+        )
 
     def test_the_pair_readiness_script_names_both_titles_and_their_focus_states(self):
         # The pair is settled only when the inactive-titled window is not
@@ -115,14 +133,11 @@ class TestSettleScripts(unittest.TestCase):
         self.assertNotIn("window.splash", script)
 
     def test_write_readiness_settle_script_pair_writes_the_pair_text(self):
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as root:
-            session = _FakeSession(Path(root) / "cfg", Path(root))
-            path = write_readiness_settle_script(session, pair=True)
-            self.assertEqual(Path(root) / READINESS_SETTLE_SCRIPT, path)
-            self.assertEqual(pair_readiness_text().encode("utf-8"), path.read_bytes())
-            self.assertNotEqual(readiness_settle_text(), pair_readiness_text())
+        _assert_writes_script_bytes(
+            self, write_readiness_settle_script, READINESS_SETTLE_SCRIPT,
+            pair_readiness_text(), pair=True,
+        )
+        self.assertNotEqual(readiness_settle_text(), pair_readiness_text())
 
     def test_the_focus_settle_script_activates_the_focused_window_only(self):
         # Byte-for-byte: the one-shot script the session re-runs must
@@ -158,15 +173,10 @@ class TestSettleScripts(unittest.TestCase):
     ):
         # The session script loads the file by its scratch path, so the
         # writer must put exactly the probed script bytes there.
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as root:
-            session = _FakeSession(Path(root) / "cfg", Path(root))
-            path = write_focus_settle_script(session)
-            self.assertEqual(Path(root) / FOCUS_SETTLE_SCRIPT, path)
-            self.assertEqual(
-                focus_settle_text().encode("utf-8"), path.read_bytes()
-            )
+        _assert_writes_script_bytes(
+            self, write_focus_settle_script, FOCUS_SETTLE_SCRIPT,
+            focus_settle_text(),
+        )
 
     def test_the_window_report_script_names_each_window_caption_active_state_and_kind(
         self,
@@ -209,15 +219,10 @@ class TestSettleScripts(unittest.TestCase):
         # The session script loads the file by its scratch path, so the
         # writer must put exactly the pinned script bytes there, under the
         # name the mode pins carry.
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as root:
-            session = _FakeSession(Path(root) / "cfg", Path(root))
-            path = write_window_report_script(session)
-            self.assertEqual(Path(root) / WINDOW_REPORT_SCRIPT, path)
-            self.assertEqual(
-                window_report_text().encode("utf-8"), path.read_bytes()
-            )
+        _assert_writes_script_bytes(
+            self, write_window_report_script, WINDOW_REPORT_SCRIPT,
+            window_report_text(),
+        )
 
 
 if __name__ == "__main__":
