@@ -113,6 +113,66 @@ class TestTestMarkerStep(unittest.TestCase):
         state, _, completed = _test_marker_step(ord(" "), _MARKER_COUNTS_DOTS, 3)
         self.assertTrue(completed)
 
+    def test_tab_after_the_id_enters_the_dot_count(self):
+        # The whitespace set after the id's ``)`` is b" \t\r\n\v\f"; the
+        # space and newline spellings are pinned above, so pin the tab
+        # spelling here: a class narrowed to the printed forms would
+        # otherwise pass every other test in this class.
+        state, dots, completed = _test_marker_step(
+            ord("\t"), _MARKER_SEEKS_SPACE, 0
+        )
+        self.assertEqual(state, _MARKER_COUNTS_DOTS)
+        self.assertEqual(dots, 0)
+        self.assertFalse(completed)
+        # - "test_x " is bytes 0-6, "(pkg.Cls)" is bytes 7-15, the tab at
+        # 16 is the sought whitespace, the dots take 17-19, and the space
+        # at 20 completes.
+        self.assertEqual(self._scan("test_x (pkg.Cls)\t... ok"), 20)
+
+    def test_carriage_return_vtab_and_formfeed_after_the_id_also_enter_the_dot_count(self):
+        # The remaining three whitespace bytes of the b" \t\r\n\v\f" set
+        # after the id's ``)`` each enter the dot count, leaving dots at 0.
+        for whitespace in ("\r", "\v", "\f"):
+            with self.subTest(whitespace=whitespace):
+                state, dots, completed = _test_marker_step(
+                    ord(whitespace), _MARKER_SEEKS_SPACE, 0
+                )
+                self.assertEqual(state, _MARKER_COUNTS_DOTS)
+                self.assertEqual(dots, 0)
+                self.assertFalse(completed)
+
+    def test_tab_vtab_and_formfeed_after_three_dots_complete_the_marker(self):
+        # The completion set after a full three-dot run is b" \t\v\f":
+        # the space spelling is pinned above, so pin the three control
+        # spellings. Each stays in the counting state and keeps the count,
+        # and each completes the marker in a whole-log scan.
+        for whitespace in ("\t", "\v", "\f"):
+            with self.subTest(whitespace=whitespace):
+                state, dots, completed = _test_marker_step(
+                    ord(whitespace), _MARKER_COUNTS_DOTS, 3
+                )
+                self.assertEqual(state, _MARKER_COUNTS_DOTS)
+                self.assertEqual(dots, 3)
+                self.assertTrue(completed)
+                # - "test_x " is bytes 0-6, "(pkg.Cls)" is bytes 7-15, the
+                # space at 16 is the id's whitespace, the dots take 17-19,
+                # and the completing whitespace sits at 20.
+                text = "test_x (pkg.Cls) ..." + whitespace
+                self.assertEqual(self._scan(text), 20)
+
+    def test_a_carriage_return_inside_the_dot_count_returns_to_the_paren_seek(self):
+        # The counting state treats a carriage return like the newline
+        # pinned above: both are line terminators in the b"\r\n" reset
+        # set, so a CR forgets the partial dot run and drops the scan back
+        # to the paren seek instead of completing the marker.
+        state, dots, completed = _test_marker_step(
+            ord("\r"), _MARKER_COUNTS_DOTS, 2
+        )
+        self.assertEqual(state, _MARKER_SEEKS_PAREN)
+        self.assertEqual(dots, 0)
+        self.assertFalse(completed)
+        self.assertIsNone(self._scan("test_x (pkg.Cls) ..\rok"))
+
 
 class TestStartedTestMarkerAcrossReadChunks(unittest.TestCase):
     """The file scan reads the log 8192 bytes at a time and must carry the
