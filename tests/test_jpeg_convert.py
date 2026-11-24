@@ -11,6 +11,7 @@ Run with the project's check harness (stdlib unittest)::
 
 from __future__ import annotations
 
+import contextlib
 import tempfile
 import unittest
 from pathlib import Path
@@ -18,6 +19,39 @@ from unittest import mock
 
 from support.repo_root import ROOT  # noqa: F401  (puts root on sys.path)
 from tools import image_format, jpeg_convert
+
+
+@contextlib.contextmanager
+def _stubbed_convert(run_logged_split):
+    """Convert a scratch decoded PNG with the converter seams stubbed out.
+
+    Every failure-diagnostic test below patches the same two seams: the
+    converter lookup (``shutil.which`` yields ``/usr/bin/convert``) and the
+    shared runner ``run_logged_split``. The stub follows mock's own
+    distinction — a callable or exception instance is the side effect (the
+    exception is raised), any other value is the return value. Yields the
+    temporary decoded-PNG path the conversion targets; the diagnostic
+    convert_jpeg returns is each test's own assertion.
+    """
+    if callable(run_logged_split) or isinstance(run_logged_split, BaseException):
+        runner = mock.patch.object(
+            jpeg_convert, "run_logged_split", side_effect=run_logged_split
+        )
+    else:
+        runner = mock.patch.object(
+            jpeg_convert, "run_logged_split", return_value=run_logged_split
+        )
+    with tempfile.TemporaryDirectory() as directory:
+        temp_png = Path(directory) / "decoded.png"
+        with (
+            mock.patch.object(
+                jpeg_convert.shutil,
+                "which",
+                return_value="/usr/bin/convert",
+            ),
+            runner,
+        ):
+            yield temp_png
 
 
 class TestIsJpeg(unittest.TestCase):
@@ -63,28 +97,16 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
     """The conversion bridge's failure diagnostics and their private-path scrubbing."""
 
     def test_nonzero_converter_status_keeps_output_and_scrubs_private_paths(self):
-        with tempfile.TemporaryDirectory() as directory:
-            temp_png = Path(directory) / "decoded.png"
+        def fail_with_private_path(argv, env, stdout_log, stderr_log, *args, **kwargs):
+            # The stub receives the argv convert_jpeg built: argv[2] is the
+            # PNG24:<temp_png> output target the diagnostic must not reveal.
+            Path(stderr_log).write_text(
+                f"cannot decode {argv[2].removeprefix('PNG24:')}"
+            )
+            return 7
 
-            def fail_with_private_path(
-                argv, env, stdout_log, stderr_log, *args, **kwargs
-            ):
-                Path(stderr_log).write_text(f"cannot decode {temp_png}")
-                return 7
-
-            with (
-                mock.patch.object(
-                    jpeg_convert.shutil,
-                    "which",
-                    return_value="/usr/bin/convert",
-                ),
-                mock.patch.object(
-                    jpeg_convert,
-                    "run_logged_split",
-                    side_effect=fail_with_private_path,
-                ),
-            ):
-                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+        with _stubbed_convert(fail_with_private_path) as temp_png:
+            problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
 
         self.assertEqual(
             problem,
@@ -97,31 +119,17 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
         # ImageMagick creates for itself; the diagnostic must blank those
         # occurrences as well, so it names only surfaces the operator chose
         # and never a converter-internal temporary path.
-        with tempfile.TemporaryDirectory() as directory:
-            temp_png = Path(directory) / "decoded.png"
+        def fail_naming_magick_temporary(
+            argv, env, stdout_log, stderr_log, *args, **kwargs
+        ):
+            Path(stdout_log).write_text(
+                "convert-im6.q16: cannot open /tmp/magick-abc123 : "
+                "no decode delegate for the JPEG input"
+            )
+            return 3
 
-            def fail_naming_magick_temporary(
-                argv, env, stdout_log, stderr_log, *args, **kwargs
-            ):
-                Path(stdout_log).write_text(
-                    "convert-im6.q16: cannot open /tmp/magick-abc123 : "
-                    "no decode delegate for the JPEG input"
-                )
-                return 3
-
-            with (
-                mock.patch.object(
-                    jpeg_convert.shutil,
-                    "which",
-                    return_value="/usr/bin/convert",
-                ),
-                mock.patch.object(
-                    jpeg_convert,
-                    "run_logged_split",
-                    side_effect=fail_naming_magick_temporary,
-                ),
-            ):
-                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+        with _stubbed_convert(fail_naming_magick_temporary) as temp_png:
+            problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
 
         self.assertEqual(
             problem,
@@ -134,65 +142,38 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
         # The decoded PNG's own path is blanked first; a converter log that
         # names a different file in the same private directory must still
         # lose the directory part, so the diagnostic never reveals it.
-        with tempfile.TemporaryDirectory() as directory:
-            temp_png = Path(directory) / "decoded.png"
+        def fail_naming_the_directory(
+            argv, env, stdout_log, stderr_log, *args, **kwargs
+        ):
+            scratch_directory = str(Path(argv[2].removeprefix("PNG24:")).parent)
+            Path(stderr_log).write_text(
+                f"cannot write {scratch_directory}/scratch.txt"
+            )
+            return 4
 
-            def fail_naming_the_directory(
-                argv, env, stdout_log, stderr_log, *args, **kwargs
-            ):
-                Path(stderr_log).write_text(
-                    f"cannot write {directory}/scratch.txt"
-                )
-                return 4
-
-            with (
-                mock.patch.object(
-                    jpeg_convert.shutil,
-                    "which",
-                    return_value="/usr/bin/convert",
-                ),
-                mock.patch.object(
-                    jpeg_convert,
-                    "run_logged_split",
-                    side_effect=fail_naming_the_directory,
-                ),
-            ):
-                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+        with _stubbed_convert(fail_naming_the_directory) as temp_png:
+            problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
 
         self.assertEqual(
             problem,
             "convert exited 4: cannot write <a temporary directory>/scratch.txt",
         )
-        self.assertNotIn(directory, problem)
+        self.assertNotIn(str(temp_png.parent), problem)
 
     def test_a_silent_converter_failure_reports_only_the_status(self):
         # A converter can exit nonzero without writing anything: the logs
         # run_logged_split opens exist but hold no text. The diagnostic must
         # still name the exit status — the headline alone — and must not
         # crash looking for a first log line that is not there.
-        with tempfile.TemporaryDirectory() as directory:
-            temp_png = Path(directory) / "decoded.png"
+        def fail_silently(argv, env, stdout_log, stderr_log, *args, **kw):
+            # run_logged_split opens both logs ('wb') before the child
+            # runs, so an empty failure leaves two zero-byte files.
+            Path(stdout_log).touch()
+            Path(stderr_log).touch()
+            return 1
 
-            def fail_silently(argv, env, stdout_log, stderr_log, *args, **kw):
-                # run_logged_split opens both logs ('wb') before the child
-                # runs, so an empty failure leaves two zero-byte files.
-                Path(stdout_log).touch()
-                Path(stderr_log).touch()
-                return 1
-
-            with (
-                mock.patch.object(
-                    jpeg_convert.shutil,
-                    "which",
-                    return_value="/usr/bin/convert",
-                ),
-                mock.patch.object(
-                    jpeg_convert,
-                    "run_logged_split",
-                    side_effect=fail_silently,
-                ),
-            ):
-                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+        with _stubbed_convert(fail_silently) as temp_png:
+            problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
 
         self.assertEqual(problem, "convert exited 1")
 
@@ -200,52 +181,25 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
         # Blank output is stripped before the headline check, so a converter
         # that fails writing only whitespace is reported like a silent one:
         # quoting blank text would add nothing the operator can act on.
-        with tempfile.TemporaryDirectory() as directory:
-            temp_png = Path(directory) / "decoded.png"
+        def fail_with_blank_stderr(argv, env, stdout_log, stderr_log, *a, **kw):
+            Path(stdout_log).touch()
+            Path(stderr_log).write_text("\n  \n")
+            return 2
 
-            def fail_with_blank_stderr(argv, env, stdout_log, stderr_log, *a, **kw):
-                Path(stdout_log).touch()
-                Path(stderr_log).write_text("\n  \n")
-                return 2
-
-            with (
-                mock.patch.object(
-                    jpeg_convert.shutil,
-                    "which",
-                    return_value="/usr/bin/convert",
-                ),
-                mock.patch.object(
-                    jpeg_convert,
-                    "run_logged_split",
-                    side_effect=fail_with_blank_stderr,
-                ),
-            ):
-                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+        with _stubbed_convert(fail_with_blank_stderr) as temp_png:
+            problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
 
         self.assertEqual(problem, "convert exited 2")
 
     def test_flooding_converter_log_is_read_and_quoted_only_to_its_cap(self):
         flood = 1 << 20  # one MiB of stderr from a failing converter
-        with tempfile.TemporaryDirectory() as directory:
-            temp_png = Path(directory) / "decoded.png"
 
-            def flood_stderr(argv, env, stdout_log, stderr_log, *args, **kwargs):
-                Path(stderr_log).write_text("W" * flood)
-                return 1
+        def flood_stderr(argv, env, stdout_log, stderr_log, *args, **kwargs):
+            Path(stderr_log).write_text("W" * flood)
+            return 1
 
-            with (
-                mock.patch.object(
-                    jpeg_convert.shutil,
-                    "which",
-                    return_value="/usr/bin/convert",
-                ),
-                mock.patch.object(
-                    jpeg_convert,
-                    "run_logged_split",
-                    side_effect=flood_stderr,
-                ),
-            ):
-                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+        with _stubbed_convert(flood_stderr) as temp_png:
+            problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
 
         self.assertTrue(problem.startswith("convert exited 1: W"))
         quoted = problem[len("convert exited 1: "):]
@@ -259,22 +213,9 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
         # Popen call raises OSError, and the sampler must print it as its
         # "cannot run convert" diagnostic instead of dying with a traceback.
         failure = OSError(2, "No such file or directory", "/usr/bin/convert")
-        with tempfile.TemporaryDirectory() as directory:
-            temp_png = Path(directory) / "decoded.png"
 
-            with (
-                mock.patch.object(
-                    jpeg_convert.shutil,
-                    "which",
-                    return_value="/usr/bin/convert",
-                ),
-                mock.patch.object(
-                    jpeg_convert,
-                    "run_logged_split",
-                    side_effect=failure,
-                ),
-            ):
-                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+        with _stubbed_convert(failure) as temp_png:
+            problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
 
         self.assertEqual(problem, f"cannot run convert: {failure}")
 
@@ -283,22 +224,8 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
         # runner's timeout verdict); the diagnostic must name the decode and
         # the documented 60-second budget, not the exit-status wording a
         # nonzero status would print.
-        with tempfile.TemporaryDirectory() as directory:
-            temp_png = Path(directory) / "decoded.png"
-
-            with (
-                mock.patch.object(
-                    jpeg_convert.shutil,
-                    "which",
-                    return_value="/usr/bin/convert",
-                ),
-                mock.patch.object(
-                    jpeg_convert,
-                    "run_logged_split",
-                    return_value=None,
-                ),
-            ):
-                problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+        with _stubbed_convert(None) as temp_png:
+            problem = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
 
         self.assertEqual(
             problem,
@@ -310,31 +237,17 @@ class TestConvertJpegFailureDiagnostic(unittest.TestCase):
         # with an empty one) must still be a refusal: returning success would
         # send the sampler after a missing or empty file whose own diagnostic
         # names the private scratch path instead of the JPEG input.
-        with tempfile.TemporaryDirectory() as directory:
-            temp_png = Path(directory) / "decoded.png"
+        with _stubbed_convert(0) as temp_png:
+            missing = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+            self.assertEqual(
+                missing, "convert wrote no PNG for the JPEG input"
+            )
 
-            with (
-                mock.patch.object(
-                    jpeg_convert.shutil,
-                    "which",
-                    return_value="/usr/bin/convert",
-                ),
-                mock.patch.object(
-                    jpeg_convert,
-                    "run_logged_split",
-                    return_value=0,
-                ),
-            ):
-                missing = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
-                self.assertEqual(
-                    missing, "convert wrote no PNG for the JPEG input"
-                )
-
-                temp_png.write_bytes(b"")
-                empty = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
-                self.assertEqual(
-                    empty, "convert wrote no PNG for the JPEG input"
-                )
+            temp_png.write_bytes(b"")
+            empty = jpeg_convert.convert_jpeg(b"jpeg bytes", temp_png)
+            self.assertEqual(
+                empty, "convert wrote no PNG for the JPEG input"
+            )
 
 
 if __name__ == "__main__":  # pragma: no cover
