@@ -93,6 +93,56 @@ class TestBoundedLogText(unittest.TestCase):
         )
         self.assertEqual(result, expected)
 
+    def test_a_log_that_grows_after_the_anchor_reads_no_more_than_the_cap(self):
+        """A writer alive during the report cannot blow the window past its cap.
+
+        The bounded reap lets a wedged worker outlive the group kill still
+        holding its log, so bytes can land between the report's
+        seek-to-end anchor and its read; the read length itself must be
+        capped, or that late append is loaded whole into the window's
+        memory and printed past the cap with no hidden-byte note.
+        """
+        anchored = b"a" * 10 + b"\n"
+        growth = b"b" * 40
+
+        class _GrowingLog:
+            """Handle over a log whose writer appends after the anchor."""
+
+            def __init__(self):
+                self.reads = 0
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def seek(self, offset, whence=os.SEEK_SET):
+                # The anchor sees only the bytes the writer had flushed.
+                return len(anchored) if whence == os.SEEK_END else offset
+
+            def read(self, size=-1):
+                data = b""
+                if self.reads == 0:
+                    # The still-running writer's append lands during this
+                    # first read, after the anchor was taken.
+                    data = anchored + growth
+                    self.reads += 1
+                if size >= 0:
+                    data = data[:size]
+                return data
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "worker.log"
+            path.write_bytes(anchored)
+            with mock.patch(
+                "tools.check.parallel_results.open_regular_binary",
+                return_value=_GrowingLog(),
+            ), mock.patch("tools.check.parallel_results._LOG_TAIL_BYTES", 16):
+                result = _bounded_log_text(str(path))
+
+        self.assertEqual(len(result), 16, result)
+
 
 class TestPrintResults(unittest.TestCase):
     def test_directory_worker_log_fails_without_stopping_the_report(self):

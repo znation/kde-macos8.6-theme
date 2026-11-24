@@ -44,15 +44,24 @@ def _bounded_log_text(path: str) -> str:
     names the hidden byte count so the truncation is never silent. The
     plain ``\r``/``\r\n``-to-``\n`` translation keeps CRLF logs reading as
     single-character-broken lines, as the whole-file text read did.
+
+    The read length is capped, not just the window's start: a worker the
+    group kill could not release inside the bounded reap still holds its
+    log and can append between the size anchor and the read, so an
+    uncapped ``read()`` would load that late growth whole and print a
+    window larger than the cap with a hidden count computed from the
+    stale size.
     """
     log = open_regular_binary(path)
     with log:
         # The unbounded read is replaced by a bounded one: anchor at the
         # window's own start -- the size minus the window, or the file's
-        # start when it is smaller than the window -- and read no farther.
+        # start when it is smaller than the window -- and read no farther
+        # than the window, so growth after the anchor stays out of the
+        # window too.
         size = log.seek(0, os.SEEK_END)
         log.seek(size - _LOG_TAIL_BYTES if size > _LOG_TAIL_BYTES else 0)
-        window = log.read()
+        window = log.read(_LOG_TAIL_BYTES)
     if size > _LOG_TAIL_BYTES:
         # Open on a line break: a window cut into a line's middle would
         # otherwise print that line's tail as if it were a whole line.
