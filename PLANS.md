@@ -198,6 +198,145 @@ choice.
   `make check` after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw JSON documents with an original
+`application-json` icon (planned 2026-11-24 by the plan role;
+independent of the waiting plans)
+
+**Goal.** A `.json` item maps to the shared MIME database's canonical
+type `application/json` ("JSON document"), whose database `generic-icon`
+is the theme's own shipped `text-x-script` file, but the lookup never
+reaches it: Breeze ships the exact name, so under this theme a `.json`
+item draws Breeze's JSON art instead of this theme's document series —
+ship one original placeholder icon, `application-json`, at 16x16, 22x22
+and 32x32, in the same mimetype-item series as the landed
+`text-x-script` document and the type-spelled archive icons. Provenance:
+the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/json` with `generic-icon name="text-x-script"`, no
+`<icon>` element, no `<alias>` elements, the single glob
+`<glob pattern="*.json">` and no magic matcher, and holds zero
+occurrences of the hyphenated name `application-json`, so one file
+covers exactly the canonical name and no alias file is shipped. The
+planning-time probe on 2026-11-24 with `kiconfinder6`, the theme
+installed into scratch XDG homes (`XDG_DATA_DIRS` naming the scratch
+data root, `[Icons] Theme=org.macos8.desktop` in the scratch
+`kdeglobals`, `QT_QPA_PLATFORM=offscreen`, no `DISPLAY`):
+`application-json` resolved to Breeze's
+`:/icons/breeze/mimetypes/32/application-json.svg` while
+`text-x-script` resolved to the theme's own 32x32
+`mimetypes/text-x-script.svg` — Breeze's exact-name file beats the
+generic-icon fallback, so the theme must ship the name to put a
+`.json` item in the series. The same probe run resolved the sibling
+MIME names `image-svg+xml`, `text-x-chdr` and `text-x-python` to the
+theme's own `image-x-generic` and `text-x-generic` files, so those
+types already draw theme art and stay unplanned. No reference
+screenshot shows a JSON icon, so no reference pixels are used and the
+drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/application-json.svg` under `16x16`, `22x22` and
+  `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme` already
+  declares the three MimeTypes directories. Give each file the XML
+  declaration, the comment `<!-- PLACEHOLDER: original JSON illustration pending user-approved artwork. -->`, a short comment saying it is our
+  own drawing in the Platinum palette, not traced from anyone's
+  artwork, and a root with matching `width`, `height` and `viewBox`.
+  The art shares the generic document's page (every drawing element of
+  `mimetypes/text-x-script.svg` at that size except the angle brackets
+  and the `#999999` code lines) and holds a pair of black curly
+  braces — the script icon's angle-bracket chains with one middle nub
+  added to each — instead of the angle brackets, with no code lines;
+  an original JSON mark distinct from the script icon's open
+  `<` `>` pair:
+  - 32x32: the page paths `M6 3 h14 l6 6 v20 H6 Z` `#000000`,
+    `M7 4 h12 l6 6 v18 H7 Z` `#FFFFFF` and the flap
+    `M19 4 L25 4 L25 10 Z` `#DDDDDD`; left brace rects `12,11 2×2`,
+    `10,13 2×2`, `8,15 2×2`, nub `10,15 2×2`, `10,17 2×2` and
+    `12,19 2×2`; right brace rects `18,11 2×2`, `20,13 2×2`,
+    `22,15 2×2`, nub `20,15 2×2`, `20,17 2×2` and `18,19 2×2`; all
+    braces `#000000` (rows 11..20, inside the face rows 4..28 and
+    clear of the flap rows 4..10).
+  - 22x22: the page paths `M4 1 h10 l4 4 v15 H4 Z` `#000000`,
+    `M5 2 h8 l4 4 v13 H5 Z` `#FFFFFF` and the flap
+    `M13 2 L17 2 L17 6 Z` `#DDDDDD`; left brace rects `9,8 1×1`,
+    `8,9 1×1`, `7,10 1×1`, nub `7,11 1×1`, `7,12 1×1`, `8,13 1×1` and
+    `9,14 1×1`; right brace rects `12,8 1×1`, `13,9 1×1`,
+    `14,10 1×1`, nub `14,11 1×1`, `14,12 1×1`, `13,13 1×1` and
+    `12,14 1×1`; all braces `#000000` (rows 8..14, inside the face
+    rows 2..15, clear of the flap rows 2..6).
+  - 16x16: the page paths `M3 1 h7 l3 3 v10 H3 Z` `#000000`,
+    `M4 2 h5 l3 3 v8 H4 Z` `#FFFFFF` and the flap
+    `M9 2 L12 2 L12 5 Z` `#DDDDDD`; left brace rects `6,6 1×1`,
+    `5,7 1×1`, `4,8 1×1`, nub `5,8 1×1`, `5,9 1×1` and `6,10 1×1`;
+    right brace rects `9,6 1×1`, `10,7 1×1`, `11,8 1×1`, nub
+    `10,8 1×1`, `10,9 1×1` and `9,10 1×1`; all braces `#000000`
+    (rows 6..10, inside the face rows 2..12, clear of the flap rows
+    2..5).
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `text-x-script` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`, and extend the
+  mimetypes comment above them to name the JSON document in the
+  document series.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings
+  in `PINS` from the lists above, spreading `*_PAGE_16`, `*_PAGE_22`
+  and `*_PAGE_32` from `tests/support/icon/shape_pins/_shared.py`
+  for the page elements, then the brace rects.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-json` in the last cell, as the
+  `text-x-script` sentence there does.
+- `docs/installing.md`: add the JSON document icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes.
+- The in-flight cpio and LZMA-compressed-tar entries and the pending
+  ISO entry edit the same inventory block, `PINS` registry, invariants
+  row and installing.md sentence; this entry sits behind them in the
+  queue, so rebase on whatever they have landed when picking it up,
+  keeping one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the page elements
+  matching the same size's `text-x-script.svg` pinned page tuple, in
+  the same order, then the brace rects), carries a placeholder marker
+  and has a `PLACEHOLDERS.md` row; the existing inventory, palette,
+  geometry and placeholder-register tests cover all three.
+- Changing one brace rectangle's position, size or fill, or the
+  element order, in one file makes the geometry test fail; dropping a
+  file while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The braces' `#000000` fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch `XDG_DATA_HOME`, use a scratch `HOME`,
+  `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset
+  `DISPLAY` and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `application-json` resolves to the theme's 32x32
+  `mimetypes/application-json.svg` (at planning time, before this
+  change, it resolved to Breeze's
+  `:/icons/breeze/mimetypes/32/application-json.svg`), and
+  `text-x-script` still resolves to the theme's own file (the generic
+  fallback keeps its own drawing). Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
