@@ -728,6 +728,8 @@ make: *** [Makefile:497: check] Error 1
 
 ### The private browsing window in Firefox has weird looking UI controls (I think because it uses a differnt background color). See /home/zach/Pictures/Screenshots/Screenshot_20261123_023358.png. (reported by the user 2026-11-23)
 
+**Needs review 2026-11-24 by bugfix: no offline test can show it; a real private-window capture must name the element whose text is white.** What the screenshot shows: the "Private browsing" indicator label (`.private-browsing-indicator-label`, browser.xhtml) is white on the sheet's #DDDDDD toolbar face, the one control that reads as wrong. Cause not confirmed: `LightweightThemeConsumer.sys.mjs` applies the dark theme variant to private windows (`browser.theme.dark-private-windows`) by setting non-important inline variables on the root, and the sheet's `:root` `!important` pins (`--lwt-text-color`, `--toolbar-color`, in `theme/firefox/src/userChrome/010-tooltip.css`) should override those, so either the label takes its colour from a token the sheet does not pin, or the sheet's rule does not reach it. No `privatebrowsingmode` selector exists in `theme/firefox/src`, and no test covers private windows. No CSS change was made.
+
 ## Won't fix
 
 ### A killed GTK selection commit can leave settings files at different transaction versions (found by the robustness role 2026-11-01)
