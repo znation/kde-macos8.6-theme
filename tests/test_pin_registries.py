@@ -124,6 +124,39 @@ class TestPinRegistriesGuard(unittest.TestCase):
                 module.write(source)
             assert_registries_name_each_key_once(self, module_path, ("R",), root)
 
+    def test_a_class_local_dict_does_not_shadow_the_registry(self):
+        # The docstring's exclusion covers a class body too: a same-named
+        # duplicate inside a class is not the registry, so the module-level
+        # dict stays the one the guard inspects and the guard keeps accepting
+        # it -- the same promise the function-body test pins above.
+        source = (
+            "class Frame:\n"
+            '    R = {"a": 1, "a": 2}\n'
+            'R = {"a": 1, "b": 2}\n'
+        )
+        with tempfile.TemporaryDirectory() as root:
+            module_path = os.path.join(root, "registry_module.py")
+            with open(module_path, "w", encoding="utf-8") as module:
+                module.write(source)
+            assert_registries_name_each_key_once(self, module_path, ("R",), root)
+
+    def test_a_non_dict_registry_is_rejected_by_name(self):
+        # A module-level name that holds a list rather than a dict literal is
+        # not a registry: the guard names it instead of iterating a shape it
+        # never promised to read.
+        message = self._guard_against("R = [1, 2]\n", ("R",))
+        self.assertIn("R in", message)
+        self.assertIn("is not a dict literal", message)
+
+    def test_an_annotated_registry_assignment_is_not_counted(self):
+        # An annotated assignment is an AnnAssign, not one of tree.body's
+        # plain Assigns, so the guard does not count it and fails loudly as a
+        # missing registry -- a duplicate key in an annotated registry cannot
+        # slip through silently, but the registry must be a plain assignment
+        # for the guard to read it.
+        message = self._guard_against('R: dict = {"a": 1, "a": 2}\n', ("R",))
+        self.assertIn("R is not a module-level assignment", message)
+
 
 if __name__ == "__main__":
     unittest.main()
