@@ -35,6 +35,7 @@ from support.render.gates import (
     Renders,
     desktop_gate_guard,
     probe_gate_skip,
+    render_output_note,
     software_renderer_skip_reason,
 )
 from tools.fidelity_lib.metrics import compare, crop  # noqa: E402
@@ -192,7 +193,14 @@ class TestRender(PixelPins, unittest.TestCase):
         return cls._candidate
 
     def test_exits_zero(self):
-        self.assertEqual(0, self.returncode, self.stderr)
+        # The failure message is built from both streams: a failed render's
+        # session-log tail lands on stdout and may print nothing on stderr,
+        # so quoting stderr alone would report a bare ``0 != 1``.
+        self.assertEqual(
+            0,
+            self.returncode,
+            render_output_note(self.stdout, self.stderr) or None,
+        )
 
     def test_writes_a_320x240_png(self):
         image = self.candidate_image()
@@ -506,7 +514,14 @@ class TestDesktopRender(unittest.TestCase):
         )
 
     def test_exits_zero_and_writes_a_640x400_png(self):
-        self.assertEqual(0, self.returncode, self.stderr)
+        # Both streams feed the failure message, as in
+        # TestRender.test_exits_zero above: a failed render's log tail
+        # lands on stdout and stderr may print nothing.
+        self.assertEqual(
+            0,
+            self.returncode,
+            render_output_note(self.stdout, self.stderr) or None,
+        )
         image = self.candidate_image()
         self.assertEqual((640, 400), (image.width, image.height))
 

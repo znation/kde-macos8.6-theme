@@ -19,6 +19,7 @@ from support.render.gates import (
     SPLASH_REAL_TOOLS,
     PixelPins,
     Renders,
+    render_output_note,
     software_renderer_skip_reason,
 )
 from tools.png import pixel_at, read_png  # noqa: E402
@@ -103,7 +104,14 @@ class TestSplashRender(PixelPins, unittest.TestCase):
         return cls._candidate
 
     def test_exits_zero(self):
-        self.assertEqual(0, self.returncode, self.stderr)
+        # The failure message is built from both streams: a failed render's
+        # session-log tail lands on stdout and may print nothing on stderr,
+        # so quoting stderr alone would report a bare ``0 != 1``.
+        self.assertEqual(
+            0,
+            self.returncode,
+            render_output_note(self.stdout, self.stderr) or None,
+        )
 
     def test_writes_a_640x400_png(self):
         image = self.candidate_image()
