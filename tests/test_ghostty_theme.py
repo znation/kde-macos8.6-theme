@@ -2,11 +2,11 @@
 
 `Platinum` is a Ghostty config file: `key = value` lines, one option each. The
 base colors must equal `[Colors:View]` and `[Colors:Selection]` in
-`MacOS8.colors`, and the font must equal `FIXED_VALUE` in `tools/apply_theme.py`.
-Those sources are re-read here, so a drift in either one fails a pin. The
-16-color palette has no reference screenshot and is pinned against the table
-in `tests/support/terminal_palette.py`. The `ghostty` binary, when installed, must print the same values
-back from `ghostty +show-config`.
+`MacOS8.colors`, and the font must equal `FIXED_VALUE` in
+`tools/apply_theme.py`. Those sources are re-read here, so a drift in either
+one fails a pin. The 16-color palette has no reference screenshot and is pinned
+against the table in `tests/support/terminal_palette.py`. The `ghostty` binary,
+when installed, must print the same values back from `ghostty +show-config`.
 """
 
 import configparser

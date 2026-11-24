@@ -17,11 +17,12 @@ group of its own, so a key after it does not join the previous group.
 
 `CASES` holds one small text per rule; `tests/test_kde_ini_parity.py` feeds
 each through the test-side reader, `tools.theme_defaults.defaults_groups` and
-the uninstall diagnostics reader (`tools.uninstall.config`), so a rule learned by one reader fails in the
-others. A case's expected value is the ``[General] ColorScheme`` KDE resolves,
-or None when it resolves none. ``defaults_raises`` marks a malformed-heading
-case that `defaults_groups` refuses instead of skipping: its headings name
-output files, so a silently dropped heading would drop a config section.
+the uninstall diagnostics reader (`tools.uninstall.config`), so a rule learned
+by one reader fails in the others. A case's expected value is the ``[General]
+ColorScheme`` KDE resolves, or None when it resolves none. ``defaults_raises``
+marks a malformed-heading case that `defaults_groups` refuses instead of
+skipping: its headings name output files, so a silently dropped heading would
+drop a config section.
 """
 
 from __future__ import annotations

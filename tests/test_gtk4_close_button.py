@@ -1,4 +1,6 @@
-"""GTK 4 infobar and search-bar close-button corner and family checks moved out of ``test_gtk4_theme``."""
+"""GTK 4 infobar and search-bar close-button corner and family checks moved out
+of ``test_gtk4_theme``.
+"""
 
 from __future__ import annotations
 

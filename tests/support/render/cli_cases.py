@@ -26,11 +26,12 @@ def assert_usage_error(case, *argv):
 def delegated_render_args(case, argv, status=0):
     """Patch the render collaborators away, run *argv*, return the mode args.
 
-    Six tests and ``assert_delegated_capture_size`` call this: with the missing-tool preflight, the
-    output check, the workflow and the termination guard patched away,
-    ``main`` parses its argv and hands the parsed namespace to the workflow
-    mock, so a test can pin what the parser delegates without starting a
-    session; *status* pins the exit status the run returns (default 0).
+    Six tests and ``assert_delegated_capture_size`` call this: with the
+    missing-tool preflight, the output check, the workflow and the termination
+    guard patched away, ``main`` parses its argv and hands the parsed namespace
+    to the workflow mock, so a test can pin what the parser delegates without
+    starting a session; *status* pins the exit status the run returns (default
+    0).
     """
     with (
         mock.patch.object(render_surface, "report_missing_tool", return_value=None),

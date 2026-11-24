@@ -1,4 +1,6 @@
-"""Tests for tools/make_sheets.py: partial concatenation, validation, containment and the freshness gate."""
+"""Tests for tools/make_sheets.py: partial concatenation, validation,
+containment and the freshness gate.
+"""
 
 from __future__ import annotations
 

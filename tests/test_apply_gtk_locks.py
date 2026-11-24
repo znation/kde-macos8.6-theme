@@ -1,11 +1,12 @@
 """Tests for the serialization locks of ``apply_gtk``.
 
 An apply and a removal serialize on an exclusive flock over the directory
-containing the config home, and an apply also holds the data-home flock
-``make install``/``make uninstall`` hold, so concurrent runs cannot publish
-stale edits or race an uninstall. The workflow and fault arms live in
+containing the config home, and an apply also holds the data-home flock ``make
+install``/``make uninstall`` hold, so concurrent runs cannot publish stale
+edits or race an uninstall. The workflow and fault arms live in
 ``tests/test_apply_gtk.py``, ``tests/test_apply_gtk_errors.py`` and
-``tests/test_apply_gtk_unreadable_config.py``; the shared temp-root case is ``support.apply_gtk_case``.
+``tests/test_apply_gtk_unreadable_config.py``; the shared temp-root case is
+``support.apply_gtk_case``.
 """
 
 from __future__ import annotations

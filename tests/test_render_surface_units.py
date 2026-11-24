@@ -1,22 +1,21 @@
 """Tests for the render CLI and throwaway render workflow units.
 
-The render's end-to-end capture gates live in
-``tests/test_render_surface.py``, ``tests/test_render_dialog_gates.py`` and
-``tests/test_render_file_dialog.py``, their failure orchestration in
-``tests/test_render_failure_paths.py`` and ``tests/test_render_live_capture.py``, and the output publication in
+The render's end-to-end capture gates live in ``tests/test_render_surface.py``,
+``tests/test_render_dialog_gates.py`` and ``tests/test_render_file_dialog.py``,
+their failure orchestration in ``tests/test_render_failure_paths.py`` and
+``tests/test_render_live_capture.py``, and the output publication in
 ``tests/test_render_output.py``; this module covers the units they are built
-from: KWin session command construction in
-``tools/render/session.py``. Capture-paint checks live in
-``tests/test_render_capture_paint.py``. The session command and dialog argv
-checks live in ``tests/test_render_session_command.py``, the scratch-session
-setup checks live in ``tests/test_render_session_setup.py``, and the
-session theme-source checks live in ``tests/test_render_session_theme_sources.py``,
-and the CLI calculator applet preflight checks live in
-``tests/test_render_applet_preflight.py``.
+from: KWin session command construction in ``tools/render/session.py``.
+Capture-paint checks live in ``tests/test_render_capture_paint.py``. The
+session command and dialog argv checks live in
+``tests/test_render_session_command.py``, the scratch-session setup checks live
+in ``tests/test_render_session_setup.py``, and the session theme-source checks
+live in ``tests/test_render_session_theme_sources.py``, and the CLI calculator
+applet preflight checks live in ``tests/test_render_applet_preflight.py``.
 Dialog-mode argument checks live in ``tests/test_render_dialog_arguments.py``.
 Inactive-window focus-settle checks live in
-``tests/test_render_session_focus_settle.py``.
-The ``--desktop`` and ``--splash`` argument checks live in
+``tests/test_render_session_focus_settle.py``. The ``--desktop`` and
+``--splash`` argument checks live in
 ``tests/test_render_fixed_client_modes.py``. General CLI argument checks live
 in ``tests/test_render_cli_arguments.py``.
 """

@@ -79,12 +79,13 @@ CORE_FRAME_MARGINS = {
 }
 
 # The core controls: the SVG element Kvantum draws for each core section's
-# frame, interior and indicator, following `inherits`. The generic art-existence check cannot see these: a wrong element name that
-# happens to exist elsewhere in the SVG still passes it, while Kvantum renders
-# the wrong control (a check box drawn from the radio art, say). The
+# frame, interior and indicator, following `inherits`. The generic
+# art-existence check cannot see these: a wrong element name that happens
+# to exist elsewhere in the SVG still passes it, while Kvantum renders the
+# wrong control (a check box drawn from the radio art, say). The
 # track/value and surface sections have their own tables below, and
-# `test_every_core_section_mapping_is_pinned` keeps the three tables together
-# covering every section in CORE_FRAME_MARGINS.
+# `test_every_core_section_mapping_is_pinned` keeps the three tables
+# together covering every section in CORE_FRAME_MARGINS.
 CORE_CONTROL_CONFIG = {
     "PanelButtonCommand": {
         "frame.element": "button",

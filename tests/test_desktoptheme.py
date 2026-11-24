@@ -81,8 +81,9 @@ PLASMA_SECTION = "plasmarc][Theme"
 # Each shipped SVG's root canvas. Seven widgets (the frame, button,
 # line edit, list item, view item, tab bar and plasmoid heading) share a tight
 # 12x12 canvas; the menu bar is 12x1084 (its `north-` state is an 1080px-tall
-# centre, so a taller top panel tiles no highlight row); the menu-bar item is 20x12 (7px side borders); the pager is 12x9
-# (a 1px border around a 10x7 cell); the scrollbar,
+# centre, so a taller top panel tiles no highlight row); the menu-bar item is
+# 20x12 (7px side borders); the pager is 12x9 (a 1px border around a 10x7
+# cell); the scrollbar,
 # slider, toolbar, arrows, menu body, tooltip (and its solid/ copy) and dialog
 # window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
 # three side-by-side, so their canvases are 16x32 and 48x16; the progress bar

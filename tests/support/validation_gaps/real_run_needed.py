@@ -30,9 +30,10 @@ from .records import Reproduction
 # fixed 2026-11-04: showing the erasure needed a live KWin hover on an
 # unfocused window, diagnosed against the installed AuroraeButton.qml state
 # logic; the nothing-shipped ``inactive-center`` slices the fix ships are
-# pinned offline by the button fixture's test. Plus the render-session capture-buffer denial fixed 2026-11-09
-# (originally tagged the bespoke ``runner-side``; re-tagged in the same
-# change that pinned the archive's tag vocabulary): the workflow's
+# pinned offline by the button fixture's test. Plus the render-session
+# capture-buffer denial fixed 2026-11-09 (originally tagged the bespoke
+# ``runner-side``; re-tagged in the same change that pinned the archive's
+# tag vocabulary): the workflow's
 # forced-llvmpipe env was never observed on the hosted runner, and its
 # bound is pinned offline by the test that refuses driver-name overrides
 # in the workflow env. Plus the nested-session portal crash loop fixed

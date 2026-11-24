@@ -7,10 +7,10 @@ disabled field after the disabled-face selector was added.
 The census runs GTK 4 child interpreters under the suite's own
 ``GDK_BACKEND=x11`` / ``GSK_RENDERER=cairo`` pattern (see
 ``tests/test_gtk4_indicators_probe.py::TestGtk4IndicatorsProbe::test_mixed_indicators_draw_black_dashes``):
-each child exits 77 without GTK 4 introspection or an X11 display, and the
-test skips instead of failing. Sheet loading uses the existing ``../assets/``
-URI replacement, so ``tests/test_icon_sources_resolve_to_shipped_files``'s
-URL grep stays untouched.
+each child exits 77 without GTK 4 introspection or an X11 display, and the test
+skips instead of failing. Sheet loading uses the existing ``../assets/`` URI
+replacement, so ``tests/test_icon_sources_resolve_to_shipped_files``'s URL grep
+stays untouched.
 
 Census findings, recorded 2026-11-05 during the probe run:
 

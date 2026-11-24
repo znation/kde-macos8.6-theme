@@ -1,20 +1,18 @@
 """Validate the GTK 3 Platinum theme.
 
-The theme is one ``index.theme`` descriptor and one standalone ``gtk.css``.
-The palette is reference-grounded through ``support.platinum_palette``; no
-reference screenshot shows a GTK widget, so most GTK geometry is this
-theme's adaptation. This module holds the sheet-level invariants and the
-windows and text roles; expander arrows, OSD overlays, views and menus,
-color-chooser swatches, scrollbar band and controls live in their own
-``test_gtk_theme_*.py`` suites. Calendar, notebook, infobar, assistant
-sidebar, auxiliary band, application notification, round-button corner and
-link-button and selected-context inline-link declarations live in focused suites. Disabled-view declarations
-live in ``test_gtk_theme_disabled_views.py``.
-Secondary-label ink and opacity declarations live in
-``test_gtk_theme_label_inks.py``.
-Ordinary inline-link states live in ``test_gtk_theme_inline_links.py``.
-Content-view field and hover declarations live in
-``test_gtk_theme_content_views.py``.
+The theme is one ``index.theme`` descriptor and one standalone ``gtk.css``. The
+palette is reference-grounded through ``support.platinum_palette``; no
+reference screenshot shows a GTK widget, so most GTK geometry is this theme's
+adaptation. This module holds the sheet-level invariants and the windows and
+text roles; expander arrows, OSD overlays, views and menus, color-chooser
+swatches, scrollbar band and controls live in their own ``test_gtk_theme_*.py``
+suites. Calendar, notebook, infobar, assistant sidebar, auxiliary band,
+application notification, round-button corner and link-button and
+selected-context inline-link declarations live in focused suites. Disabled-view
+declarations live in ``test_gtk_theme_disabled_views.py``. Secondary-label ink
+and opacity declarations live in ``test_gtk_theme_label_inks.py``. Ordinary
+inline-link states live in ``test_gtk_theme_inline_links.py``. Content-view
+field and hover declarations live in ``test_gtk_theme_content_views.py``.
 """
 
 from __future__ import annotations

@@ -12,7 +12,9 @@ from tools import sample
 
 
 class TestSampleAlpha(CliTestCase):
-    """The ``--alpha`` option's pixel and rectangle reports: RGBA JSON and text, opaque fallbacks and script parity."""
+    """The ``--alpha`` option's pixel and rectangle reports: RGBA JSON and
+    text, opaque fallbacks and script parity.
+    """
 
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"

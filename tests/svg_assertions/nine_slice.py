@@ -1,8 +1,8 @@
 """Nine-slice margin, hint and tile geometry for the SVG test helpers.
 
 Derives a centred nine-slice SVG's margin hints, its full hint geometry and
-each tile's size, paints a tile flat, reads each slice group's transform origin, and yields each
-state's margin hints.
+each tile's size, paints a tile flat, reads each slice group's transform
+origin, and yields each state's margin hints.
 """
 
 from __future__ import annotations

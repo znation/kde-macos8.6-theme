@@ -15,9 +15,10 @@ from .records import Reproduction
 # joined, plus the quarantined inactive-dialog title-ink pin fixed 2026-11-24,
 # whose flake only ever surfaced under the full parallel check's render load;
 # the pair readiness script that removed it is pinned offline by the test
-# naming both titles and their focus states. Each failure was only confirmable under render or wall-clock-shaped
-# load; its reproduction now pins the shipped paint budget offline -- a shipped
-# flag list, or a stubbed save whose diagnosis runs without the wall clock.
+# naming both titles and their focus states. Each failure was only
+# confirmable under render or wall-clock-shaped load; its reproduction now
+# pins the shipped paint budget offline -- a shipped flag list, or a
+# stubbed save whose diagnosis runs without the wall clock.
 # A new record must name such a test instead of raising this.
 SLOW_CHECK_BASELINE = 5
 

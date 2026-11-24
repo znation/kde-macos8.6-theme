@@ -93,15 +93,15 @@ def readiness_settle_text() -> str:
 
     Probed on this host's KWin 6.3.6 (2026-11-18) with a 12-second bound around
     ``dbus-run-session -- kwin_wayland --virtual``. The session ran
-    ``dbus-monitor --session "type='method_call',interface='org.platinumtheme.RenderSession',member='ClientReady'"``,
+    ``dbus-monitor --session
+    "type='method_call',interface='org.platinumtheme.RenderSession',member='ClientReady'"``,
     loaded this script with ``qdbus6 org.kde.KWin /Scripting
-    org.kde.kwin.Scripting.loadScript <path>`` and ran it through
-    ``qdbus6 org.kde.KWin /Scripting/Script<id> run``. With
-    ``QT_QPA_PLATFORM=wayland``, ``kdialog --msgbox`` mapped and the
-    ``workspace.windowAdded`` handler's ``callDBus`` appeared in the monitor as
-    a ``ClientReady`` method call to ``org.platinumtheme.RenderSession`` even
-    though that destination name was unowned; the probe then stopped at its
-    bound.
+    org.kde.kwin.Scripting.loadScript <path>`` and ran it through ``qdbus6
+    org.kde.KWin /Scripting/Script<id> run``. With ``QT_QPA_PLATFORM=wayland``,
+    ``kdialog --msgbox`` mapped and the ``workspace.windowAdded`` handler's
+    ``callDBus`` appeared in the monitor as a ``ClientReady`` method call to
+    ``org.platinumtheme.RenderSession`` even though that destination name was
+    unowned; the probe then stopped at its bound.
     """
     return (
         "function report(window) {\n"

@@ -1,4 +1,6 @@
-"""GTK 4 assistant, pill, circular, video-OSD and tab-thumbnail corner checks moved out of ``test_gtk4_theme``."""
+"""GTK 4 assistant, pill, circular, video-OSD and tab-thumbnail corner checks
+moved out of ``test_gtk4_theme``.
+"""
 
 from __future__ import annotations
 

@@ -1,4 +1,6 @@
-"""GTK 4 selection, focus-outline and cursor-handle declaration checks moved out of ``test_gtk4_theme``."""
+"""GTK 4 selection, focus-outline and cursor-handle declaration checks moved
+out of ``test_gtk4_theme``.
+"""
 
 from __future__ import annotations
 

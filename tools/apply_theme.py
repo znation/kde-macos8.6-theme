@@ -4,16 +4,16 @@
 global theme, the color scheme and the desktop theme so Plasma and KDE
 applications reread the freshly installed files without a logout, writes the
 global theme's fixed-width font selection into `kdeglobals` (on the installed
-Plasma the look-and-feel apply publishes the defaults' color scheme and
-package selections but no `[General]` font key, verified in a scratch home
-2026-11-12, so the selection is written explicitly), writes the
-theme's window-button layout into `kwinrc` (the global theme's look-and-feel
-apply drops those two keys, leaving KWin's stock right-hand cluster instead of
-the reference's close box at the leading edge), points Konsole's
-default profile at the same fixed-width face (a profile font overrides the
-``kdeglobals`` selection in every new Konsole session; see
-``apply_konsole_font``), tells Kvantum which of its installed themes to
-draw, and asks KWin to reconfigure so the window decoration reloads. The startup splash is read at login, so a splash change
+Plasma the look-and-feel apply publishes the defaults' color scheme and package
+selections but no `[General]` font key, verified in a scratch home 2026-11-12,
+so the selection is written explicitly), writes the theme's window-button
+layout into `kwinrc` (the global theme's look-and-feel apply drops those two
+keys, leaving KWin's stock right-hand cluster instead of the reference's close
+box at the leading edge), points Konsole's default profile at the same
+fixed-width face (a profile font overrides the ``kdeglobals`` selection in
+every new Konsole session; see ``apply_konsole_font``), tells Kvantum which of
+its installed themes to draw, and asks KWin to reconfigure so the window
+decoration reloads. The startup splash is read at login, so a splash change
 appears only on the next login.
 
 The global theme is applied without ``--resetLayout``: Plasma replaces the

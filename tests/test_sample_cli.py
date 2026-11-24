@@ -26,7 +26,9 @@ from tools import sample  # noqa: E402
 
 
 class TestSampleCli(CliTestCase):
-    """The sampler CLI's end-to-end pixel and rectangle reports: JSON and text shapes and script parity."""
+    """The sampler CLI's end-to-end pixel and rectangle reports: JSON and text
+    shapes and script parity.
+    """
 
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"

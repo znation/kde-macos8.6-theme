@@ -1,12 +1,11 @@
 """Shared spec values and base case for the Firefox chrome sheet tests.
 
-The standalone Firefox Platinum ``userChrome.css`` has no reference
-screenshot: its palette is the shared Platinum palette and its geometry
-adapts this theme's Platinum controls, so every section module pins the
-same ``REQUIRED_RULES`` table against the sheet text. The sections live in
+The standalone Firefox Platinum ``userChrome.css`` has no reference screenshot:
+its palette is the shared Platinum palette and its geometry adapts this theme's
+Platinum controls, so every section module pins the same ``REQUIRED_RULES``
+table against the sheet text. The sections live in
 ``tests/test_firefox_theme_shell.py``, ``tests/test_firefox_theme_panels.py``,
-``tests/test_firefox_theme_tabs.py``,
-``tests/test_firefox_theme_menubar.py``,
+``tests/test_firefox_theme_tabs.py``, ``tests/test_firefox_theme_menubar.py``,
 ``tests/test_firefox_theme_popups.py``,
 ``tests/test_firefox_theme_notification_popup.py``,
 ``tests/test_firefox_theme_permission_popup.py``,
@@ -15,8 +14,9 @@ same ``REQUIRED_RULES`` table against the sheet text. The sections live in
 ``tests/test_firefox_theme_page_info_trees.py``,
 ``tests/test_firefox_theme_library.py``,
 ``tests/test_firefox_theme_library_panes.py`` and
-``tests/test_firefox_theme_bookmark_editor.py``; the sheet ships as a standalone
-file, and ``tests/test_install_firefox.py`` pins its install and ``tests/test_remove_firefox.py`` its removal.
+``tests/test_firefox_theme_bookmark_editor.py``; the sheet ships as a
+standalone file, and ``tests/test_install_firefox.py`` pins its install and
+``tests/test_remove_firefox.py`` its removal.
 """
 
 from __future__ import annotations

@@ -2,8 +2,8 @@
 lane arithmetic and the Paeth delta table.
 
 The Sub/Up round-trip below decodes through ``tools/png/read.py``, whose
-``tools/png/scanlines.py`` imports these primitives; the lane and table helpers themselves live in
-``tools/png/filters.py``.
+``tools/png/scanlines.py`` imports these primitives; the lane and table helpers
+themselves live in ``tools/png/filters.py``.
 
 Run with the project's check harness (stdlib unittest)::
 

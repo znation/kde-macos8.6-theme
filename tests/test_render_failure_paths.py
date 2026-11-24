@@ -6,11 +6,12 @@ unpainted or failed capture, publication that must keep the previous output
 whole -- run here against stub executables, without any Plasma session; the
 pixel gates that drive the same CLI against a real headless session live in
 ``tests/test_render_surface.py``, ``tests/test_render_dialog_gates.py`` and
-``tests/test_render_file_dialog.py`` beside the ``Test...DialogRender``
-gates. Environment-isolation cases live in ``tests/test_render_environment.py``. The output-publication cases (refusal
-before installing, copy-over, the previous output kept, ``make render`` passing
-a dash-leading output) live in ``tests/test_render_output_cli.py``. The per-mode
-session wiring (the client each mode launches and the configs it writes) lives in
+``tests/test_render_file_dialog.py`` beside the ``Test...DialogRender`` gates.
+Environment-isolation cases live in ``tests/test_render_environment.py``. The
+output-publication cases (refusal before installing, copy-over, the previous
+output kept, ``make render`` passing a dash-leading output) live in
+``tests/test_render_output_cli.py``. The per-mode session wiring (the client
+each mode launches and the configs it writes) lives in
 ``tests/test_render_session_modes.py``. The live-session capture outcomes (the
 real session script's applet liveness check and the refusal of a bad capture)
 live in ``tests/test_render_live_capture.py``.

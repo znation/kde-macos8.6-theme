@@ -68,52 +68,54 @@ def write_file(path, body):
     profile files through their local ``_write``/``write`` bindings, and the
     GTK user-CSS/uninstall suites stage user-file fixtures through it inline.
 
-    Callers outside this module keep local names:
-    test_install_firefox.py, test_install_firefox_rollback.py, test_remove_firefox.py,
-    test_remove_firefox_rollback.py and test_firefox_profile.py bind ``_write`` as an
-    import alias, ApplyGtkTestCase.write and test_gtk_install._write delegate
-    their bodies here, and test_gtk_user_files.py's two ``css()`` helpers call
-    it directly, invariants_register_case.py's ``_write``/``_register``,
-    test_no_unused_imports.py's ``_write``, test_remove_kvantum.py's
-    ``write`` and ApplyGtkTestCase.install_sheet delegate to it,
-    support/kde_config.py's ``write`` (the ``kdeglobals`` seeder) fixes only
-    its file name over it, and test_gtk_selection.py and
-    test_placeholders.py stage their fixtures with direct ``write_file``
-    calls, support/checker_scratch.py's ``_write`` adds containment and
-    recording around its ``write_file`` call, and support/konsole_font_case.py's
+    Callers outside this module keep local names: test_install_firefox.py,
+    test_install_firefox_rollback.py, test_remove_firefox.py,
+    test_remove_firefox_rollback.py and test_firefox_profile.py bind ``_write``
+    as an import alias, ApplyGtkTestCase.write and test_gtk_install._write
+    delegate their bodies here, and test_gtk_user_files.py's two ``css()``
+    helpers call it directly, invariants_register_case.py's
+    ``_write``/``_register``, test_no_unused_imports.py's ``_write``,
+    test_remove_kvantum.py's ``write`` and ApplyGtkTestCase.install_sheet
+    delegate to it, support/kde_config.py's ``write`` (the ``kdeglobals``
+    seeder) fixes only its file name over it, and test_gtk_selection.py and
+    test_placeholders.py stage their fixtures with direct ``write_file`` calls,
+    support/checker_scratch.py's ``_write`` adds containment and recording
+    around its ``write_file`` call, and support/konsole_font_case.py's
     ``write_konsolerc``/``write_profile`` delegate to it, and
     ApplyGtkTestCase.write_bytes and test_uninstall_config_read_cap.py's
-    ``write_bytes`` delegate too. Deliberately left: the
-    containment-refusal fixtures write raw bytes, not UTF-8 text, the
-    kdedefaults suites' one-line direct
-    ``write_file`` call sites are already shared, not duplicated, test_invariants_cross_check.py's
+    ``write_bytes`` delegate too. Deliberately left: the containment-refusal
+    fixtures write raw bytes, not UTF-8 text, the kdedefaults suites' one-line
+    direct ``write_file`` call sites are already shared, not duplicated,
+    test_invariants_cross_check.py's
     ``test_cross_check_rejects_a_non_utf8_register`` writes and reads bytes
     that must not survive a UTF-8 decode, and
-    tools/check/references_selftest.py stages inline in ``tools`` rather
-    than importing test support. The mkdir-only fixtures that prepare a
-    symlink or unreadable path (which write nothing) stay direct too.
-    tests/test_gtk_staging_commit.py's and
-    tests/test_gtk_staging_backups.py's mkdir-then-write pairs now call write_file, and so do tests/test_apply_gtk_errors.py's
-    symlink-target and unreadable-file fixtures (its write_bytes pair near line 142 and the link-side
-    mkdir+symlink_to pairs stay direct) and tests/test_apply_gtk_unreadable_config.py's
-    bad-encoding fixtures; the ``truncate`` fixtures of its oversize tests
+    tools/check/references_selftest.py stages inline in ``tools`` rather than
+    importing test support. The mkdir-only fixtures that prepare a symlink or
+    unreadable path (which write nothing) stay direct too.
+    tests/test_gtk_staging_commit.py's and tests/test_gtk_staging_backups.py's
+    mkdir-then-write pairs now call write_file, and so do
+    tests/test_apply_gtk_errors.py's symlink-target and unreadable-file
+    fixtures (its write_bytes pair near line 142 and the link-side
+    mkdir+symlink_to pairs stay direct) and
+    tests/test_apply_gtk_unreadable_config.py's bad-encoding fixtures; the
+    ``truncate`` fixtures of its oversize tests
     (test_apply_refuses_an_oversize_settings_file_before_writing_anything and
-    test_remove_refuses_an_oversize_user_css_before_clearing_anything) are not write_file cases.
-    tests/test_apply_cursor_remove.py's two TestRemove kcminputrc fixtures call
-    write_file as well.
-    Still unconverted next-run material includes the further
-    mkdir-then-write_text staging family in tests/test_apply_cursor.py,
-    tests/test_install_firefox.py (the ``user.js`` fixture),
-    tests/test_firefox_profile.py, tests/test_firefox_profile_ini_errors.py,
-    tests/test_local_hook.py
+    test_remove_refuses_an_oversize_user_css_before_clearing_anything) are not
+    write_file cases. tests/test_apply_cursor_remove.py's two TestRemove
+    kcminputrc fixtures call write_file as well. Still unconverted next-run
+    material includes the further mkdir-then-write_text staging family in
+    tests/test_apply_cursor.py, tests/test_install_firefox.py (the ``user.js``
+    fixture), tests/test_firefox_profile.py,
+    tests/test_firefox_profile_ini_errors.py, tests/test_local_hook.py
     (``write_fake_make``), tests/test_make_cursors.py, tests/test_svg_case.py,
     and support/symlink_fixtures.py's content staging; the same pair pattern
     also survives in, for example, tests/test_apply_theme.py,
     tests/test_sample_cli.py, tests/test_shipped_files.py,
     tests/test_suite_discovery.py, tests/test_checker_mutations.py,
     tests/test_render_surface_units.py, tests/test_render_applet_preflight.py,
-    tests/test_check_references_validation.py, tests/test_apply_cursor_locks.py,
-    and this module's own test_theme_install.py.
+    tests/test_check_references_validation.py,
+    tests/test_apply_cursor_locks.py, and this module's own
+    test_theme_install.py.
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as handle:

@@ -1,14 +1,14 @@
 """Tests for tests/support/popen_signal.py -- the shared Popen race helpers.
 
 The suites that share these helpers (``test_process_group``,
-``test_process_group_split`` and ``test_check_parallel_workers``) drive ``signal_into_popen`` through both its
-tracked and untracked paths, but call ``kill_tracked`` only as an unasserted
-cleanup and ask ``gone`` only about pids that were already reaped: nothing
-failed when the cleanup stopped killing, and the timeout path was never
-reached. This module pins those behaviours: the cleanup really SIGKILLs the
-recorded child, tolerates an empty tracking mapping and a child that already
-exited, and ``gone`` reports False while the child lives and True once the
-pid is reaped.
+``test_process_group_split`` and ``test_check_parallel_workers``) drive
+``signal_into_popen`` through both its tracked and untracked paths, but call
+``kill_tracked`` only as an unasserted cleanup and ask ``gone`` only about pids
+that were already reaped: nothing failed when the cleanup stopped killing, and
+the timeout path was never reached. This module pins those behaviours: the
+cleanup really SIGKILLs the recorded child, tolerates an empty tracking mapping
+and a child that already exited, and ``gone`` reports False while the child
+lives and True once the pid is reaped.
 """
 
 from __future__ import annotations

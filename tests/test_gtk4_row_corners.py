@@ -1,4 +1,6 @@
-"""GTK 4 navigation-sidebar, boxed-list, separate-row and colour-swatch corner checks moved out of ``test_gtk4_theme``."""
+"""GTK 4 navigation-sidebar, boxed-list, separate-row and colour-swatch corner
+checks moved out of ``test_gtk4_theme``.
+"""
 
 
 from __future__ import annotations

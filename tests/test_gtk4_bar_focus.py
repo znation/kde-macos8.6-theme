@@ -1,4 +1,6 @@
-"""GTK 4 bar-family and file-chooser breadcrumb keyboard-focus outline checks moved out of ``test_gtk4_theme``."""
+"""GTK 4 bar-family and file-chooser breadcrumb keyboard-focus outline checks
+moved out of ``test_gtk4_theme``.
+"""
 
 from __future__ import annotations
 

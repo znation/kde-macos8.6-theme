@@ -22,18 +22,18 @@ default profile at the packaged face:
   data home first, so the copy is the profile new sessions load -- and the
   copy is edited. The system source is never modified.
 
-Only ``[Appearance] Font`` is written into a profile, plus
-``[Appearance] ColorScheme=MacOS8`` when the Platinum colorscheme is
-installed as ``konsole/MacOS8.colorscheme`` under the data home, and only
-through ``kwriteconfig6``, so every other key -- the profile's name, its
-shell, color keys other than that selection, shortcuts and keyboard
-mappings -- survives untouched; ``konsolerc`` is written only to name a
-default profile that is not set yet. Profile names that are not plain file names (absolute paths, path separators,
-traversal), symlinked profile destinations and an unresolvable profile name
-are refused with an actionable diagnostic instead of guessed at.
-Non-default profiles are never read or written, and ``make uninstall``
-leaves ``konsolerc`` and the profiles alone: uninstalling the theme keeps
-the user's terminal configuration.
+Only ``[Appearance] Font`` is written into a profile, plus ``[Appearance]
+ColorScheme=MacOS8`` when the Platinum colorscheme is installed as
+``konsole/MacOS8.colorscheme`` under the data home, and only through
+``kwriteconfig6``, so every other key -- the profile's name, its shell, color
+keys other than that selection, shortcuts and keyboard mappings -- survives
+untouched; ``konsolerc`` is written only to name a default profile that is not
+set yet. Profile names that are not plain file names (absolute paths, path
+separators, traversal), symlinked profile destinations and an unresolvable
+profile name are refused with an actionable diagnostic instead of guessed at.
+Non-default profiles are never read or written, and ``make uninstall`` leaves
+``konsolerc`` and the profiles alone: uninstalling the theme keeps the user's
+terminal configuration.
 """
 
 from __future__ import annotations

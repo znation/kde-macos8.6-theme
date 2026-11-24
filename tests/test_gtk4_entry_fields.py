@@ -1,4 +1,6 @@
-"""GTK 4 entry-field, spin-field, caps-lock and editable-label checks moved out of ``test_gtk4_theme``."""
+"""GTK 4 entry-field, spin-field, caps-lock and editable-label checks moved out
+of ``test_gtk4_theme``.
+"""
 
 from __future__ import annotations
 
