@@ -58,7 +58,10 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # database),
 # the web-document
 # `text-html` icon at all three sizes (our own drawing of a window
-# holding a globe), the flash-media `media-flash`
+# holding a globe), the mail
+# `internet-mail` icon at all three sizes (our own drawing of an envelope
+# with a flap; the name is the item icon of `mailto:` URL items read from
+# the installed KIO core), the flash-media `media-flash`
 # icon at all three sizes (our own drawing of an upright card standing on
 # its contact pins; the name is a KDE-required value read from
 # `libKF6Solid.so.6`, which also loads it with the reduced subnames
@@ -249,6 +252,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "text-html.svg"),
     os.path.join("16x16", "mimetypes", "text-html.svg"),
     os.path.join("22x22", "mimetypes", "text-html.svg"),
+    os.path.join("32x32", "mimetypes", "internet-mail.svg"),
+    os.path.join("16x16", "mimetypes", "internet-mail.svg"),
+    os.path.join("22x22", "mimetypes", "internet-mail.svg"),
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "image-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "image-x-generic.svg"),

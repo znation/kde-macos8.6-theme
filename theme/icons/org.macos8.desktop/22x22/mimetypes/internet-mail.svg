@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original envelope illustration pending user-approved artwork. -->
+<!-- Platinum mail icon, 22x22.
+
+     Our own 22x22 drawing in the Platinum palette: an envelope with a
+     #000000 outline, a #DDDDDD face and a black flap band drawn as a
+     filled V from the face's top corners to its centre, its interior
+     left #DDDDDD so the band stays 1px thick. Drawn for this theme, not
+     traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <!-- Envelope outline. -->
+  <rect x="1" y="4" width="20" height="14" fill="#000000"/>
+  <!-- Envelope face. -->
+  <rect x="2" y="5" width="18" height="12" fill="#DDDDDD"/>
+  <!-- Flap band, from the face's top corners to its centre. -->
+  <path d="M2 5 L11 12 L20 5 Z" fill="#000000"/>
+  <!-- Flap interior, leaving the band 1px thick. -->
+  <path d="M3 6 L11 11 L19 6 Z" fill="#DDDDDD"/>
+</svg>

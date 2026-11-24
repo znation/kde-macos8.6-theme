@@ -190,8 +190,10 @@ the same three sizes), a contact-book icon for address-book files (the
 `x-office-address-book` name at the same three sizes), a template icon for
 template files (the `text-x-generic-template` name at the same three sizes), a
 web-document icon for HTML, XHTML and XML files (the `text-html` name at the
-same three sizes), a flash-media card icon for memory cards (the `media-flash`
-name at the same three sizes), a floppy-disk icon for raw floppy-disk images
+same three sizes), a mail icon for `mailto:` links and email messages (the
+`internet-mail` name at the same three sizes), a flash-media card icon for
+memory cards (the `media-flash` name at the same three sizes), a floppy-disk
+icon for raw floppy-disk images
 (the `media-floppy` name at the same three sizes), a modem icon for modem
 devices (the `modem` name at the same three sizes), a tablet icon for graphics
 tablets (the `input-tablet` name at the same three sizes), a headset icon for

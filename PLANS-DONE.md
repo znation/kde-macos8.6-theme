@@ -5,6 +5,125 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw email with an original `internet-mail` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** KIO resolves a `mailto:` URL item's icon to the
+`internet-mail` name, and on this host the name still draws Breeze's
+art: ship one original placeholder icon, `internet-mail`, at 16x16,
+22x22 and 32x32, in the same mimetype-item series as the landed
+`text-html` and `x-office-*` files. Provenance: the installed
+`libKF6KIOCore.so.6.13.0` carries the bare `internet-mail` literal
+(`strings -e l`), sitting among the KIO protocol icon names (its
+neighbours in the binary are `text-html`, `text-x-texinfo`,
+`user-trash` and `unknown`), so a KDE consumer requests the name for
+mail links; the shared MIME database gives the name no binding (zero
+`internet-mail` hits across `/usr/share/mime/packages/*.xml`), so no
+alias files and no MIME fallback are in play — one file covers exactly
+its own name. Breeze ships the name only under `apps/` at 48 (plus
+symbolic renditions this theme stays out of), so at the theme's item
+sizes the name currently falls to Breeze's resampled 48px art.
+Planning-time probe on 2026-11-24 with `kiconfinder6`, the theme
+installed into scratch XDG homes (`QT_QPA_PLATFORM=offscreen`, no
+`DISPLAY`): `internet-mail` resolved to Breeze's
+`:/icons/breeze/apps/48/internet-mail.svg` while `text-html` resolves
+to the theme's own file, so the theme must ship the name to win it.
+The theme holds no application-icon series, so the files ship under
+`mimetypes/`, the series KDE's item-icon lookup already draws its URL
+and document icons from; the probe above confirms a `mimetypes/` file
+wins the request (a scratch copy under `32x32/mimetypes/` resolved
+with `kiconfinder6`), and the placement is recorded in the
+`docs/invariants.md` provenance. No reference screenshot shows an
+email icon, so no reference pixels are used and the drawing is this
+theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/internet-mail.svg` under `16x16`, `22x22` and `32x32`
+  of `theme/icons/org.macos8.desktop/`. `index.theme` already declares
+  the three directories. Give each file the XML declaration, the
+  comment `<!-- PLACEHOLDER: original envelope illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a flat Platinum envelope, written
+  `x,y width×height fill` for rects, with the flap as a filled black V
+  band over the face:
+  - 32x32: rect `2,6 28×20 #000000` (outline); rect `3,7 26×18
+    #DDDDDD` (face); path `M3 7 L16 17 L29 7 Z` `#000000` (flap band);
+    path `M4 8 L16 16 L28 8 Z` `#DDDDDD` (flap interior).
+  - 22x22: rect `1,4 20×14 #000000`; rect `2,5 18×12 #DDDDDD`; path
+    `M2 5 L11 12 L20 5 Z` `#000000`; path `M3 6 L11 11 L19 6 Z`
+    `#DDDDDD`.
+  - 16x16: rect `1,3 14×10 #000000`; rect `2,4 12×8 #DDDDDD`; path
+    `M2 4 L8 9 L14 4 Z` `#000000`; path `M3 5 L8 8 L13 5 Z`
+    `#DDDDDD`.
+
+  In each list the first rect is the 1px #000000 outline, the second
+  the #DDDDDD face, the third the #000000 flap band from the face's
+  top corners to its centre, and the last the #DDDDDD interior that
+  leaves the band 1px thick. Validate by XML only, never by
+  rasterizing: `convert`'s MSVG reader bleeds 1px rects, so the pins
+  below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside that size's `text-html`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths where
+  the other `mimetypes` paths are listed in `SHIPPED_ICONS` (the base
+  tuple or one of the `SHIPPED_ICONS += tuple(...)` blocks), and name
+  the email icon in the comment above the list beside `text-html`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings
+  in its `PINS` table from the lists above (the table feeds
+  `ICON_SHAPES` in `tests/support/icon/shape_pins/__init__.py`), with
+  a comment recording that the name is the mailto item icon.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, append the
+  provenance of `internet-mail` to the row's last cell: no reference
+  pixels were used; the name is read by the installed
+  `libKF6KIOCore.so.6` for mailto URL items (the bare literal sits
+  among the KIO protocol icon names, `strings -e l` verified); the
+  shared MIME database gives the name no binding; the files ship
+  under `mimetypes/` because the theme holds no application series and
+  the item-icon lookup draws from the mimetype series; Breeze's own
+  art was beaten by shipping the name at the theme's sizes (before the
+  change, `kiconfinder6 internet-mail` with the theme installed into
+  scratch XDG homes resolved to Breeze's `:/icons/breeze/apps/48`
+  file), and the envelope drawing is this theme's own choice.
+- `docs/installing.md`: add the email icon to the sentence listing the
+  icon theme's placeholder illustrations and their sizes, beside the
+  web-document sentence.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size, carries a placeholder
+  marker and has a `PLACEHOLDERS.md` row; the existing inventory,
+  palette, geometry and placeholder-register tests cover all three.
+- Changing an element's position, size, fill or order, or the flap
+  band's vertices, in one file makes
+  `test_each_icon_draws_its_pinned_artwork` fail; dropping a file
+  while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `internet-mail` resolves to the theme's
+  32x32 file (at planning time, before this change, it resolved to
+  Breeze's `:/icons/breeze/apps/48/internet-mail.svg`), and `text-html`
+  stays on the theme's 32x32 file. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw video cameras with an original `camera-video` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** KDE's screen-capture tool requests the `camera-video` device

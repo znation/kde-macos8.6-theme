@@ -477,6 +477,27 @@ PINS = {
         _shape("rect", x="8", y="13", width="7", height="1", fill="#000000"),
         _shape("rect", x="11", y="10", width="1", height="7", fill="#000000"),
     ),
+    # The mail icon KDE draws for `mailto:` URL items (the item-icon name
+    # read from the installed KIO core); one file covers exactly its own
+    # name, since the shared MIME database gives it no binding.
+    os.path.join("32x32", "mimetypes", "internet-mail.svg"): (
+        _shape("rect", x="2", y="6", width="28", height="20", fill="#000000"),
+        _shape("rect", x="3", y="7", width="26", height="18", fill="#DDDDDD"),
+        _shape("path", d="M3 7 L16 17 L29 7 Z", fill="#000000"),
+        _shape("path", d="M4 8 L16 16 L28 8 Z", fill="#DDDDDD"),
+    ),
+    os.path.join("16x16", "mimetypes", "internet-mail.svg"): (
+        _shape("rect", x="1", y="3", width="14", height="10", fill="#000000"),
+        _shape("rect", x="2", y="4", width="12", height="8", fill="#DDDDDD"),
+        _shape("path", d="M2 4 L8 9 L14 4 Z", fill="#000000"),
+        _shape("path", d="M3 5 L8 8 L13 5 Z", fill="#DDDDDD"),
+    ),
+    os.path.join("22x22", "mimetypes", "internet-mail.svg"): (
+        _shape("rect", x="1", y="4", width="20", height="14", fill="#000000"),
+        _shape("rect", x="2", y="5", width="18", height="12", fill="#DDDDDD"),
+        _shape("path", d="M2 5 L11 12 L20 5 Z", fill="#000000"),
+        _shape("path", d="M3 6 L11 11 L19 6 Z", fill="#DDDDDD"),
+    ),
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"): (
         _shape("rect", x="3", y="3", width="26", height="26", fill="#000000"),
         _shape("rect", x="4", y="4", width="24", height="24", fill="#DDDDDD"),
