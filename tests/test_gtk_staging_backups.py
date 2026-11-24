@@ -3,8 +3,8 @@
 A target that never changed keeps no backup, a cleanup failure after
 publishing is reported, foreign siblings are left alone, and a name
 collision retries. Rollback of an earlier target after a failed step is
-pinned in ``tests/test_gtk_staging.py``; this module covers the backup files
-themselves.
+pinned in ``tests/test_gtk_staging_commit.py``; this module covers the backup
+files themselves.
 """
 
 from __future__ import annotations

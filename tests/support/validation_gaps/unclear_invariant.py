@@ -339,7 +339,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     UnclearInvariant(
         "gtk-commit-rollback",
         ("GTK commit",),
-        "tests/test_gtk_staging.py::TestCommit"
+        "tests/test_gtk_staging_commit.py::TestCommit"
         "::test_a_failed_rename_is_reported_by_name_and_restores_the_earlier_target",
         GTK_COMMIT_ROLLBACK_GUARANTEE,
     ),
