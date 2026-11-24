@@ -76,7 +76,45 @@ def max_byte_index(data: bytes) -> int:
     return (lowest.bit_length() - 1) >> 3
 
 
-_ABS_DIFF_MASKS_CACHE: dict[int, tuple[int, int]] = {}
+_LANE_MASKS_CACHE: dict[int, tuple[int, int]] = {}
+
+
+def _pack_lanes(
+    a: bytes, b: bytes, name: str
+) -> tuple[int, int, int, int, int]:
+    """Pack two equal-length byte strings two bytes per 16-bit lane.
+
+    Returns ``(length, low, guard_bit, x, y)``: *length* is the shared
+    precondition length ``require_equal_lengths`` returns, *low* and
+    *guard_bit* are the per-lane masks the two lane functions select lanes
+    with, and *x* and *y* are the lane-packed big integers of *a* and *b*.
+    An odd length is padded with one zero byte, which each caller's
+    ``to_bytes(length)`` drops again.
+    """
+    length = require_equal_lengths(a, b, name)
+    if length & 1:
+        # Pad to a whole number of 16-bit lanes; the extra byte is dropped by
+        # ``to_bytes(length)`` at the end.
+        a = a + b"\x00"
+        b = b + b"\x00"
+    lanes = len(a) // 2
+    cached = _LANE_MASKS_CACHE.get(lanes)
+    if cached is None:
+        # 0xFF in the low byte of every lane, and the guard bit (bit 8) of every
+        # lane -- the lane-parallel equivalents of a scalar mask.
+        low = int.from_bytes(b"\xff\x00" * lanes, "little")
+        guard_bit = int.from_bytes(b"\x00\x01" * lanes, "little")
+        cached = (low, guard_bit)
+        _LANE_MASKS_CACHE[lanes] = cached
+    else:
+        low, guard_bit = cached
+    return (
+        length,
+        low,
+        guard_bit,
+        int.from_bytes(a, "little"),
+        int.from_bytes(b, "little"),
+    )
 
 
 def byte_max(a: bytes, b: bytes) -> bytes:
@@ -92,25 +130,9 @@ def byte_max(a: bytes, b: bytes) -> bytes:
     Both byte strings must be the same length; :func:`require_equal_lengths`
     rejects a mismatch and returns the shared length.
     """
-    length = require_equal_lengths(a, b, "byte_max")
+    length, low, guard_bit, x, y = _pack_lanes(a, b, "byte_max")
     if length == 0:
         return b""
-    if length & 1:
-        # Pad to a whole number of 16-bit lanes; the extra byte is dropped by
-        # ``to_bytes(length)`` at the end.
-        a = a + b"\x00"
-        b = b + b"\x00"
-    lanes = len(a) // 2
-    cached = _ABS_DIFF_MASKS_CACHE.get(lanes)
-    if cached is None:
-        low = int.from_bytes(b"\xff\x00" * lanes, "little")
-        guard_bit = int.from_bytes(b"\x00\x01" * lanes, "little")
-        cached = (low, guard_bit)
-        _ABS_DIFF_MASKS_CACHE[lanes] = cached
-    else:
-        low, guard_bit = cached
-    x = int.from_bytes(a, "little")
-    y = int.from_bytes(b, "little")
 
     def lane_greater(u: int, v: int) -> int:
         # With the guard bit set, ``u - v`` is 256 + u - v in [1, 511], so the
@@ -136,34 +158,16 @@ def abs_diff(a: bytes, b: bytes) -> bytes:
     ``bytes(map(abs, map(sub, a, b)))`` is the obvious spelling, but it walks
     both strings one Python int at a time.  This computes the same bytes with
     a handful of big-integer operations: the input is packed two bytes per
-    16-bit lane, each lane gets a guard bit so a subtraction cannot borrow
-    into its neighbour, and the absolute value is selected from the two
-    per-lane differences.
+    16-bit lane by :func:`_pack_lanes`, each lane gets a guard bit so a
+    subtraction cannot borrow into its neighbour, and the absolute value is
+    selected from the two per-lane differences.
 
     Both byte strings must be the same length; :func:`require_equal_lengths`
     rejects a mismatch and returns the shared length.
     """
-    length = require_equal_lengths(a, b, "abs_diff")
+    length, low, guard_bit, x, y = _pack_lanes(a, b, "abs_diff")
     if length == 0:
         return b""
-    if length & 1:
-        # Pad to a whole number of 16-bit lanes; the extra byte is dropped by
-        # ``to_bytes(length)`` at the end.
-        a = a + b"\x00"
-        b = b + b"\x00"
-    lanes = len(a) // 2
-    cached = _ABS_DIFF_MASKS_CACHE.get(lanes)
-    if cached is None:
-        # 0xFF in the low byte of every lane, and the guard bit (bit 8) of every
-        # lane -- the lane-parallel equivalents of a scalar mask.
-        low = int.from_bytes(b"\xff\x00" * lanes, "little")
-        guard_bit = int.from_bytes(b"\x00\x01" * lanes, "little")
-        cached = (low, guard_bit)
-        _ABS_DIFF_MASKS_CACHE[lanes] = cached
-    else:
-        low, guard_bit = cached
-    x = int.from_bytes(a, "little")
-    y = int.from_bytes(b, "little")
     # Split each string into its even- and odd-indexed bytes, each already
     # sitting in the low byte of its own 16-bit lane.
     even_x, odd_x = x & low, (x >> 8) & low
