@@ -25,7 +25,7 @@ else:  # run directly from render_surface.py
 # Config files supplied by the global theme's defaults that the color-scheme
 # command does not write itself.
 CONFIG_FILES = ("kwinrc", "plasmarc")
-KVANTUM_THEME = "org.macos8.desktop"
+THEME_ID = "org.macos8.desktop"
 INSTALL_TIMEOUT = 60.0
 
 
@@ -66,7 +66,7 @@ def write_desktop_selection(session: Session) -> None:
     are appended to, not replaced, so their own sections (``plasmarc``'s
     ``[Theme]`` name) survive the selection.
     """
-    selection = f"[KDE]\nLookAndFeelPackage={KVANTUM_THEME}\n".encode("utf-8")
+    selection = f"[KDE]\nLookAndFeelPackage={THEME_ID}\n".encode("utf-8")
     for name in ("plasmarc", "kdeglobals"):
         path = session.config / name
         try:
@@ -85,7 +85,7 @@ def write_kvantum_selection(session: Session) -> None:
     directory.mkdir(parents=True, exist_ok=True)
     write_bytes_atomically(
         directory / "kvantum.kvconfig",
-        f"[General]\ntheme={KVANTUM_THEME}\n".encode("utf-8"),
+        f"[General]\ntheme={THEME_ID}\n".encode("utf-8"),
     )
 
 

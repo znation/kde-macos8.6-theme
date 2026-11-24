@@ -213,10 +213,10 @@ class TestSessionThemeSources(unittest.TestCase):
         # `make install` copies, which tests/test_apply_theme.py pins from
         # the apply side.
         self.assertEqual(
-            render_setup.KVANTUM_THEME, apply_optional.KVANTUM_THEME
+            render_setup.THEME_ID, apply_optional.KVANTUM_THEME
         )
         self.assertTrue(
-            (apply_theme.ROOT / "theme" / "kvantum" / render_setup.KVANTUM_THEME)
+            (apply_theme.ROOT / "theme" / "kvantum" / render_setup.THEME_ID)
             .is_dir(),
             "the session's Kvantum id is not the shipped package directory",
         )
