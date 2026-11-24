@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original Ogg audio illustration pending user-approved artwork. -->
+<!-- Platinum Ogg audio icon, 16x16.
+
+     Our own 16x16 drawing in the Platinum palette: the document
+     drawing (a #FFFFFF page with a 1px #000000 outline and a #DDDDDD
+     folded top-right corner) with the text lines replaced by an
+     equalizer of four #000000 bars, bottom-aligned on one baseline.
+     Drawn for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M3 1 h7 l3 3 v10 H3 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M4 2 h5 l3 3 v8 H4 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M9 2 L12 2 L12 5 Z" fill="#DDDDDD"/>
+  <!-- Equalizer: four bars, shortest to tallest then the falling
+       fourth, bottom-aligned on row 11. -->
+  <rect x="5" y="8" width="1" height="3" fill="#000000"/>
+  <rect x="7" y="7" width="1" height="4" fill="#000000"/>
+  <rect x="9" y="6" width="1" height="5" fill="#000000"/>
+  <rect x="11" y="9" width="1" height="2" fill="#000000"/>
+</svg>

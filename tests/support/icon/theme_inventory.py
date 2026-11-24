@@ -632,6 +632,13 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "audio-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "audio-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "audio-x-generic.svg"),
+    # The Ogg audio `audio-ogg` icon at all three sizes (the document
+    # page holding a four-bar equalizer; the name is the type-spelled
+    # icon name of the `audio/ogg` MIME type in the installed shared
+    # MIME database).
+    os.path.join("32x32", "mimetypes", "audio-ogg.svg"),
+    os.path.join("16x16", "mimetypes", "audio-ogg.svg"),
+    os.path.join("22x22", "mimetypes", "audio-ogg.svg"),
     os.path.join("32x32", "mimetypes", "font-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "font-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "font-x-generic.svg"),

@@ -810,6 +810,34 @@ PINS = {
         _shape("rect", x="12", y="3", width="1", height="9", fill="#000000"),
         _shape("rect", x="5", y="3", width="8", height="2", fill="#000000"),
     ),
+    # The Ogg audio item icon KDE draws for `audio/ogg` items (the
+    # type-spelled icon name of the installed shared MIME database's
+    # `audio/ogg` type, which has no `generic-icon`, one alias and a
+    # `sub-class-of` fallback, so one file covers exactly its own
+    # name); the drawing shares the generic document's page and holds
+    # a four-bar equalizer (a sound-level mark distinct from the
+    # beamed note pair the standalone `audio-x-generic.svg` draws).
+    os.path.join("32x32", "mimetypes", "audio-ogg.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="10", y="18", width="2", height="5", fill="#000000"),
+        _shape("rect", x="13", y="15", width="2", height="8", fill="#000000"),
+        _shape("rect", x="16", y="12", width="2", height="11", fill="#000000"),
+        _shape("rect", x="19", y="16", width="2", height="7", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "audio-ogg.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="5", y="8", width="1", height="3", fill="#000000"),
+        _shape("rect", x="7", y="7", width="1", height="4", fill="#000000"),
+        _shape("rect", x="9", y="6", width="1", height="5", fill="#000000"),
+        _shape("rect", x="11", y="9", width="1", height="2", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "audio-ogg.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="7", y="13", width="1", height="4", fill="#000000"),
+        _shape("rect", x="9", y="11", width="1", height="6", fill="#000000"),
+        _shape("rect", x="11", y="9", width="1", height="8", fill="#000000"),
+        _shape("rect", x="13", y="12", width="1", height="5", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "font-x-generic.svg"): (
         *_PAGE_32,
         _shape("rect", x="16", y="11", width="1", height="1", fill="#000000"),

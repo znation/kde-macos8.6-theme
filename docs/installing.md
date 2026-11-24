@@ -272,7 +272,9 @@ same three sizes), a video icon for movie files without their own art (the
 `video-x-generic` name at the same three sizes), an Ogg
 multimedia-container icon for Ogg multimedia container files (the
 `application-ogg` name at the same three sizes), an audio icon for sound files
-(the `audio-x-generic` name at the same three sizes), a font icon for font
+(the `audio-x-generic` name at the same three sizes), an Ogg audio
+icon for Ogg audio files (the `audio-ogg` name at the same three
+sizes), a font icon for font
 files (the `font-x-generic` name at the same three sizes), a keyboard icon for
 input devices (the `input-keyboard` name at the same three sizes), a
 desktop-computer icon for the machine root (the `computer` name at the same
