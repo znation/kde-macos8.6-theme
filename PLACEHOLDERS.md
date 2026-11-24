@@ -30,6 +30,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.snap.svg` | original Snap package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.squashfs.svg` | original Squashfs filesystem-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/audio-ogg.svg` | original Ogg audio illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.appimage.svg` | original AppImage bundle illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.iccprofile.svg` | original ICC color-profile illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-x-qemu-disk.svg` | original QCOW disk-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/devices/media-flash.svg` | original flash-media illustration pending user-approved artwork. |
@@ -130,6 +131,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.snap.svg` | original Snap package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.squashfs.svg` | original Squashfs filesystem-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/audio-ogg.svg` | original Ogg audio illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.appimage.svg` | original AppImage bundle illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.iccprofile.svg` | original ICC color-profile illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-x-qemu-disk.svg` | original QCOW disk-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/devices/media-flash.svg` | original flash-media illustration pending user-approved artwork. |
@@ -228,6 +230,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.snap.svg` | original Snap package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.squashfs.svg` | original Squashfs filesystem-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/audio-ogg.svg` | original Ogg audio illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.appimage.svg` | original AppImage bundle illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.iccprofile.svg` | original ICC color-profile illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-x-qemu-disk.svg` | original QCOW disk-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/devices/media-flash.svg` | original flash-media illustration pending user-approved artwork. |

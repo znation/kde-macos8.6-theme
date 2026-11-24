@@ -838,6 +838,33 @@ PINS = {
         _shape("rect", x="11", y="9", width="1", height="8", fill="#000000"),
         _shape("rect", x="13", y="12", width="1", height="5", fill="#000000"),
     ),
+    # The AppImage bundle item icon KDE draws for `application/vnd.appimage`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/vnd.appimage` "AppImage application bundle"
+    # type, which has no `<icon>` element, the single
+    # `application-x-executable` `generic-icon`, one weight-60 `*.appimage`
+    # glob and the sub-classes `application/x-executable` and
+    # `application/vnd.squashfs`, so one file covers exactly its own
+    # name); the drawing shares the generic document's page and holds a
+    # launch arrow — an up-pointing triangle head over a shaft (a
+    # run-this-bundle mark distinct from the `video-x-generic` screen's
+    # right-pointing play triangle and from the bars-only equalizer and
+    # executable-window marks).
+    os.path.join("32x32", "mimetypes", "application-vnd.appimage.svg"): (
+        *_PAGE_32,
+        _shape("path", d="M16 9 L22 17 L10 17 Z", fill="#000000"),
+        _shape("rect", x="15", y="17", width="2", height="8", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-vnd.appimage.svg"): (
+        *_PAGE_16,
+        _shape("path", d="M8 5 L11 9 L5 9 Z", fill="#000000"),
+        _shape("rect", x="8", y="9", width="1", height="4", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-vnd.appimage.svg"): (
+        *_PAGE_22,
+        _shape("path", d="M11 5 L15 11 L7 11 Z", fill="#000000"),
+        _shape("rect", x="10", y="11", width="2", height="6", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "font-x-generic.svg"): (
         *_PAGE_32,
         _shape("rect", x="16", y="11", width="1", height="1", fill="#000000"),
