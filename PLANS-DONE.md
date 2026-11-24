@@ -5,6 +5,127 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw video cameras with an original `camera-video` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** KDE's screen-capture tool requests the `camera-video` device
+name, and on this host the name still resolves to Breeze: ship one
+original placeholder icon, `camera-video`, at 16x16, 22x22 and 32x32,
+in the same devices series as the landed `computer`, `input-keyboard`,
+`input-mouse`, `printer`, `media-floppy`, `camera-photo`, `modem`,
+`video-display` and `phone` files. Provenance: the installed
+`/usr/bin/spectacle` carries the bare `camera-video` literal
+(`strings -e l`), so a KDE consumer requests the name. The shared MIME
+database gives the name no binding (zero `name="camera-video"` hits and
+zero `generic-icon name="camera-video"` references counted on
+`/usr/share/mime/packages/freedesktop.org.xml`), so no alias files and
+no MIME fallback are in play — one file covers exactly its own name.
+Planning-time probe on 2026-11-24 with `kiconfinder6`, the theme
+installed into a scratch `DESTDIR` tree and probe XDG homes
+(`QT_QPA_PLATFORM=offscreen`, no `DISPLAY`): `camera-video` resolved to
+Breeze's `:/icons/breeze/devices/64/camera-video.svg` while
+`camera-photo` resolved to the theme's 32x32 devices file, so the theme
+must ship the name to win it. No reference screenshot shows a video
+camera icon: no reference pixels are used, and the drawing is this
+theme's own choice.
+
+**Approach.**
+
+- Add `devices/camera-video.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original camera-video illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a flat Platinum film camera seen
+  from the side: two film reels on top, a raised body with the 1px
+  #000000 outline and the #FFFFFF/#999999 bevel, a black lens hood on
+  the body's right edge, and two tripod legs below the body. Each file
+  holds these elements in order, written `x,y width×height fill` for
+  rects and `cx cy r fill` for circles:
+  - 32x32: circle `11,9 4 #000000`; circle `11,9 2 #DDDDDD`; circle
+    `21,9 4 #000000`; circle `21,9 2 #DDDDDD`; `5,12 22×12 #000000`;
+    `6,13 20×10 #DDDDDD`; `6,13 20×1 #FFFFFF`; `6,13 1×10 #FFFFFF`;
+    `6,22 20×1 #999999`; `25,13 1×10 #999999`; `27,16 3×4 #000000`;
+    `9,24 2×3 #000000`; `19,24 2×3 #000000`.
+  - 22x22: circle `8,6 3 #000000`; circle `8,6 1 #DDDDDD`; circle
+    `14,6 3 #000000`; circle `14,6 1 #DDDDDD`; `3,9 14×9 #000000`;
+    `4,10 12×7 #DDDDDD`; `4,10 12×1 #FFFFFF`; `4,10 1×7 #FFFFFF`;
+    `4,16 12×1 #999999`; `15,10 1×7 #999999`; `17,11 3×3 #000000`;
+    `6,18 2×2 #000000`; `13,18 2×2 #000000`.
+  - 16x16: circle `5,4 2 #000000`; circle `5,4 1 #DDDDDD`; circle
+    `10,4 2 #000000`; circle `10,4 1 #DDDDDD`; `2,6 10×7 #000000`;
+    `3,7 8×5 #DDDDDD`; `3,7 8×1 #FFFFFF`; `3,7 1×5 #FFFFFF`;
+    `3,11 8×1 #999999`; `10,7 1×5 #999999`; `12,8 2×3 #000000`;
+    `4,13 2×2 #000000`; `8,13 2×2 #000000`.
+
+  In each list the first four elements are the reels (drawn first so
+  the body covers their lower half), the next six are the body
+  outline, fill and bevels, and the last three are the lens hood and
+  the two legs. Validate by XML only, never by rasterizing:
+  `convert`'s MSVG reader bleeds 1px rects, so the pins below are the
+  drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `camera-photo` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths where
+  the other `devices` paths are listed in `SHIPPED_ICONS` (the base
+  tuple or one of the `SHIPPED_ICONS += tuple(...)` blocks), and name
+  the camera-video icon in the comment above the list beside
+  `camera-photo`.
+- `tests/support/icon/shape_pins/devices.py`: pin the three drawings
+  in its `PINS` table from the lists above, using the same rect and
+  circle entries the `camera-photo` pins use (the table feeds
+  `ICON_SHAPES` in `tests/support/icon/shape_pins/__init__.py`).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, append the
+  provenance of `camera-video` to the row's last cell: no reference
+  pixels were used, the name is requested by KDE's screen-capture tool
+  (the installed `/usr/bin/spectacle` carries the bare `camera-video`
+  literal, `strings -e l` verified), the shared MIME database gives
+  the name no binding, Breeze's own art was beaten by shipping the
+  name at the theme's sizes (before the change, `kiconfinder6
+  camera-video` with the theme installed into scratch XDG homes
+  resolved to Breeze's `:/icons/breeze/devices/64/camera-video.svg`
+  while `camera-photo` resolved to the theme's 32x32 devices file),
+  and the reels-body-hood drawing is this theme's own choice.
+- `docs/installing.md`: add the camera-video icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes,
+  beside the camera sentence.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/devices.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size, carries a placeholder
+  marker and has a `PLACEHOLDERS.md` row; the existing inventory,
+  palette, geometry and placeholder-register tests cover all three.
+- Changing an element's position, size, fill or order, a reel's
+  centre or radius, or the lens hood's or a leg's position or size, in
+  one file makes `test_each_icon_draws_its_pinned_artwork` fail;
+  dropping a file while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `DESTDIR` tree, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `camera-video` resolves to the theme's
+  32x32 devices file (at planning time, before this change, it resolved
+  to Breeze's `:/icons/breeze/devices/64/camera-video.svg`), and
+  `camera-photo` stays on the theme's 32x32 devices file. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw smartphones with an original `smartphone` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** KDE Connect and plasma-nm draw phone-type devices with the

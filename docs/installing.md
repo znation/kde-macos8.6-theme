@@ -181,6 +181,7 @@ name at the same three sizes), a phone icon for phones (the `phone`
 name at the same three sizes), a smartphone icon for phone-type devices in KDE Connect and the network manager (the `smartphone`
 name at the same three sizes), a battery icon for battery devices (the `battery`
 name at the same three sizes), a camera icon for the digital-camera control module (the `camera-photo`
+name at the same three sizes), a video-camera icon for KDE's screen-capture tool (the `camera-video`
 name at the same three sizes), a network-server icon for the machine that serves the desktop's shared
 folders (the `network-server` name at the same three sizes), a VPN icon for the VPN import tool (the `network-vpn`
 name at the same three sizes), a display icon for the KInfoCenter

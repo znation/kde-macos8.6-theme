@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original camera-video illustration pending user-approved artwork. -->
+<!-- Platinum film-camera icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: two film reels on
+     top, a raised body with a black outline and white/#999999 bevel,
+     a black lens hood on the body's right edge, and two tripod legs
+     below the body. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <circle cx="11" cy="9" r="4" fill="#000000"/>
+  <circle cx="11" cy="9" r="2" fill="#DDDDDD"/>
+  <circle cx="21" cy="9" r="4" fill="#000000"/>
+  <circle cx="21" cy="9" r="2" fill="#DDDDDD"/>
+  <rect x="5" y="12" width="22" height="12" fill="#000000"/>
+  <rect x="6" y="13" width="20" height="10" fill="#DDDDDD"/>
+  <rect x="6" y="13" width="20" height="1" fill="#FFFFFF"/>
+  <rect x="6" y="13" width="1" height="10" fill="#FFFFFF"/>
+  <rect x="6" y="22" width="20" height="1" fill="#999999"/>
+  <rect x="25" y="13" width="1" height="10" fill="#999999"/>
+  <rect x="27" y="16" width="3" height="4" fill="#000000"/>
+  <rect x="9" y="24" width="2" height="3" fill="#000000"/>
+  <rect x="19" y="24" width="2" height="3" fill="#000000"/>
+</svg>
