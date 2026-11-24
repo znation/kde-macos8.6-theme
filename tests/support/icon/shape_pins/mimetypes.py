@@ -127,6 +127,30 @@ PINS = {
         _shape("rect", x="8", y="13", width="1", height="1", fill="#FFFFFF"),
         _shape("rect", x="11", y="13", width="2", height="1", fill="#FFFFFF"),
     ),
+    # The desktop-launcher icon shares the generic document's page (every
+    # drawing element of `text-x-generic.svg` at that size) and holds a
+    # small window: a black outline, the white face one pixel in and the
+    # black title-bar band across the face's top. The name is the
+    # type-spelled `application/x-desktop` MIME type in the installed
+    # shared MIME database.
+    os.path.join("32x32", "mimetypes", "application-x-desktop.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="10", y="13", width="12", height="9", fill="#000000"),
+        _shape("rect", x="11", y="14", width="10", height="7", fill="#FFFFFF"),
+        _shape("rect", x="11", y="14", width="10", height="2", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-x-desktop.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="5", y="6", width="6", height="5", fill="#000000"),
+        _shape("rect", x="6", y="7", width="4", height="3", fill="#FFFFFF"),
+        _shape("rect", x="6", y="7", width="4", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-x-desktop.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="7", y="9", width="8", height="7", fill="#000000"),
+        _shape("rect", x="8", y="10", width="6", height="5", fill="#FFFFFF"),
+        _shape("rect", x="8", y="10", width="6", height="2", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "package-x-generic.svg"): (
         *_SEALED_PACKAGE_32,
     ),

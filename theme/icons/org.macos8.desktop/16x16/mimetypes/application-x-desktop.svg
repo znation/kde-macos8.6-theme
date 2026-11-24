@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original desktop-launcher illustration pending user-approved artwork. -->
+<!-- Platinum desktop-launcher icon, 16x16.
+
+     Our own 16x16 drawing in the Platinum palette: the document drawing
+     (a #FFFFFF page with a 1px #000000 outline and a #DDDDDD folded
+     top-right corner) with the text lines replaced by a small window (a
+     black outline holding a white face under a black title-bar band).
+     Drawn for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M3 1 h7 l3 3 v10 H3 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M4 2 h5 l3 3 v8 H4 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M9 2 L12 2 L12 5 Z" fill="#DDDDDD"/>
+  <!-- Window outline. -->
+  <rect x="5" y="6" width="6" height="5" fill="#000000"/>
+  <!-- Window face, inset one pixel. -->
+  <rect x="6" y="7" width="4" height="3" fill="#FFFFFF"/>
+  <!-- Title-bar band across the face's top. -->
+  <rect x="6" y="7" width="4" height="1" fill="#000000"/>
+</svg>
