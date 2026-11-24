@@ -1285,6 +1285,40 @@ PINS = {
         _shape("rect", x="10", y="15", width="6", height="1", fill="#999999"),
         _shape("rect", x="10", y="17", width="4", height="1", fill="#999999"),
     ),
+    # The MHTML web-archive item icon KDE draws for `application/
+    # x-mimearchive` items (the type-spelled icon name of the installed
+    # shared MIME database's `application/x-mimearchive` type, which has
+    # no `generic-icon`, no `<icon>` element, no aliases and no per-type
+    # fallback, so one file covers exactly its own name); the drawing
+    # shares the generic document's page and holds a black paperclip —
+    # a closed outer ring with an inner wire ending free above the
+    # bottom arc, a clip holding the saved page (the paperclip is what
+    # separates it from the shell script's `>_` prompt and the JSON
+    # document's curly braces).
+    os.path.join("32x32", "mimetypes", "application-x-mimearchive.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="13", y="9", width="5", height="1", fill="#000000"),
+        _shape("rect", x="13", y="10", width="1", height="9", fill="#000000"),
+        _shape("rect", x="17", y="10", width="1", height="9", fill="#000000"),
+        _shape("rect", x="15", y="10", width="1", height="8", fill="#000000"),
+        _shape("rect", x="13", y="19", width="5", height="1", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-x-mimearchive.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="6", y="4", width="3", height="1", fill="#000000"),
+        _shape("rect", x="6", y="5", width="1", height="5", fill="#000000"),
+        _shape("rect", x="8", y="5", width="1", height="5", fill="#000000"),
+        _shape("rect", x="7", y="5", width="1", height="4", fill="#000000"),
+        _shape("rect", x="6", y="10", width="3", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-x-mimearchive.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="9", y="7", width="3", height="1", fill="#000000"),
+        _shape("rect", x="9", y="8", width="1", height="7", fill="#000000"),
+        _shape("rect", x="11", y="8", width="1", height="7", fill="#000000"),
+        _shape("rect", x="10", y="8", width="1", height="6", fill="#000000"),
+        _shape("rect", x="9", y="15", width="3", height="1", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"): (
         _shape("rect", x="3", y="3", width="26", height="26", fill="#000000"),
         _shape("rect", x="4", y="4", width="24", height="24", fill="#DDDDDD"),

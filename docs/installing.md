@@ -184,7 +184,9 @@ same three sizes), a Python-bytecode icon for Python bytecode files (the
 backup-file icon for backup files (the
 `application-x-trash` name at the same three sizes), an NZB
 usenet-index icon for NZB files (the `application-x-nzb` name at the
-same three sizes), a PGP-key icon for
+same three sizes), an MHTML web-archive icon for MHTML web-archive
+files (the `application-x-mimearchive` name at the same three sizes), a
+PGP-key icon for
 PGP key files (the `application-pgp-keys` name at the same three sizes), a shell-script icon
 for script files (the `application-x-shellscript` name at the same three
 sizes), a core-dump icon for core-dump files (the `application-x-core`

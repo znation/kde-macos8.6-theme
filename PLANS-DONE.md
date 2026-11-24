@@ -5,6 +5,145 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw MHTML web archives with an original `application-x-mimearchive` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** An MHTML web-archive file (`*.mhtml` or `*.mht`, as the file
+manager identifies it) draws Breeze's art beside the Platinum documents
+and folders. Ship one original placeholder icon,
+`application-x-mimearchive`, at 16x16, 22x22 and 32x32, in the same
+mimetype-item series as the landed `application-pkix-cert` certificate
+and the in-flight sqlite3, backup-file, core-dump, python-bytecode,
+Android-package, Squashfs, WIM and NZB entries.
+Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/x-mimearchive` ("MHTML web archive", with the acronym
+`MHTML` and the expanded acronym `MIME HTML`) with no `<icon>`
+element, no `<generic-icon>` element, no `<alias>` element, no
+`<magic>` matcher, the two globs `<glob pattern="*.mhtml">` and
+`<glob pattern="*.mht">` at the default weight 50 — each unique in the
+database — and `<sub-class-of type="multipart/related">`, whose
+`multipart/related` parent declares only a comment, so no per-type
+fallback is in play; no other MIME type in the database declares
+either `.mht` glob, and the string `application-x-mimearchive` occurs
+0 times in the database (`str.count` is 0 — `grep -c` counts lines,
+not matches). With no icon element the type asks its literal name;
+the theme's `index.theme` declares `Inherits=breeze`, so the lookup
+falls through to Breeze's exact-name file (Breeze ships it at 16, 22,
+24, 32 and 64, each verified with a `[ -f ]` check). Planning-time
+probe on 2026-11-24 with `kiconfinder6`, the theme installed into
+scratch XDG homes (`XDG_DATA_HOME` naming the installed scratch data
+root, `XDG_DATA_DIRS=/usr/share`, `[Icons]
+Theme=org.macos8.desktop` in the scratch `kdeglobals`,
+`QT_QPA_PLATFORM=offscreen`, no `DISPLAY`):
+`application-x-mimearchive` resolved to
+`:/icons/breeze/mimetypes/32/application-x-mimearchive.svg` while
+`text-x-generic` resolved to the theme's own 32x32 file — the gap is
+real, not the screened-out shape where the theme's own generic art
+wins. No reference screenshot shows a web-archive item icon, so no
+reference pixels are used and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/application-x-mimearchive.svg` under `16x16`,
+  `22x22` and `32x32` of `theme/icons/org.macos8.desktop/`.
+  `index.theme` already declares the three MimeTypes directories.
+  Give each file the XML declaration, the comment `<!--
+  PLACEHOLDER: original MHTML web-archive illustration pending
+  user-approved artwork. -->`, a short comment saying it is our own
+  drawing in the Platinum palette, not traced from anyone's artwork,
+  and a root with matching `width`, `height` and `viewBox`. The art
+  shares the shell-script document's page (every drawing element of
+  that size's `application-x-shellscript.svg`: the page outline,
+  white page and folded-corner flap) and holds a black paperclip —
+  a closed outer ring with one inner wire hanging from the top arc
+  and ending free above the bottom arc, a clip holding the saved page
+  — an original mark distinct from the web-document window's globe,
+  the shell script's `>_` prompt, JSON's curly braces, BitTorrent's
+  download arrow and tray, the backup file's tilde, the crash core's
+  square ring and center dot, the database canister, the ISO disc's
+  capital I, the Squashfs tapering bands, the WIM split-volume gap,
+  the NZB dot-and-bars groups, the certificate's seal-and-ribbons,
+  the Android zipper teeth and the deb box's letter D:
+  - 32x32: the three shared page elements; then, all `#000000`, the
+    top arc `13,9 5×1` (cols 13..17, row 9), the left wall `13,10
+    1×9` (rows 10..18), the right wall `17,10 1×9` (rows 10..18),
+    the inner wire `15,10 1×8` (rows 10..17) and the bottom arc
+    `13,19 5×1` (cols 13..17, row 19); every cell sits inside the
+    white page and clear of the flap.
+  - 22x22: the three shared page elements; then, all `#000000`, the
+    top arc `9,7 3×1` (cols 9..11, row 7), the left wall `9,8 1×7`
+    (rows 8..14), the right wall `11,8 1×7` (rows 8..14), the inner
+    wire `10,8 1×6` (rows 8..13) and the bottom arc `9,15 3×1`
+    (cols 9..11, row 15); every cell sits inside the white page and
+    clear of the flap.
+  - 16x16: the three shared page elements; then, all `#000000`, the
+    top arc `6,4 3×1` (cols 6..8, row 4), the left wall `6,5 1×5`
+    (rows 5..9), the right wall `8,5 1×5` (rows 5..9), the inner
+    wire `7,5 1×4` (rows 5..8) and the bottom arc `6,10 3×1`
+    (cols 6..8, row 10); every cell sits inside the white page and
+    clear of the flap.
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the certificate row,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings
+  in `PINS` from the lists above (the `*_PAGE_*` page tuple, then the
+  arcs, walls and inner wire).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-x-mimearchive` in the last cell, as the
+  `application-pgp-keys` sentence there does.
+- `docs/installing.md`: add the MHTML web-archive icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes.
+- The waiting Squashfs, WIM and NZB entries edit the same inventory
+  block, `PINS` registry, invariants row and installing.md sentence;
+  this entry sits behind them in the queue, so rebase on whatever
+  they have landed when picking this up, keeping one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the page elements matching
+  the `application-x-shellscript.svg` pin's page tuple, in the same
+  order, then the arcs, walls and inner wire), carries a placeholder
+  marker and has a `PLACEHOLDERS.md` row; the existing inventory,
+  palette, geometry and placeholder-register tests cover all three.
+- Changing one paperclip rect's position, size or fill, or the element
+  order, in one file makes the geometry test fail; dropping a file
+  while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The `#000000`, `#FFFFFF` and `#DDDDDD` fills stay inside
+  `PLATINUM_FILLS`, so `test_each_icon_uses_only_the_platinum_palette`
+  passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch `XDG_DATA_HOME`, use a scratch `HOME`,
+  `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset
+  `DISPLAY` and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `application-x-mimearchive` resolves to the theme's 32x32
+  `mimetypes/application-x-mimearchive.svg` (at planning time, before
+  this change, it resolved to Breeze's
+  `:/icons/breeze/mimetypes/32/application-x-mimearchive.svg`), and
+  `text-x-generic` still resolves to the theme's own file. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ### Platinum icon theme: draw NZB usenet indexes with an original `application-x-nzb` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** An NZB usenet-index file (`*.nzb`, as the file manager
