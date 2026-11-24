@@ -224,13 +224,7 @@ def main(argv: list[str] | None = None) -> int:
     with exit_on_termination():
         try:
             env = dict(os.environ)
-            data_home = xdg_homes.require_home(
-                xdg_homes.data_home(env),
-                env,
-                "XDG_DATA_HOME",
-                "$HOME/.local/share",
-                error=ApplyError,
-            )
+            data_home = xdg_homes.require_data_home(env, ApplyError)
             return _apply(data_home, env)
         except ApplyError as exc:
             return report_error(TOOL, str(exc))

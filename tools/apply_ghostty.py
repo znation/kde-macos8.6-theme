@@ -191,22 +191,10 @@ def main(argv: list[str] | None = None) -> int:
 
     env = dict(os.environ)
     try:
-        config_home = xdg_homes.require_home(
-            xdg_homes.config_home(env),
-            env,
-            "XDG_CONFIG_HOME",
-            "$HOME/.config",
-            error=GhosttyConfigError,
-        )
+        config_home = xdg_homes.require_config_home(env, GhosttyConfigError)
         if args.remove:
             return remove(config_home)
-        data_home = xdg_homes.require_home(
-            xdg_homes.data_home(env),
-            env,
-            "XDG_DATA_HOME",
-            "$HOME/.local/share",
-            error=GhosttyConfigError,
-        )
+        data_home = xdg_homes.require_data_home(env, GhosttyConfigError)
         return apply(config_home, data_home, args.optional)
     except GhosttyConfigError as exc:
         return report_error(TOOL, str(exc))

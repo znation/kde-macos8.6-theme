@@ -86,6 +86,30 @@ def require_home(
     return path
 
 
+def require_config_home(env: dict[str, str], error) -> Path:
+    """Resolve the config home through :func:`require_home`, or refuse.
+
+    The one-line form the tools call instead of repeating the four-argument
+    :func:`require_home` incantation for the config home; the refusal names
+    ``XDG_CONFIG_HOME`` and the ``$HOME/.config`` fallback.
+    """
+    return require_home(
+        config_home(env), env, "XDG_CONFIG_HOME", "$HOME/.config", error=error
+    )
+
+
+def require_data_home(env: dict[str, str], error) -> Path:
+    """Resolve the data home through :func:`require_home`, or refuse.
+
+    The one-line form the tools call instead of repeating the four-argument
+    :func:`require_home` incantation for the data home; the refusal names
+    ``XDG_DATA_HOME`` and the ``$HOME/.local/share`` fallback.
+    """
+    return require_home(
+        data_home(env), env, "XDG_DATA_HOME", "$HOME/.local/share", error=error
+    )
+
+
 def unresolved_home_state(value: str) -> str:
     """Describe an unusable absolute-path *value*, for a refusal message.
 

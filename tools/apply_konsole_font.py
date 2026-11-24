@@ -105,13 +105,7 @@ def apply(
     ``None`` on success; otherwise the exit status a failed required command
     reported, which the caller returns directly so the apply stops.
     """
-    config_home = xdg_homes.require_home(
-        xdg_homes.config_home(env),
-        env,
-        "XDG_CONFIG_HOME",
-        "$HOME/.config",
-        error=error,
-    )
+    config_home = xdg_homes.require_config_home(env, error)
     stdout_log = scratch / "kreadconfig6.out"
     stderr_log = scratch / "kreadconfig6.err"
     raw, status = run_required_output(

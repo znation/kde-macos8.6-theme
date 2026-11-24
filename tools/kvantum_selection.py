@@ -171,13 +171,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.parse_args(argv)
 
     try:
-        config_home = xdg_homes.require_home(
-            xdg_homes.config_home(os.environ),
-            os.environ,
-            "XDG_CONFIG_HOME",
-            "$HOME/.config",
-            error=ConfigError,
-        )
+        config_home = xdg_homes.require_config_home(os.environ, ConfigError)
         with _config_lock(config_home):
             status = _clear_selection(config_home)
     except ConfigError as exc:

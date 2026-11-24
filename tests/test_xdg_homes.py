@@ -190,6 +190,39 @@ class TestRequireHome(unittest.TestCase):
         )
 
 
+class TestRequireConfigAndDataHomeWrappers(unittest.TestCase):
+    """The one-line wrappers must delegate with the right variable names."""
+
+    class _Refusal(Exception):
+        pass
+
+    def test_require_config_home_resolves_the_config_home(self):
+        self.assertEqual(
+            Path("/conf"),
+            xdg_homes.require_config_home(
+                {"XDG_CONFIG_HOME": "/conf"}, self._Refusal
+            ),
+        )
+
+    def test_require_data_home_resolves_the_data_home(self):
+        self.assertEqual(
+            Path("/data"),
+            xdg_homes.require_data_home(
+                {"XDG_DATA_HOME": "/data"}, self._Refusal
+            ),
+        )
+
+    def test_the_config_home_refusal_names_xdg_config_home(self):
+        with self.assertRaises(self._Refusal) as caught:
+            xdg_homes.require_config_home({}, self._Refusal)
+        self.assertIn("XDG_CONFIG_HOME is unset", str(caught.exception))
+
+    def test_the_data_home_refusal_names_xdg_data_home(self):
+        with self.assertRaises(self._Refusal) as caught:
+            xdg_homes.require_data_home({}, self._Refusal)
+        self.assertIn("XDG_DATA_HOME is unset", str(caught.exception))
+
+
 class TestUnresolvedHomeState(unittest.TestCase):
     def test_an_empty_value_counts_as_unset(self):
         for value in ("",):

@@ -162,30 +162,12 @@ def main(argv: list[str] | None = None) -> int:
             # Removal touches only the config home, so it must work when no
             # data home resolves: refusing it would block clearing a
             # selection that is already installed.
-            config_home = xdg_homes.require_home(
-                xdg_homes.config_home(env),
-                env,
-                "XDG_CONFIG_HOME",
-                "$HOME/.config",
-                error=ConfigError,
-            )
+            config_home = xdg_homes.require_config_home(env, ConfigError)
             with _config_lock(config_home):
                 status = _remove(config_home)
         else:
-            config_home = xdg_homes.require_home(
-                xdg_homes.config_home(env),
-                env,
-                "XDG_CONFIG_HOME",
-                "$HOME/.config",
-                error=ConfigError,
-            )
-            data_home = xdg_homes.require_home(
-                xdg_homes.data_home(env),
-                env,
-                "XDG_DATA_HOME",
-                "$HOME/.local/share",
-                error=ConfigError,
-            )
+            config_home = xdg_homes.require_config_home(env, ConfigError)
+            data_home = xdg_homes.require_data_home(env, ConfigError)
             status = _apply_selection(config_home, data_home)
     except ConfigError as exc:
         return report_error(TOOL, str(exc))
