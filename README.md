@@ -9,7 +9,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: the Platinum theme covers KDE/Qt, GTK 3 and GTK 4, Firefox chrome and content, cursor surfaces, and the Ghostty terminal.
+Pre-alpha: the Platinum theme covers KDE/Qt, GTK 3 and GTK 4, Firefox chrome and content, cursor surfaces, and the Ghostty and Konsole terminals.
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
