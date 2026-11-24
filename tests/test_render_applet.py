@@ -259,6 +259,15 @@ class TestDerivedRoots(unittest.TestCase):
             ),
         )
 
+    def test_only_relative_data_dirs_entries_leave_the_data_home_alone(self):
+        # Every XDG_DATA_DIRS entry is invalid, so none is kept and the
+        # defaults are not reinstated: only the data home remains, matching
+        # the Konsole profile search's handling of the same input.
+        self.assertEqual(
+            [Path("/one")],
+            self.derived(XDG_DATA_HOME="/one", XDG_DATA_DIRS="rel/share:other"),
+        )
+
     def test_only_relative_data_dirs_entries_leave_just_the_data_home(self):
         self.assertEqual(
             [Path("/one")],
