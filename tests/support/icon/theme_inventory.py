@@ -63,7 +63,12 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # with a shutter and a label plate; the name is a KDE-required value read
 # from `libKF6Solid.so.6` and is the `generic-icon` of the
 # `application/x-raw-floppy-disk-image` MIME type in the installed shared
-# MIME database), the printer
+# MIME database), the modem
+# `modem` icon at all three sizes (our own drawing of an external modem
+# with indicator LEDs and a telephone jack; the name is a KDE-required
+# value read from `libKF6BluezQt.so.6`, the installed
+# `libKF6BluezQt.so.6.13.0` carries the bare `modem` literal and no
+# reduced `modem-*` subnames), the printer
 # `printer` icon at all three sizes (our own drawing of a body with
 # paper sheets feeding through it; the name is required by the
 # installed KDE print desktop entries `org.kde.PrintQueue.desktop`,
@@ -133,6 +138,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "media-floppy.svg"),
     os.path.join("16x16", "devices", "media-floppy.svg"),
     os.path.join("22x22", "devices", "media-floppy.svg"),
+    os.path.join("32x32", "devices", "modem.svg"),
+    os.path.join("16x16", "devices", "modem.svg"),
+    os.path.join("22x22", "devices", "modem.svg"),
     os.path.join("32x32", "mimetypes", "video-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "video-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "video-x-generic.svg"),

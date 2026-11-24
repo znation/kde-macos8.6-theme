@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original modem illustration pending user-approved artwork. -->
+<!-- Platinum modem icon, 16x16.
+
+     Our own 16x16 drawing in the Platinum palette: an external modem
+     seen from the front, with a black outline, a #DDDDDD body with a
+     white top row and left column and a #999999 bottom row and right
+     column, a telephone jack on the right, and a row of black
+     indicator LEDs along the front.
+     Drawn for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <rect x="1" y="4" width="14" height="10" fill="#000000"/>
+  <rect x="2" y="5" width="12" height="8" fill="#DDDDDD"/>
+  <rect x="2" y="5" width="12" height="1" fill="#FFFFFF"/>
+  <rect x="2" y="5" width="1" height="8" fill="#FFFFFF"/>
+  <rect x="2" y="12" width="12" height="1" fill="#999999"/>
+  <rect x="13" y="5" width="1" height="8" fill="#999999"/>
+  <rect x="9" y="7" width="3" height="2" fill="#000000"/>
+  <rect x="4" y="10" width="1" height="1" fill="#000000"/>
+  <rect x="6" y="10" width="1" height="1" fill="#000000"/>
+  <rect x="8" y="10" width="1" height="1" fill="#000000"/>
+</svg>
