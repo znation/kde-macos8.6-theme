@@ -5,6 +5,89 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw packages with an original `package-x-generic` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** An archive or installer file in the file manager is drawn with
+Breeze's box beside the Platinum documents. Ship one original placeholder
+icon, `package-x-generic`, at 16x16, 22x22 and 32x32. The name is the
+`generic-icon` of 79 MIME types (archive, compressed and package types:
+zip, tar, deb, rpm and their kin) in the installed shared MIME database —
+the largest generic-icon group after `x-office-document` — so it is the
+icon Dolphin shows for most files a user downloads.
+
+Planning-time probe with `kiconfinder6` under scratch `XDG_DATA_HOME`,
+`XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+`kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, with `DISPLAY` and
+`WAYLAND_DISPLAY` unset and `QT_QPA_PLATFORM=offscreen`:
+`package-x-generic` resolved to `:/icons/breeze/mimetypes/32/package-x-generic.svg`.
+Every other name (`x-office-document`, `x-office-spreadsheet`,
+`x-office-presentation`, `image-x-generic`, `video-x-generic`,
+`audio-x-generic`, `font-x-generic`, `text-x-script`, `text-html`) is out
+of scope: ship no alias files and nothing but `package-x-generic`.
+
+**Approach.**
+
+- Add `mimetypes/package-x-generic.svg` under `16x16`, `22x22` and `32x32`
+  of `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original package illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette, not
+  traced from anyone's artwork, and a root with matching `width`, `height`
+  and `viewBox`. The art is a sealed box: a black outline, a `#DDDDDD` lid
+  band with a white top row, a white body, and a grey tape stripe down the
+  middle. Each file holds these `rect` elements in order, written
+  `x,y width×height fill`:
+  - 32x32: `3,6 26×22 #000000`; `4,7 24×3 #DDDDDD`; `4,7 24×1 #FFFFFF`;
+    `4,10 24×17 #FFFFFF`; `15,10 2×17 #999999`.
+  - 22x22: `2,4 18×16 #000000`; `3,5 16×2 #DDDDDD`; `3,5 16×1 #FFFFFF`;
+    `3,7 16×12 #FFFFFF`; `10,7 2×12 #999999`.
+  - 16x16: `1,3 14×11 #000000`; `2,4 12×2 #DDDDDD`; `2,4 12×1 #FFFFFF`;
+    `2,6 12×7 #FFFFFF`; `7,6 2×7 #999999`.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `application-x-shellscript` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `mimetypes` paths, name the package
+  icon in the inventory comment above them, and say in the comment that
+  the name is the `generic-icon` of the archive and package MIME types in
+  the installed shared MIME database.
+- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `package-x-generic` in the last cell: no reference pixels
+  were used, the name is the `generic-icon` of the archive and package
+  MIME types in the installed shared MIME database, and the box drawing is
+  this theme's own choice.
+- `docs/installing.md`: add the package icon to the sentence listing the
+  icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the rectangles listed for that size, carries a placeholder marker and has a
+  `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing a rectangle's position, size or fill, or the element order, in
+  one file makes the geometry test fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts the
+  three files in the installed theme, and uninstalling removes them (the
+  existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `package-x-generic` resolves to the theme's
+  file, and the names listed as out of scope stay on Breeze. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw optical drives with an original `drive-optical` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** An optical drive — the disc's drive in the device notifier and
