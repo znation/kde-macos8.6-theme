@@ -325,6 +325,148 @@ own choice.
   `make check` after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw ISO disc images with an original `application-vnd.efi.iso` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A `.iso` item maps to the shared MIME database's canonical
+type `application/vnd.efi.iso`, whose database `generic-icon` is the
+theme's own shipped `media-optical` file, but the lookup never reaches
+it: Breeze ships the exact name, so under this theme a `.iso` item
+draws Breeze's ISO art instead of this theme's series — ship one
+original placeholder icon, `application-vnd.efi.iso`, at 16x16, 22x22
+and 32x32, in the same mimetype-item series as the landed
+`application-octet-stream`, `application-pdf`, `application-zip`,
+`application-x-tar`, `application-x-7z-compressed`, `application-gzip`
+and `application-vnd.debian.binary-package` files, the in-flight cpio,
+gzip-compressed-tar and xz-compressed-tar work and the pending
+bzip2- and LZMA-compressed-tar entries. Provenance: the installed
+shared MIME database (`/usr/share/mime/packages/freedesktop.org.xml`)
+declares the type `application/vnd.efi.iso` ("Raw CD image") with
+`<generic-icon name="media-optical"/>`, no `<icon>` element, the two
+aliases `application/x-cd-image` and `application/x-iso9660-image`, a
+`<glob pattern="*.iso" weight="80">` and a `*.iso9660` glob, and no
+magic matcher; the database holds zero occurrences of the hyphenated
+name `application-vnd.efi.iso` (`str.count` is 0 — `grep -c` counts
+lines, not matches), so one file covers exactly the canonical name.
+The two aliases spell their own names (Breeze ships alias-name files
+for them too), but the MIME database resolves aliases to the canonical
+type, so a `.iso` item asks the canonical name and one file covers it.
+Breeze ships its own exact-name file at all three sizes, so the
+planning-time probe on 2026-11-24 with `kiconfinder6`, the theme
+installed into scratch XDG homes (`XDG_DATA_DIRS` naming the scratch
+data root, `[Icons] Theme=org.macos8.desktop` in the scratch
+`kdeglobals`, `QT_QPA_PLATFORM=offscreen`, no `DISPLAY`):
+`application-vnd.efi.iso` resolved to Breeze's
+`:/icons/breeze/mimetypes/32/application-vnd.efi.iso.svg` while
+`media-optical` resolved to the theme's own 32x32
+`devices/media-optical.svg` — Breeze's exact-name file beats the
+generic-icon fallback, so the theme must ship the name to put a `.iso`
+item in the series. No reference screenshot shows a `.iso` item icon,
+so no reference pixels are used and the drawing is this theme's own
+choice.
+
+**Approach.**
+
+- Add `mimetypes/application-vnd.efi.iso.svg` under `16x16`, `22x22`
+  and `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme`
+  already declares the three MimeTypes directories. Give each file the
+  XML declaration, the comment `<!-- PLACEHOLDER: original ISO
+  disc-image illustration pending user-approved artwork. -->`, a short
+  comment saying it is our own drawing in the Platinum palette, not
+  traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art shares every drawing element of that
+  size's `devices/media-optical.svg` (the optical disc: black rim,
+  grey face, two white glints, grey rim ring, white hub and black hub
+  centre, in that order) and holds a black capital I on the grey face
+  in the upper-right quadrant — a top bar, a centre stem and a bottom
+  bar — clear of both glints and the hub, an original mark distinct
+  from deb's hollow capital D, tar's T, 7z's stepped 7, zip's slider,
+  the in-flight gzip arrow, cpio's capital C, rar diamond, xz's
+  stair-stepped X and the pending lowercase b and capital L:
+  - 32x32: the disc elements `circle 16,16 r14 #000000`, `circle
+    16,16 r13 #DDDDDD`, `path M16 16 L8 6 L6 8 Z #FFFFFF`, `path
+    M16 16 L24 26 L26 24 Z #FFFFFF`, `circle 16,16 r5 #999999`,
+    `circle 16,16 r4 #FFFFFF` and `circle 16,16 r2 #000000`; I rects,
+    all `#000000`: top bar `22,10 6×2` (rows 10..11), stem `25,12
+    2×6` (rows 12..17) and bottom bar `22,18 6×2` (rows 18..19; every
+    pixel sits on the grey face, inside the r13 rim, clear of the
+    glints and more than 5 px from the disc centre).
+  - 22x22: the disc elements `circle 11,11 r10 #000000`, `circle
+    11,11 r9 #DDDDDD`, `path M11 11 L6 4 L4 6 Z #FFFFFF`, `path
+    M11 11 L16 18 L18 16 Z #FFFFFF`, `circle 11,11 r4 #999999`,
+    `circle 11,11 r3 #FFFFFF` and `circle 11,11 r1 #000000`; I rects,
+    all `#000000`: top bar `15,7 4×2` (rows 7..8), stem `16,9 2×3`
+    (rows 9..11) and bottom bar `15,12 4×2` (rows 12..13).
+  - 16x16: the disc elements `circle 8,8 r7 #000000`, `circle 8,8 r6
+    #DDDDDD`, `path M8 8 L5 3 L3 5 Z #FFFFFF`, `path M8 8 L11 13 L13
+    11 Z #FFFFFF`, `circle 8,8 r3 #999999`, `circle 8,8 r2 #FFFFFF`
+    and `circle 8,8 r1 #000000`; I rects, all `#000000`: top bar
+    `11,5 3×2` (rows 5..6), stem `12,7 1×2` (rows 7..8) and bottom
+    bar `11,9 3×2` (rows 9..10).
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `media-optical` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`, and extend the
+  mimetypes comment above them to name the type-spelled series.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings
+  in `PINS` from the lists above (the disc elements matching that
+  size's `devices/media-optical` tuple in `shape_pins/devices.py`, in
+  the same order, then the top bar, stem and bottom bar).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-vnd.efi.iso` in the last cell, as the
+  `application-zip` sentence there does.
+- `docs/installing.md`: add the ISO disc-image icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes.
+- The in-flight cpio entry and the pending LZMA-compressed-tar entry
+  edit the same inventory block, `PINS` registry, invariants row and
+  installing.md sentence; this entry sits behind them in the queue, so
+  rebase on whatever they have landed when picking it up, keeping one
+  row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the disc elements
+  matching the same size's `devices/media-optical.svg` pinned tuple,
+  in the same order, then the top bar, stem and bottom bar), carries a
+  placeholder marker and has a `PLACEHOLDERS.md` row; the existing
+  inventory, palette, geometry and placeholder-register tests cover
+  all three.
+- Changing one I rectangle's position, size or fill, or the element
+  order, in one file makes the geometry test fail; dropping a file
+  while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The I's `#000000` fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch `XDG_DATA_HOME`, use a scratch `HOME`,
+  `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset
+  `DISPLAY` and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `application-vnd.efi.iso` resolves to the theme's 32x32
+  `mimetypes/application-vnd.efi.iso.svg` (at planning time, before
+  this change, it resolved to Breeze's
+  `:/icons/breeze/mimetypes/32/application-vnd.efi.iso.svg`), and
+  `media-optical` still resolves to the theme's own file (the generic
+  fallback keeps its own drawing). Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
