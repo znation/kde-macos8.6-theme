@@ -40,6 +40,33 @@ def _write_png(directory, name, data, rgba=None):
     return path
 
 
+def _cache_load(path, alpha=False):
+    """Load *path* through the cache, decoding with the real reader."""
+    return reference_decode_cache.load(path, alpha=alpha, max_rows=None,
+                                       max_cols=None,
+                                       decode=lambda: _read(path, alpha))
+
+
+def _seed_entry(tmp, alpha=False):
+    """Write a 2x2 reference png, load it once, and return (path, entry_path).
+
+    The load populates the on-disk cache; the returned entry_path is its
+    single file, for bad-state and prune tests to corrupt, age or inspect.
+    """
+    path = _write_png(tmp, "reference.png", _BLANK_2X2)
+    _cache_load(path, alpha)
+    directory = reference_decode_cache.cache_dir()
+    (entry,) = os.listdir(directory)
+    return path, os.path.join(directory, entry)
+
+
+def _age_past_max_age(path):
+    """Backdate *path* one day past the prune max age."""
+    old = os.path.getmtime(path) - reference_decode_cache._MAX_AGE_SECONDS \
+        - 24 * 60 * 60
+    os.utime(path, (old, old))
+
+
 class _FreshCacheHome:
     """Point the decode cache at a fresh, empty XDG cache home per test."""
 
@@ -78,12 +105,8 @@ class TestLoad(_FreshCacheHome, unittest.TestCase):
                         for value in range(4))
         with tempfile.TemporaryDirectory() as tmp:
             path = _write_png(tmp, "reference-rgba.png", None, rgba)
-            first = reference_decode_cache.load(path, alpha=True,
-                                                max_rows=None, max_cols=None,
-                                                decode=lambda: _read(path, True))
-            second = reference_decode_cache.load(path, alpha=True,
-                                                 max_rows=None, max_cols=None,
-                                                 decode=lambda: _read(path, True))
+            first = _cache_load(path, True)
+            second = _cache_load(path, True)
         self.assertIsNotNone(second.alpha)
         self.assertEqual(first.alpha, second.alpha)
         self.assertEqual(4, len(second.alpha))
@@ -147,13 +170,8 @@ class TestBadStates(_FreshCacheHome, unittest.TestCase):
 
     def test_a_corrupt_entry_falls_back_to_a_fresh_decode(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = _write_png(tmp, "reference.png", _BLANK_2X2)
-            reference_decode_cache.load(path, alpha=False, max_rows=None,
-                                        max_cols=None,
-                                        decode=lambda: _read(path, False))
-            directory = reference_decode_cache.cache_dir()
-            (entry,) = os.listdir(directory)
-            with open(os.path.join(directory, entry), "wb") as handle:
+            path, entry_path = _seed_entry(tmp)
+            with open(entry_path, "wb") as handle:
                 handle.write(b"KREFDC01garbage-not-planes")
             decode, calls = _decode_spy()
             served = reference_decode_cache.load(path, alpha=False,
@@ -180,26 +198,16 @@ class TestBadStates(_FreshCacheHome, unittest.TestCase):
     def test_an_unreadable_file_falls_back_to_the_decode(self):
         # A path whose content cannot be hashed (here: a missing file) must
         # still reach the decode, whose PngError names the problem.
-        from tools import png
-
         missing = os.path.join(tempfile.gettempdir(), "no-such-reference.png")
         with self.assertRaises(png.PngError):
-            reference_decode_cache.load(missing, alpha=False, max_rows=None,
-                                        max_cols=None,
-                                        decode=lambda: _read(missing, False))
+            _cache_load(missing)
 
     def test_an_entry_with_a_foreign_magic_falls_back_to_a_fresh_decode(self):
         # The magic pins the entry layout version: an entry a future format
         # wrote (here, a bumped magic in place) must fall back to a fresh
         # decode, never be unpacked with the wrong layout.
         with tempfile.TemporaryDirectory() as tmp:
-            path = _write_png(tmp, "reference.png", _BLANK_2X2)
-            reference_decode_cache.load(path, alpha=False, max_rows=None,
-                                        max_cols=None,
-                                        decode=lambda: _read(path, False))
-            directory = reference_decode_cache.cache_dir()
-            (entry,) = os.listdir(directory)
-            entry_path = os.path.join(directory, entry)
+            path, entry_path = _seed_entry(tmp)
             with open(entry_path, "rb") as handle:
                 data = handle.read()
             with open(entry_path, "wb") as handle:
@@ -217,13 +225,7 @@ class TestBadStates(_FreshCacheHome, unittest.TestCase):
         # planes can only be a damaged or overwritten entry: png.Image
         # rejects the too-long alpha and the load re-decodes.
         with tempfile.TemporaryDirectory() as tmp:
-            path = _write_png(tmp, "reference.png", _BLANK_2X2)
-            reference_decode_cache.load(path, alpha=True, max_rows=None,
-                                        max_cols=None,
-                                        decode=lambda: _read(path, True))
-            directory = reference_decode_cache.cache_dir()
-            (entry,) = os.listdir(directory)
-            entry_path = os.path.join(directory, entry)
+            path, entry_path = _seed_entry(tmp, alpha=True)
             with open(entry_path, "ab") as handle:
                 handle.write(b"junk")
             fresh = _read(path, True)
@@ -244,14 +246,9 @@ class TestBadStates(_FreshCacheHome, unittest.TestCase):
         # entry name sits) is unreadable, and the OSError branch must fall
         # back to the decode like every other bad state.
         with tempfile.TemporaryDirectory() as tmp:
-            path = _write_png(tmp, "reference.png", _BLANK_2X2)
-            reference_decode_cache.load(path, alpha=False, max_rows=None,
-                                        max_cols=None,
-                                        decode=lambda: _read(path, False))
-            directory = reference_decode_cache.cache_dir()
-            (entry,) = os.listdir(directory)
-            os.unlink(os.path.join(directory, entry))
-            os.mkdir(os.path.join(directory, entry))
+            path, entry_path = _seed_entry(tmp)
+            os.unlink(entry_path)
+            os.mkdir(entry_path)
             fresh = _read(path, False)
             decode, calls = _decode_spy()
             served = reference_decode_cache.load(path, alpha=False,
@@ -279,40 +276,25 @@ class TestBadStates(_FreshCacheHome, unittest.TestCase):
         # Pruning drops only files: a directory a user or another tool put
         # in the cache directory must survive the sweep untouched.
         with tempfile.TemporaryDirectory() as tmp:
-            path = _write_png(tmp, "reference.png", _BLANK_2X2)
-            reference_decode_cache.load(path, alpha=False, max_rows=None,
-                                        max_cols=None,
-                                        decode=lambda: _read(path, False))
-            directory = reference_decode_cache.cache_dir()
-            subdir = os.path.join(directory, "kept-subdirectory")
+            path, entry_path = _seed_entry(tmp)
+            subdir = os.path.join(os.path.dirname(entry_path),
+                                  "kept-subdirectory")
             os.mkdir(subdir)
-            old = os.path.getmtime(subdir) - 31 * 24 * 60 * 60
-            os.utime(subdir, (old, old))
+            _age_past_max_age(subdir)
             other = os.path.join(tmp, "other.png")
             with open(other, "wb") as handle:
                 handle.write(encode_png(3, 2, bytes(18)))
-            reference_decode_cache.load(other, alpha=False, max_rows=None,
-                                        max_cols=None,
-                                        decode=lambda: _read(other, False))
+            _cache_load(other)
         self.assertTrue(os.path.isdir(subdir))
 
     def test_entries_past_the_max_age_are_pruned_on_write(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = _write_png(tmp, "reference.png", _BLANK_2X2)
-            reference_decode_cache.load(path, alpha=False, max_rows=None,
-                                        max_cols=None,
-                                        decode=lambda: _read(path, False))
-            directory = reference_decode_cache.cache_dir()
-            (entry,) = os.listdir(directory)
-            stale = os.path.join(directory, entry)
-            old = os.path.getmtime(stale) - 31 * 24 * 60 * 60
-            os.utime(stale, (old, old))
+            path, stale = _seed_entry(tmp)
+            _age_past_max_age(stale)
             other = os.path.join(tmp, "other.png")
             with open(other, "wb") as handle:
                 handle.write(encode_png(3, 2, bytes(18)))
-            reference_decode_cache.load(other, alpha=False, max_rows=None,
-                                        max_cols=None,
-                                        decode=lambda: _read(other, False))
+            _cache_load(other)
         self.assertFalse(os.path.exists(stale))
 
 
