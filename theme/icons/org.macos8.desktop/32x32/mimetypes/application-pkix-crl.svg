@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original certificate revocation list illustration pending user-approved artwork. -->
+<!-- Platinum certificate-revocation-list icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: the document
+     drawing (a #FFFFFF page with a 1px #000000 outline and a #DDDDDD
+     folded top-right corner) with the text lines replaced by three
+     grey entry rows struck through by a stepped black diagonal. Drawn
+     for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M6 3 h14 l6 6 v20 H6 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M7 4 h12 l6 6 v18 H7 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M19 4 L25 4 L25 10 Z" fill="#DDDDDD"/>
+  <!-- Revocation-list entry rows. -->
+  <rect x="10" y="11" width="12" height="2" fill="#999999"/>
+  <rect x="10" y="15" width="12" height="2" fill="#999999"/>
+  <rect x="10" y="19" width="12" height="2" fill="#999999"/>
+  <!-- Strike-out, stepped black cells drawn after the rows. -->
+  <rect x="10" y="12" width="2" height="2" fill="#000000"/>
+  <rect x="12" y="14" width="2" height="2" fill="#000000"/>
+  <rect x="14" y="16" width="2" height="2" fill="#000000"/>
+  <rect x="16" y="18" width="2" height="2" fill="#000000"/>
+  <rect x="18" y="20" width="2" height="2" fill="#000000"/>
+</svg>

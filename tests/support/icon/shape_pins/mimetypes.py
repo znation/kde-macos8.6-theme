@@ -1455,6 +1455,47 @@ PINS = {
     os.path.join("16x16", "mimetypes", "unknown.svg"): _PAGE_16,
     os.path.join("22x22", "mimetypes", "application-octet-stream.svg"): _PAGE_22,
     os.path.join("22x22", "mimetypes", "application-x-zerosize.svg"): _PAGE_22,
+    # The certificate-revocation-list item icon KDE draws for
+    # `application/pkix-crl` items (the type-spelled icon name of the
+    # installed shared MIME database's `application/pkix-crl` type, which
+    # has no `generic-icon`, no aliases and no per-type fallback, so one
+    # file covers exactly its own name); the drawing shares the generic
+    # document's page and holds grey entry rows struck through by a
+    # stepped black diagonal (the strike-out is what separates it from
+    # the certificate's award-seal band and the JSON document's braces).
+    os.path.join("32x32", "mimetypes", "application-pkix-crl.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="10", y="11", width="12", height="2", fill="#999999"),
+        _shape("rect", x="10", y="15", width="12", height="2", fill="#999999"),
+        _shape("rect", x="10", y="19", width="12", height="2", fill="#999999"),
+        _shape("rect", x="10", y="12", width="2", height="2", fill="#000000"),
+        _shape("rect", x="12", y="14", width="2", height="2", fill="#000000"),
+        _shape("rect", x="14", y="16", width="2", height="2", fill="#000000"),
+        _shape("rect", x="16", y="18", width="2", height="2", fill="#000000"),
+        _shape("rect", x="18", y="20", width="2", height="2", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-pkix-crl.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="5", y="6", width="6", height="1", fill="#999999"),
+        _shape("rect", x="5", y="8", width="6", height="1", fill="#999999"),
+        _shape("rect", x="5", y="10", width="6", height="1", fill="#999999"),
+        _shape("rect", x="5", y="7", width="1", height="1", fill="#000000"),
+        _shape("rect", x="6", y="8", width="1", height="1", fill="#000000"),
+        _shape("rect", x="7", y="9", width="1", height="1", fill="#000000"),
+        _shape("rect", x="8", y="10", width="1", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-pkix-crl.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="7", y="9", width="8", height="1", fill="#999999"),
+        _shape("rect", x="7", y="12", width="8", height="1", fill="#999999"),
+        _shape("rect", x="7", y="15", width="8", height="1", fill="#999999"),
+        _shape("rect", x="7", y="10", width="1", height="1", fill="#000000"),
+        _shape("rect", x="8", y="11", width="1", height="1", fill="#000000"),
+        _shape("rect", x="9", y="12", width="1", height="1", fill="#000000"),
+        _shape("rect", x="10", y="13", width="1", height="1", fill="#000000"),
+        _shape("rect", x="11", y="14", width="1", height="1", fill="#000000"),
+        _shape("rect", x="12", y="15", width="1", height="1", fill="#000000"),
+    ),
     os.path.join("22x22", "mimetypes", "unknown.svg"): _PAGE_22,
     os.path.join("32x32", "mimetypes", "application-octet-stream.svg"): _PAGE_32,
     os.path.join("32x32", "mimetypes", "application-x-zerosize.svg"): _PAGE_32,

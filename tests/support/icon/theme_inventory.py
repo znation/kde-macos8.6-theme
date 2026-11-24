@@ -395,6 +395,16 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-pkix-cert.svg"),
     os.path.join("16x16", "mimetypes", "application-pkix-cert.svg"),
     os.path.join("22x22", "mimetypes", "application-pkix-cert.svg"),
+    # The certificate-revocation-list `application-pkix-crl` icon at all
+    # three sizes (our own drawing of the generic document's page with
+    # grey entry rows struck through by a stepped black diagonal; the
+    # name is the type-spelled icon name of the `application/pkix-crl`
+    # MIME type, whose MIME-database entry has no `generic-icon`, no
+    # aliases and no per-type fallback, so one file covers the exact
+    # name, and Breeze ships no file for it at all).
+    os.path.join("32x32", "mimetypes", "application-pkix-crl.svg"),
+    os.path.join("16x16", "mimetypes", "application-pkix-crl.svg"),
+    os.path.join("22x22", "mimetypes", "application-pkix-crl.svg"),
     # The NZB usenet-index `application-x-nzb` icon at all three sizes
     # (our own drawing of the generic document's page with index dot and
     # grey segment-bar groups; the name is the type-spelled icon name of

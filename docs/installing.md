@@ -194,7 +194,9 @@ OpenPGP-signature icon for detached signature files (the
 for script files (the `application-x-shellscript` name at the same three
 sizes), a core-dump icon for core-dump files (the `application-x-core`
 name at the same three sizes), a certificate icon for X.509 certificate
-files (the `application-pkix-cert` name at the same three sizes), an
+files (the `application-pkix-cert` name at the same three sizes), a
+certificate-revocation-list icon for certificate revocation list files
+(the `application-pkix-crl` name at the same three sizes), an
 Android-package icon for Android package files (the
 `application-vnd.android.package-archive` name at the same three sizes), a
 WIM disk-image icon for WIM and split WIM disk-image files (the
