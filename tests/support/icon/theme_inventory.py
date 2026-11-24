@@ -47,7 +47,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `application-x-core` icon at all three sizes (our own drawing of that
 # document with a crash-core band; the name is the type-spelled icon
 # name of the `application/x-core` MIME type in the installed shared
-# MIME database), the package
+# MIME database), the Android-package
+# `application-vnd.android.package-archive` icon at all three sizes
+# (our own drawing of that document with a zipper band; the name is
+# the type-spelled icon name of the `application/vnd.android.package-archive`
+# MIME type in the installed shared MIME database), the package
 # `package-x-generic` icon at all three sizes (our own drawing of a sealed
 # box; the name is the `generic-icon` of the archive and package MIME types
 # in the installed shared MIME database), the ZIP-archive
@@ -343,6 +347,17 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-core.svg"),
     os.path.join("16x16", "mimetypes", "application-x-core.svg"),
     os.path.join("22x22", "mimetypes", "application-x-core.svg"),
+    # The Android-package `application-vnd.android.package-archive` icon
+    # at all three sizes (our own drawing of the shell-script document's
+    # page with a black band holding interlocked zipper teeth; the name
+    # is the type-spelled icon name of the `application/vnd.android.package-archive`
+    # MIME type in the installed shared MIME database, which has no
+    # `generic-icon`, no aliases and no per-type fallback, and at the
+    # exact name Breeze's own file beats the theme's otherwise-missing
+    # fallback).
+    os.path.join("32x32", "mimetypes", "application-vnd.android.package-archive.svg"),
+    os.path.join("16x16", "mimetypes", "application-vnd.android.package-archive.svg"),
+    os.path.join("22x22", "mimetypes", "application-vnd.android.package-archive.svg"),
     # The desktop-launcher `application-x-desktop` icon at all three sizes
     # (our own drawing of the generic document's page with a small window;
     # the name is the type-spelled icon name of the `application/x-desktop`
