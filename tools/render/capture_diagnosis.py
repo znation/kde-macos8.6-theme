@@ -28,11 +28,19 @@ def capture_is_unpainted(rgb: bytes) -> bool:
 
 
 def log_size(log: Path) -> str:
-    """Return the size of the session log, or ``missing`` when it is absent."""
+    """Return the log's size, ``missing`` when absent, or the stat error.
+
+    Only a ``FileNotFoundError`` names an absent log: any other ``OSError``
+    (an unreadable directory, a permission error) leaves the log in place,
+    so reporting ``missing`` would send the operator looking for a file
+    that exists but cannot be inspected; the error text names it instead.
+    """
     try:
         return f"{log.stat().st_size} bytes"
-    except OSError:
+    except FileNotFoundError:
         return "missing"
+    except OSError as exc:
+        return f"unreadable: {exc}"
 
 
 def report_render_log(log: Path, tool: str) -> None:

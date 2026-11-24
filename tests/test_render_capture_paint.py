@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import contextlib
+import errno
 import io
 import os
 import unittest
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
@@ -83,6 +85,23 @@ class TestRenderLogReport(unittest.TestCase):
         self.assertEqual(
             "missing", capture_diagnosis.log_size(root / "absent.log")
         )
+
+    def test_log_size_reports_a_stat_error_instead_of_missing(self):
+        # An EACCES from the log's stat leaves the log in place: reporting
+        # ``missing`` would name an absent file, so the error text names the
+        # unreadable log instead. The failure is injected on Path.stat
+        # because a permission-bit test passes falsely under a privileged
+        # test user.
+        root = tmp_dir.make_tmp_dir(self)
+        log = root / "session.log"
+        log.write_bytes(b"twelve bytes")
+        denied = OSError(errno.EACCES, "Permission denied", str(log))
+        with mock.patch.object(
+            type(log), "stat", side_effect=denied
+        ):
+            self.assertEqual(
+                f"unreadable: {denied}", capture_diagnosis.log_size(log)
+            )
 
     def test_report_prints_the_log_size_and_each_tail_line(self):
         root = tmp_dir.make_tmp_dir(self)
