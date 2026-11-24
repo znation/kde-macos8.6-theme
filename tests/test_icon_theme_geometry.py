@@ -442,6 +442,57 @@ ICON_SHAPES = {
         _shape("rect", x="7", y="12", width="8", height="1", fill="#999999"),
         _shape("rect", x="7", y="14", width="8", height="1", fill="#999999"),
     ),
+    os.path.join("32x32", "mimetypes", "text-x-script.svg"): (
+        _shape("path", d="M6 3 h14 l6 6 v20 H6 Z", fill="#000000"),
+        _shape("path", d="M7 4 h12 l6 6 v18 H7 Z", fill="#FFFFFF"),
+        _shape("path", d="M19 4 L25 4 L25 10 Z", fill="#DDDDDD"),
+        _shape("rect", x="12", y="11", width="2", height="2", fill="#000000"),
+        _shape("rect", x="10", y="13", width="2", height="2", fill="#000000"),
+        _shape("rect", x="8", y="15", width="2", height="2", fill="#000000"),
+        _shape("rect", x="10", y="17", width="2", height="2", fill="#000000"),
+        _shape("rect", x="12", y="19", width="2", height="2", fill="#000000"),
+        _shape("rect", x="18", y="11", width="2", height="2", fill="#000000"),
+        _shape("rect", x="20", y="13", width="2", height="2", fill="#000000"),
+        _shape("rect", x="22", y="15", width="2", height="2", fill="#000000"),
+        _shape("rect", x="20", y="17", width="2", height="2", fill="#000000"),
+        _shape("rect", x="18", y="19", width="2", height="2", fill="#000000"),
+        _shape("rect", x="10", y="23", width="12", height="1", fill="#999999"),
+        _shape("rect", x="10", y="25", width="8", height="1", fill="#999999"),
+    ),
+    os.path.join("16x16", "mimetypes", "text-x-script.svg"): (
+        _shape("path", d="M3 1 h7 l3 3 v10 H3 Z", fill="#000000"),
+        _shape("path", d="M4 2 h5 l3 3 v8 H4 Z", fill="#FFFFFF"),
+        _shape("path", d="M9 2 L12 2 L12 5 Z", fill="#DDDDDD"),
+        _shape("rect", x="6", y="6", width="1", height="1", fill="#000000"),
+        _shape("rect", x="5", y="7", width="1", height="1", fill="#000000"),
+        _shape("rect", x="5", y="8", width="1", height="1", fill="#000000"),
+        _shape("rect", x="6", y="9", width="1", height="1", fill="#000000"),
+        _shape("rect", x="9", y="6", width="1", height="1", fill="#000000"),
+        _shape("rect", x="10", y="7", width="1", height="1", fill="#000000"),
+        _shape("rect", x="10", y="8", width="1", height="1", fill="#000000"),
+        _shape("rect", x="9", y="9", width="1", height="1", fill="#000000"),
+        _shape("rect", x="5", y="11", width="6", height="1", fill="#999999"),
+    ),
+    os.path.join("22x22", "mimetypes", "text-x-script.svg"): (
+        _shape("path", d="M4 1 h10 l4 4 v15 H4 Z", fill="#000000"),
+        _shape("path", d="M5 2 h8 l4 4 v13 H5 Z", fill="#FFFFFF"),
+        _shape("path", d="M13 2 L17 2 L17 6 Z", fill="#DDDDDD"),
+        _shape("rect", x="9", y="8", width="1", height="1", fill="#000000"),
+        _shape("rect", x="8", y="9", width="1", height="1", fill="#000000"),
+        _shape("rect", x="7", y="10", width="1", height="1", fill="#000000"),
+        _shape("rect", x="6", y="11", width="1", height="1", fill="#000000"),
+        _shape("rect", x="7", y="12", width="1", height="1", fill="#000000"),
+        _shape("rect", x="8", y="13", width="1", height="1", fill="#000000"),
+        _shape("rect", x="9", y="14", width="1", height="1", fill="#000000"),
+        _shape("rect", x="12", y="8", width="1", height="1", fill="#000000"),
+        _shape("rect", x="13", y="9", width="1", height="1", fill="#000000"),
+        _shape("rect", x="14", y="10", width="1", height="1", fill="#000000"),
+        _shape("rect", x="15", y="11", width="1", height="1", fill="#000000"),
+        _shape("rect", x="14", y="12", width="1", height="1", fill="#000000"),
+        _shape("rect", x="13", y="13", width="1", height="1", fill="#000000"),
+        _shape("rect", x="12", y="14", width="1", height="1", fill="#000000"),
+        _shape("rect", x="7", y="17", width="8", height="1", fill="#999999"),
+    ),
     os.path.join("32x32", "mimetypes", "text-html.svg"): (
         _shape("rect", x="3", y="5", width="26", height="22", fill="#000000"),
         _shape("rect", x="4", y="6", width="24", height="4", fill="#DDDDDD"),
@@ -722,6 +773,27 @@ class TestIconGeometry(unittest.TestCase):
                 )
             )
             self.assertEqual(spreadsheet[:3], generic, size)
+
+    def test_the_script_document_shares_the_generic_page(self):
+        # The script document is the generic document's page (its first
+        # three drawing elements: the black outline, the white page and the
+        # folded corner) with angle brackets and code lines in place of the
+        # generic's text lines, so at each size the shipped
+        # `text-x-script.svg`'s first three drawing elements must be the
+        # shipped `text-x-generic.svg`'s. Compare the files, so a drift in
+        # either file fails both.
+        for size in ("16x16", "22x22", "32x32"):
+            generic = _drawing_elements(
+                parse_svg(
+                    os.path.join(PACKAGE, size, "mimetypes", "text-x-generic.svg")
+                )
+            )[:3]
+            script = _drawing_elements(
+                parse_svg(
+                    os.path.join(PACKAGE, size, "mimetypes", "text-x-script.svg")
+                )
+            )
+            self.assertEqual(script[:3], generic, size)
 
     def test_standard_places_file_names_are_shipped(self):
         # The shared inventory must cover the names the standard places data

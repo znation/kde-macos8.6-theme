@@ -145,7 +145,9 @@ document, Trash and full-Trash icons, drawn at 32x32 with 16x16 and 22x22 rendit
 document for untyped and empty files (the `application-octet-stream`, `application-x-zerosize`
 and `unknown` names at the same three sizes), a program icon for program
 files (the `application-x-executable` name at the same three sizes), a shell-script
-icon for script files (the `application-x-shellscript` name at the same three sizes), a
+icon for script files (the `application-x-shellscript` name at the same
+three sizes), a script icon for the script types without their own shipped
+name (the `text-x-script` name at the same three sizes), a
 package icon for archive, compressed and package files (the `package-x-generic` name at
 the same three sizes), an office-document icon for document files (the
 `x-office-document` name at the same three sizes), a spreadsheet icon for
