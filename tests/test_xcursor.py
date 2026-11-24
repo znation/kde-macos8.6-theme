@@ -45,6 +45,31 @@ class TestWriteReadRoundTrip(unittest.TestCase):
                 self.assertEqual(parsed, xcursor_reader.CursorFile((expected,)))
                 self.assertEqual(parsed.images[0].png, record[5])
 
+    def test_a_nominal_size_and_width_exactly_at_the_cap_round_trip(self):
+        # The dimension check is inclusive at its upper end: a record whose
+        # nominal size and width sit exactly on MAX_IMAGE_SIZE is valid. A
+        # half-open cap (< MAX) would shrink the writable cursor surface by
+        # one unit while every above-the-maximum refusal test still passes,
+        # so the at-cap acceptance needs its own pin. The lower end and the
+        # hotspot bounds (nominal 1, hotspots 0 and size-1) are already
+        # pinned by the frame_record round trips above.
+        png = encode_rgba_png(
+            xcursor.MAX_IMAGE_SIZE, 1, opaque_frame(xcursor.MAX_IMAGE_SIZE, 1)
+        )
+        record = (
+            xcursor.MAX_IMAGE_SIZE,      # nominal_size
+            xcursor.MAX_IMAGE_SIZE,      # width
+            1,                           # height
+            xcursor.MAX_IMAGE_SIZE - 1,  # hotspot_x at its width-1 upper bound
+            0,                           # hotspot_y at its 1-pixel image's bound
+            png,
+        )
+        parsed = xcursor_reader.read_cursor(self.write([record]))
+        self.assertEqual(
+            parsed,
+            xcursor_reader.CursorFile((xcursor_reader.CursorImage(*record),)),
+        )
+
     def test_same_records_produce_byte_identical_files(self):
         records = [frame_record(size) for size in SIZES]
         self.assertEqual(xcursor.write_cursor(records), xcursor.write_cursor(records))
