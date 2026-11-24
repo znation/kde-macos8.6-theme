@@ -202,6 +202,152 @@ drawing is this theme's own choice.
   `make check` after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw detached OpenPGP signatures with an original `application-pgp-signature` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A detached OpenPGP signature file (`*.sig`, `*.gpg`,
+`*.pgp` or `*.asc`, as the file manager identifies it) draws Breeze's
+art beside the Platinum documents and folders. Ship one original
+placeholder icon, `application-pgp-signature`, at 16x16, 22x22 and
+32x32, in the same mimetype-item series as the landed
+`application-pgp-keys` key and the in-flight
+`application-x-mimearchive` MHTML and queued
+`application-x-qemu-disk` entries.
+Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/pgp-signature` ("Detached OpenPGP signature") with no
+`<icon>` element, no `<generic-icon>` element, no `<alias>` element,
+no `<sub-class-of>` element and one `<magic>` matcher (the string
+`-----BEGIN PGP SIGNATURE-----` at offset 0); its globs are `*.sig`
+at the default weight 50, owned by no other MIME type, plus `*.pgp`
+and `*.gpg`, each at weight 50 and each shared with
+`application/pgp-encrypted` and `application/pgp-keys`, and `*.asc`
+at weight 10 shared with `application/pgp-encrypted`,
+`application/pgp-keys` and `text/plain`; the string
+`application-pgp-signature` occurs 0 times in the database
+(`str.count` is 0 — `grep -c` counts lines, not matches). With no
+generic-icon element and no parent type the lookup asks the literal
+type-spelled name; the theme's `index.theme` declares
+`Inherits=breeze`, so the lookup falls through to Breeze's exact-name
+file (Breeze ships `application-pgp-signature.svg` at 16, 22, 24, 32
+and 64, each verified with a `[ -f ]` check). Planning-time probe on
+2026-11-24 with `kiconfinder6`, the theme installed into scratch XDG
+homes (`XDG_DATA_HOME` naming the installed scratch data root,
+`XDG_DATA_DIRS=/usr/share`, `[Icons] Theme=org.macos8.desktop` in the
+scratch `kdeglobals`, `QT_QPA_PLATFORM=offscreen`, no `DISPLAY`):
+`application-pgp-signature` resolved to
+`:/icons/breeze/mimetypes/32/application-pgp-signature.svg` while
+`text-x-generic` resolved to the theme's own 32x32 file — the gap is
+real, not the screened-out shape where the theme's own generic art
+wins. No reference screenshot shows a detached-signature item icon,
+so no reference pixels are used and the drawing is this theme's own
+choice.
+
+**Approach.**
+
+- Add `mimetypes/application-pgp-signature.svg` under `16x16`,
+  `22x22` and `32x32` of `theme/icons/org.macos8.desktop/`.
+  `index.theme` already declares the three MimeTypes directories.
+  Give each file the XML declaration, the comment `<!--
+  PLACEHOLDER: original detached OpenPGP-signature illustration
+  pending user-approved artwork. -->`, a short comment saying it is
+  our own drawing in the Platinum palette, not traced from anyone's
+  artwork, and a root with matching `width`, `height` and `viewBox`.
+  The art shares the shell-script document's page (every drawing
+  element of that size's `application-x-shellscript.svg`: the page
+  outline, white page and folded-corner flap) and holds a black
+  signature stroke — a stepped ink flourish stepping down and up
+  across the page's foot with a straight underline beneath it, a pen
+  signing off the detached signature — an original mark distinct from
+  the key's wards-and-blade, the web-document window's globe, the
+  shell script's `>_` prompt, JSON's curly braces, BitTorrent's
+  download arrow and tray, the backup file's tilde, the crash core's
+  square ring and center dot, the database canister, the ISO disc's
+  capital I, the Squashfs tapering bands, the WIM split-volume gap,
+  the NZB dot-and-bars groups, the paperclip of the waiting MHTML
+  entry, the certificate's seal-and-ribbons, the Android zipper teeth
+  and the deb box's letter D:
+  - 32x32: the three shared page elements; then, all `#000000`, the
+    stroke `9,18 3×1` (cols 9..11, row 18), `12,17 3×1` (cols 12..14,
+    row 17), `15,18 3×1` (cols 15..17, row 18), `18,17 3×1` (cols
+    18..20, row 17), `21,18 2×1` (cols 21..22, row 18) and the
+    underline `9,20 14×1` (cols 9..22, row 20); every cell sits
+    inside the white page and clear of the flap.
+  - 22x22: the three shared page elements; then, all `#000000`, the
+    stroke `7,13 2×1` (cols 7..8, row 13), `9,12 2×1` (cols 9..10,
+    row 12), `11,13 2×1` (cols 11..12, row 13), `13,12 2×1` (cols
+    13..14, row 12), `15,13 2×1` (cols 15..16, row 13) and the
+    underline `7,15 10×1` (cols 7..16, row 15); every cell sits
+    inside the white page and clear of the flap.
+  - 16x16: the three shared page elements; then, all `#000000`, the
+    stroke `5,10 2×1` (cols 5..6, row 10), `7,9 2×1` (cols 7..8,
+    row 9), `9,10 2×1` (cols 9..10, row 10) and the underline `5,12
+    7×1` (cols 5..11, row 12); every cell sits inside the white page
+    and clear of the flap.
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the PGP-key rows,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings
+  in `PINS` from the lists above (the `*_PAGE_*` page tuple, then the
+  stroke segments left to right, then the underline).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-pgp-signature` in the last cell, as the
+  `application-pgp-keys` sentence there does.
+- `docs/installing.md`: add the detached OpenPGP-signature icon to
+  the sentence listing the icon theme's placeholder illustrations and
+  their sizes.
+- The in-flight MHTML and queued QEMU QCOW entries edit the same
+  inventory block, `PINS` registry, invariants row and installing.md
+  sentence; this entry sits behind them in the queue, so rebase on
+  whatever they have landed when picking this up, keeping one row per
+  icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the page elements matching
+  the `application-x-shellscript.svg` pin's page tuple, in the same
+  order, then the stroke segments left to right and the underline),
+  carries a placeholder marker and has a `PLACEHOLDERS.md` row; the
+  existing inventory, palette, geometry and placeholder-register tests
+  cover all three.
+- Changing one signature-stroke rect's position, size or fill, or the
+  element order, in one file makes the geometry test fail; dropping a
+  file while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The `#000000`, `#FFFFFF` and `#DDDDDD` fills stay inside
+  `PLATINUM_FILLS`, so `test_each_icon_uses_only_the_platinum_palette`
+  passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch `XDG_DATA_HOME`, use a scratch `HOME`,
+  `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset
+  `DISPLAY` and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `application-pgp-signature` resolves to the theme's 32x32
+  `mimetypes/application-pgp-signature.svg` (at planning time, before
+  this change, it resolved to Breeze's
+  `:/icons/breeze/mimetypes/32/application-pgp-signature.svg`), and
+  `text-x-generic` still resolves to the theme's own file. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 
 ## Done
 
