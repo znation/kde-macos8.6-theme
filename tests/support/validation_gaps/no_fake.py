@@ -196,7 +196,7 @@ NO_FAKE_REPRODUCTIONS = (
     Reproduction(
         "invariants-nul-row",
         ("register reference with a NUL byte",),
-        "tests/test_invariants.py::TestHelpers"
+        "tests/test_invariants_cross_check.py::TestCrossCheck"
         "::test_cross_check_rejects_a_reference_with_a_nul_byte",
     ),
     Reproduction(

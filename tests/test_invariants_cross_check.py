@@ -2,19 +2,24 @@
 
 The register-shape tests here cover what a valid register is and how
 ``cross_check`` rejects a malformed or unreadable one, from the data row
-through the blank provenance cell. The shipped-register drive stays in
+through the blank provenance cell. The reference-resolution tests cover how a
+row's test reference is resolved against the repository, and the control-
+character escapes cover both. The parser and shipped-register drive stay in
 ``tests/test_invariants.py``; the shared fixture is ``InvariantsRegisterTestCase``
 in ``tests/support/invariants_register_case.py``.
 """
 
+import traceback
 import unittest
 from unittest import mock
 
 from support import invariants
+from support.error_assertions import assert_escapes_escape_character
 from support.invariants import cross_check
 from support.invariants_register_case import InvariantsRegisterTestCase
 from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
+from tools import containment as containment_impl
 
 
 class TestCrossCheck(InvariantsRegisterTestCase):
@@ -276,6 +281,229 @@ class TestCrossCheck(InvariantsRegisterTestCase):
         )
         with self.assertRaisesRegex(AssertionError, "blank provenance"):
             cross_check(self.root, register)
+
+    def test_cross_check_rejects_a_missing_test_file(self):
+        self.assert_cross_check_rejects(
+            "absent_module::TestFake", "missing file"
+        )
+
+    def test_cross_check_rejects_a_reference_to_an_unparseable_file(self):
+        # `check_reference` reads the named module with `ast.parse` to find its
+        # classes. A file that is not UTF-8, or not valid Python, makes that
+        # read raise `UnicodeDecodeError`/`SyntaxError` -- an exception that
+        # names neither the register section nor the reference, so the failure
+        # a maintainer sees does not say which row points at the broken file.
+        # Both must surface as the register's own `AssertionError`.
+        for name, content in (
+            ("not_utf8", b"import unittest\n\n# \xff\xfe stray byte\n"),
+            ("not_python", b"def (:\n"),
+        ):
+            with self.subTest(module=name):
+                (self.root / name).write_bytes(content)
+                register = self._valid_register(
+                    [("The thing holds.", f"{name}::TestFake")]
+                )
+                with self.assertRaisesRegex(
+                    AssertionError, "cannot be read as Python"
+                ):
+                    cross_check(self.root, register)
+
+    def test_cross_check_rejects_a_reference_to_a_file_it_cannot_read(self):
+        # `check_reference`'s isfile guard passes a file that exists but
+        # cannot be opened (a permission error, for example), so the
+        # `_defined_names` read raises `OSError`. That exception names
+        # neither the register section nor the reference, so a maintainer
+        # cannot tell which row points at the unreadable file. `OSError` is
+        # one of the four exception types the read guard catches; the other
+        # three (`UnicodeDecodeError`, `SyntaxError`, `ValueError`) are pinned
+        # above or below, so this case keeps the `OSError` arm observable.
+        register = self._valid_register(
+            [("The thing holds.", f"{self.MODULE}::TestFake")]
+        )
+        with mock.patch.object(
+            invariants, "_defined_names", side_effect=OSError("permission denied")
+        ):
+            with self.assertRaisesRegex(AssertionError, "cannot be read as Python"):
+                cross_check(self.root, register)
+
+    def test_cross_check_rejects_an_oversize_module_instead_of_loading_it_whole(self):
+        # A register row names a test module by path, and that module is
+        # contributor-supplied. A multi-gigabyte file must be refused by the
+        # shared reader's cap by name instead of being loaded whole, which
+        # could raise a MemoryError naming neither the row nor the file.
+        module = self.root / "huge_module.py"
+        module.write_bytes(b"x" * (containment_impl._MAX_READ_BYTES + 1))
+        register = self._valid_register(
+            [("The thing holds.", "huge_module.py::TestFake")]
+        )
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(self.root, register)
+        self.assertIn(str(module), str(caught.exception))
+        self.assertIn("larger than", str(caught.exception))
+
+    def test_cross_check_rejects_a_reference_with_a_nul_byte(self):
+        # A NUL byte in the reference reaches `os.path.realpath`, which raises
+        # `ValueError: embedded null character in path` before the
+        # isfile/parse guards. That exception names neither the section nor
+        # the reference, so the row that broke the register is unidentifiable.
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}\x00::TestFake", "NUL"
+        )
+
+    def test_cross_check_rejects_a_missing_class(self):
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::TestNope", "missing class TestNope"
+        )
+
+    def test_cross_check_rejects_an_empty_qualifier(self):
+        # `path::` names no class, so it pins the guarantee to no test. The
+        # bare `path` form is the documented way to name the whole file, so
+        # the trailing `::` is a malformed reference, not a file reference.
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::", "names no class or method"
+        )
+
+    def test_cross_check_rejects_a_reference_with_a_trailing_segment(self):
+        # `path::Class::method::junk` names the class and method but then a
+        # fourth segment that the reference grammar has no room for; accepting
+        # it would let a malformed reference pin a guarantee to a test it may
+        # not actually name.
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::TestFake::test_ok::junk",
+            "more than a class and method",
+        )
+
+    def test_cross_check_rejects_a_missing_method(self):
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::TestFake::test_nope", "missing method test_nope"
+        )
+
+    def test_cross_check_rejects_a_reference_to_a_non_test_method(self):
+        # `path::Class::setUp` names a method that exists but is not a test,
+        # so the row pins its guarantee to a helper instead of the test that
+        # enforces it. Only `test`-prefixed methods are tests unittest runs.
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::TestFake::setUp", "not a test"
+        )
+
+    def test_cross_check_rejects_a_class_with_no_tests(self):
+        # `path::Helper` names a class that exists but is not a test case, so
+        # the row pins its guarantee to a helper class instead of the tests
+        # that enforce it. A class reference must resolve to a collected test.
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::Helper", "not a test case"
+        )
+
+    def test_cross_check_rejects_a_method_on_a_class_with_no_test_case(self):
+        # `path::NotATestCase::test_looks_like_a_test` names a test-prefixed
+        # method on a class with no TestCase base, so unittest never collects
+        # it; accepting the reference would pin the guarantee to a method that
+        # never runs. The class check must apply to method references too.
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::NotATestCase::test_looks_like_a_test",
+            "not a test case",
+        )
+
+    def test_cross_check_rejects_a_local_base_that_only_looks_like_a_test_case(self):
+        # `path::TestNotCollected` inherits from `FakeTestCase`, a class
+        # defined in the same module that does not reach `unittest.TestCase`.
+        # The `*TestCase` name suffix is a heuristic for bases imported from
+        # elsewhere; applying it to a locally defined base would accept a
+        # class unittest never collects, pinning the guarantee to no test.
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::TestNotCollected::test_ok", "not a test case"
+        )
+
+    def test_cross_check_rejects_a_reference_outside_the_repository(self):
+        # `check_reference` joins the register's path onto the repository
+        # root. An absolute path replaces the root, and a `..` segment climbs
+        # out of it, so either form can name a module that is not part of the
+        # repository; accepting it would pin a guarantee to a test outside the
+        # tree the register is meant to cover.
+        base = make_tmp_dir(self)
+        outside = base / "outside"
+        write_file(
+            outside / self.MODULE,
+            "import unittest\n\n\n"
+            "class TestFake(unittest.TestCase):\n"
+            "    def test_ok(self):\n"
+            "        pass\n",
+        )
+        repo = base / "repo"
+        (repo / "theme" / "aurorae").mkdir(parents=True)
+        register = repo / "docs" / "invariants.md"
+        register.parent.mkdir(parents=True)
+        for path in (str(outside / self.MODULE), f"../outside/{self.MODULE}"):
+            with self.subTest(path=path):
+                write_file(
+                    register,
+                    "# Invariants\n\n## aurorae\n\n"
+                    + self._table([("The thing holds.", f"{path}::TestFake")])
+                    + "\n## tooling\n\n"
+                    + self._table([("The gate holds.", f"{path}::TestFake::test_ok")]),
+                )
+                with self.assertRaisesRegex(AssertionError, "outside the repository"):
+                    cross_check(repo, str(register))
+
+    def test_cross_check_escapes_control_characters_in_a_section_heading(self):
+        # A register heading names the section echoed by cross_check. An ESC in
+        # that heading must not drive the terminal of the maintainer reading a
+        # failed check.
+        register = self._register(
+            "# Invariants\n\n"
+            "## aurorae\n\n"
+            + self._table([("The thing holds.", f"{self.MODULE}::TestFake")])
+            + "\n## evil\x1b]0;pwned\x07\n\n"
+            + self._table([("The evil thing holds.", f"{self.MODULE}::TestFake")])
+            + "\n## tooling\n\n"
+            + self._table([("The gate holds.", f"{self.MODULE}::TestFake::test_ok")])
+        )
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(self.root, register)
+        assert_escapes_escape_character(self, str(caught.exception))
+
+    def test_cross_check_escapes_control_characters_in_a_reference(self):
+        # A register row's Test cell is contributor-supplied, and the missing
+        # file diagnostic echoes the reference. An ESC in the reference must be
+        # escaped rather than reaching the terminal live.
+        register = self._valid_register(
+            [("The thing holds.", "evil\x1b]0;pwned\x07.py::TestFake")]
+        )
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(self.root, register)
+        assert_escapes_escape_character(self, str(caught.exception))
+
+    def test_cross_check_escapes_control_characters_in_a_syntax_error(self):
+        # _parse_test_module chains the SyntaxError from a broken module to the
+        # register's diagnostic, and a formatted traceback reprints that
+        # exception's offending source line. An ESC on that line must not reach
+        # the terminal live; the escaped reference keeps the visible marker too.
+        bad = "bad\x1b]0;pwned\x07.py"
+        (self.root / bad).write_text(
+            "def (\x1b]0;pwned\x07:\n", encoding="utf-8"
+        )
+        register = self._valid_register(
+            [("The thing holds.", f"{bad}::TestFake")]
+        )
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(self.root, register)
+        rendered = "".join(
+            traceback.format_exception(
+                type(caught.exception),
+                caught.exception,
+                caught.exception.__traceback__,
+            )
+        )
+        assert_escapes_escape_character(self, rendered)
+
+    def test_cross_check_escapes_control_characters_in_a_theme_subsystem(self):
+        # A theme directory's name is contributor-supplied too; cross_check
+        # echoes it when the register has no section for it. An ESC in the name
+        # must not reach the terminal as a live byte.
+        (self.root / "theme" / "evil\x1b]0;pwned\x07").mkdir()
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(self.root, self._valid_register())
+        assert_escapes_escape_character(self, str(caught.exception))
 
 
 if __name__ == "__main__":
