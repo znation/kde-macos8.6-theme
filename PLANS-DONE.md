@@ -5,6 +5,160 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw FLAC audio with an original `audio-flac` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** A FLAC audio file (`*.flac`, as the file manager identifies
+it) draws this theme's own mark beside the Platinum documents and
+folders instead of falling through to the generic audio art. Ship one
+original placeholder icon, `audio-flac`, at 16x16, 22x22 and 32x32, in
+the page-backed mimetype-item series the `audio-ogg` icon belongs to.
+Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`audio/flac` ("FLAC audio") with no `<icon>` element, no
+`<generic-icon>` element and no `<sub-class-of>` element, the single
+`<glob pattern="*.flac"/>` at the default weight 50, the `<magic>`
+string match `fLaC` at offset 0 and one `<alias type="audio/x-flac"/>`
+(no separate `audio/x-flac` block exists); the dash-form name
+`audio-flac` occurs 0 times in the database (`grep -o` count 0). With
+no `generic-icon` the type asks its literal dash-form name first. A
+`kiconfinder6` probe run at planning time (2026-11-24, theme installed
+into scratch `XDG_DATA_HOME`/`XDG_CONFIG_HOME`) resolved `audio-flac`
+to the theme's own `32x32/mimetypes/audio-x-generic.svg` — the
+generic-audio fallback — and Breeze ships no exact-name file (no `flac`
+hit under `/usr/share/icons/breeze/mimetypes` or
+`/usr/share/icons/breeze-dark/mimetypes`), so nothing competes for the
+name and shipping it wins the exact-name match. No reference
+screenshot shows a `.flac` item icon, so no reference pixels are used
+and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/audio-flac.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares
+  the three MimeTypes directories. Give each file the XML declaration,
+  the comment `<!-- PLACEHOLDER: original FLAC audio illustration
+  pending user-approved artwork. -->`, a short comment saying it is
+  our own drawing in the Platinum palette, not traced from anyone's
+  artwork, and a root with matching `width`, `height` and `viewBox`.
+  The art shares the generic document's page (the `_PAGE_16`,
+  `_PAGE_22` and `_PAGE_32` tuples the
+  `tests/support/icon/shape_pins/_shared.py` registry keeps) and adds
+  one connected black waveform-pulse polygon — an EKG-style zigzag
+  ribbon two pixels thick, drawn as a single filled `polygon` (no
+  stroke, no `fill="none"`): a flat lead-in, a tall up-spike, a deep
+  dip below the baseline and a flat tail. One connected zigzag mark is
+  distinct from the four disjoint equalizer bars `audio-ogg.svg`
+  draws on the same page, the beamed note pair `audio-x-generic.svg`
+  draws and every other mark in the series:
+  - 32x32: the three `_PAGE_32` elements, then
+    `<polygon points="9,21 12,21 14,15 15,15 17,25 20,21 23,21 23,23
+    20,23 17,27 15,17 14,17 12,23 9,23" fill="#000000"/>` (top edge
+    left to right, then the same zigzag two rows lower, right to
+    left).
+  - 22x22: the three `_PAGE_22` elements, then
+    `<polygon points="7,15 9,15 10,11 11,11 12,18 14,15 16,15 16,17
+    14,17 12,20 11,13 10,13 9,17 7,17" fill="#000000"/>`.
+  - 16x16: the three `_PAGE_16` elements, then
+    `<polygon points="5,9 6,9 7,6 8,6 9,10 10,8 11,8 11,10 10,10
+    9,12 8,8 7,8 6,11 5,11" fill="#000000"/>`.
+
+  A script run at planning time checked every vertex of each polygon
+  sits strictly inside that size's white page polygon (clear of the
+  folded flap's diagonal, `y = x - 15` at 32, `y = x - 11` at 22 and
+  `y = x - 7` at 16) and that no polygon self-intersects. Validate by
+  XML only, never by rasterizing: `convert`'s MSVG reader bleeds 1px
+  shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the `audio-ogg` rows,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the `audio-ogg` paths in `SHIPPED_ICONS`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three
+  drawings in `PINS` beside the `audio-ogg` pins (the `_PAGE_*`
+  elements spread as the prefix, then the polygon exactly as listed).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `audio-flac` in the last cell, as the `audio-ogg`
+  sentence there does.
+- `docs/installing.md`: add the FLAC audio icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes
+  (the one naming the `audio-ogg` files).
+- The queued mimetype-icon entries ahead of this one (the in-flight
+  `application-x-rpm` plan and the pending
+  `application-vnd.flatpak.repo` plan) edit the same inventory block,
+  `PINS` registry, invariants row and installing.md sentence; this
+  entry sits behind them in the queue, so rebase on whatever they
+  have landed when picking this up, keeping one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the three `_PAGE_*`
+  elements matching the `text-x-generic` pins, then the pulse
+  polygon), carries a placeholder marker and has a `PLACEHOLDERS.md`
+  row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing the polygon's points or fill, or the element order, in one
+  file makes the geometry test fail; deleting a file while its paths
+  remain in `SHIPPED_ICONS` makes the inventory test fail.
+- The polygon's `#000000` fill (over the page's `#000000`, `#FFFFFF`
+  and `#DDDDDD`) stays inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- The pulse polygon shares no drawing element with the `audio-ogg`
+  equalizer bars or the `audio-x-generic` note rects, so the audio
+  marks stay visually distinct.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into
+  a scratch `XDG_DATA_HOME` (the `make install
+  INSTALL_PACKAGES=icon-theme DESTDIR=<root>` route installs it at
+  `<root>$XDG_DATA_HOME/icons`; add that installed path to
+  `XDG_DATA_DIRS`), use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`),
+  `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY` and
+  `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `audio-flac` resolves to the theme's 32x32
+  `mimetypes/audio-flac.svg` (at planning time the name falls through
+  to the theme's own `audio-x-generic`), and `text-x-generic` still
+  resolves to the theme's own file. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
+**Corrections (2026-11-24 by the feature role, made while implementing).**
+The provenance paragraph's Breeze claim was wrong: Breeze does ship the
+exact-name file (`ls /usr/share/icons/breeze/mimetypes/*/audio-flac.svg`
+lists 16, 22, 24, 32 and 64 under both `breeze` and `breeze-dark`, the
+same situation the `audio-ogg` entry records), so shipping the name
+still wins and the manual probe below is the evidence. The
+planning-time geometry claim "every vertex strictly inside the white
+page polygon" is off for one vertex: the 22x22 dip's lower vertex
+(12,20) sits on the page outline's bottom border row (the white face's
+bottom edge is y=19), but the polygon's fill covers only rows up to 19,
+so no drawn pixel leaves the white page; the listed points stand as the
+pins. And the "largest module at most about 600 lines" criterion already
+reads false on main (`shape_pins/mimetypes.py` is 1870 lines before this
+entry adds 21); the queued split plan owns that file's size, this entry
+only adds three pins to it. Also removed the stampless duplicate of this
+entry that a withdrawn 2026-11-24 run had left at the bottom of `##
+Done` (its older draft drew a different pulse path).
+Finally, `docs/invariants.md` sits against the containment guard's
+1 MiB whole-read cap: main's file was 1,047,924 bytes, 652 under the
+limit, and the checker-mutation tests grow their scratch copy of the
+file by up to 44 bytes, so this entry's row had to be a 593-byte
+compact provenance sentence rather than a full-length
+`audio-ogg`-shaped one (the file now sits 59 bytes under the cap) —
+the next row-adding entry will not fit without splitting the file or
+raising the guard, a finding for the plan and steward roles.
+
 ### Split the mimetypes shape-pin registry into per-group modules mirroring the icon series (planned 2026-11-24 by the organize role; queued after the two Flatpak icon entries, which edit the same file) — done 2026-11-24 by the feature role
 
 **Recorded 2026-11-24 by the feature role, on landing.** The plan's

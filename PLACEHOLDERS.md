@@ -29,6 +29,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.efi.iso.svg` | original ISO disc-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.snap.svg` | original Snap package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.squashfs.svg` | original Squashfs filesystem-image illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/mimetypes/audio-flac.svg` | original FLAC audio illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/audio-ogg.svg` | original Ogg audio illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.appimage.svg` | original AppImage bundle illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/application-vnd.flatpak.repo.svg` | original Flatpak repository-description illustration pending user-approved artwork. |
@@ -132,6 +133,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.efi.iso.svg` | original ISO disc-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.snap.svg` | original Snap package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.squashfs.svg` | original Squashfs filesystem-image illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/mimetypes/audio-flac.svg` | original FLAC audio illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/audio-ogg.svg` | original Ogg audio illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.appimage.svg` | original AppImage bundle illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/application-vnd.flatpak.repo.svg` | original Flatpak repository-description illustration pending user-approved artwork. |
@@ -233,6 +235,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.efi.iso.svg` | original ISO disc-image illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.snap.svg` | original Snap package illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.squashfs.svg` | original Squashfs filesystem-image illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/mimetypes/audio-flac.svg` | original FLAC audio illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/audio-ogg.svg` | original Ogg audio illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.appimage.svg` | original AppImage bundle illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/application-vnd.flatpak.repo.svg` | original Flatpak repository-description illustration pending user-approved artwork. |

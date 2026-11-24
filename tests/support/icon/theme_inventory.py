@@ -662,6 +662,13 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "audio-ogg.svg"),
     os.path.join("16x16", "mimetypes", "audio-ogg.svg"),
     os.path.join("22x22", "mimetypes", "audio-ogg.svg"),
+    # The FLAC audio `audio-flac` icon at all three sizes (the document
+    # page holding a waveform-pulse ribbon; the name is the type-spelled
+    # icon name of the `audio/flac` MIME type in the installed shared
+    # MIME database).
+    os.path.join("32x32", "mimetypes", "audio-flac.svg"),
+    os.path.join("16x16", "mimetypes", "audio-flac.svg"),
+    os.path.join("22x22", "mimetypes", "audio-flac.svg"),
     # The AppImage bundle `application-vnd.appimage` icon at all three
     # sizes (the document page holding a launch arrow; the name is the
     # type-spelled icon name of the `application/vnd.appimage` MIME type

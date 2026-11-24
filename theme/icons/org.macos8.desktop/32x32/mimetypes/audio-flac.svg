@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original FLAC audio illustration pending user-approved artwork. -->
+<!-- Platinum FLAC audio icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: the document
+     drawing (a #FFFFFF page with a 1px #000000 outline and a #DDDDDD
+     folded top-right corner) with the text lines replaced by one
+     connected #000000 waveform-pulse ribbon — a flat lead-in, a tall
+     up-spike, a deep dip below the baseline and a flat tail, two
+     pixels thick. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M6 3 h14 l6 6 v20 H6 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M7 4 h12 l6 6 v18 H7 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M19 4 L25 4 L25 10 Z" fill="#DDDDDD"/>
+  <!-- Pulse: one connected ribbon, top edge left to right then the
+       same zigzag two rows lower right to left. -->
+  <polygon points="9,21 12,21 14,15 15,15 17,25 20,21 23,21 23,23 20,23 17,27 15,17 14,17 12,23 9,23" fill="#000000"/>
+</svg>

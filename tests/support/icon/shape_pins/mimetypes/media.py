@@ -114,6 +114,27 @@ PINS = {
         _shape("rect", x="11", y="9", width="1", height="8", fill="#000000"),
         _shape("rect", x="13", y="12", width="1", height="5", fill="#000000"),
     ),
+    # The FLAC audio item icon KDE draws for `audio/flac` items (the
+    # type-spelled icon name of the installed shared MIME database's
+    # `audio/flac` type, which has no `icon`, `generic-icon` or
+    # `sub-class-of` element, one alias and a single `*.flac` glob, so
+    # one file covers exactly its own name); the drawing shares the
+    # generic document's page and holds a waveform-pulse ribbon (an
+    # EKG-style connected zigzag mark distinct from the four disjoint
+    # equalizer bars `audio-ogg.svg` draws on the same page and the
+    # beamed note pair `audio-x-generic.svg` draws).
+    os.path.join("32x32", "mimetypes", "audio-flac.svg"): (
+        *_PAGE_32,
+        _shape("polygon", points="9,21 12,21 14,15 15,15 17,25 20,21 23,21 23,23 20,23 17,27 15,17 14,17 12,23 9,23", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "audio-flac.svg"): (
+        *_PAGE_16,
+        _shape("polygon", points="5,9 6,9 7,6 8,6 9,10 10,8 11,8 11,10 10,10 9,12 8,8 7,8 6,11 5,11", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "audio-flac.svg"): (
+        *_PAGE_22,
+        _shape("polygon", points="7,15 9,15 10,11 11,11 12,18 14,15 16,15 16,17 14,17 12,20 11,13 10,13 9,17 7,17", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "internet-mail.svg"): (
         _shape("rect", x="2", y="6", width="28", height="20", fill="#000000"),
         _shape("rect", x="3", y="7", width="26", height="18", fill="#DDDDDD"),
