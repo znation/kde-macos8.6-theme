@@ -73,8 +73,11 @@ class TestPatchedRoot(unittest.TestCase):
 
     def test_patched_root_shows_the_fixture_to_the_callers_globals(self):
         # The helper resolves the caller with sys._getframe(1): swapping this
-        # test module's binding must be visible to code reading that global,
-        # and must not raise on the helper's own module (which has no ROOT).
+        # test module's binding must be visible to code reading that global.
+        # A wrong depth lands in some other module's namespace -- most lack
+        # ROOT and raise AttributeError, while the helper module itself (which
+        # does have ROOT) would be silently patched instead -- so this
+        # assertion fails either way.
         fixture = object()
         with patched_root(fixture):
             self.assertIs(ROOT, fixture)
