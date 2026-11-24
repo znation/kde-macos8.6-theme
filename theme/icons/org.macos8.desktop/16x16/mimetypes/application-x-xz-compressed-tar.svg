@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original xz-compressed-tar illustration pending user-approved artwork. -->
+<!-- Platinum xz-compressed-tar icon, 16x16.
+
+     Our own 16x16 drawing in the Platinum palette: the sealed box the
+     package icon draws, holding a black capital letter X (two
+     stair-stepped strokes crossing at the face's centre) on the white
+     body left of the grey tape stripe. Drawn for this theme, not
+     traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <rect x="1" y="3" width="14" height="11" fill="#000000"/>
+  <rect x="2" y="4" width="12" height="2" fill="#DDDDDD"/>
+  <rect x="2" y="4" width="12" height="1" fill="#FFFFFF"/>
+  <rect x="2" y="6" width="12" height="7" fill="#FFFFFF"/>
+  <rect x="7" y="6" width="2" height="7" fill="#999999"/>
+  <rect x="2" y="7" width="2" height="2" fill="#000000"/>
+  <rect x="4" y="9" width="2" height="2" fill="#000000"/>
+  <rect x="4" y="7" width="2" height="2" fill="#000000"/>
+  <rect x="2" y="9" width="2" height="2" fill="#000000"/>
+</svg>

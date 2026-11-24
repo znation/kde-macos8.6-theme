@@ -203,7 +203,9 @@ name at the same three sizes), a compressed-tar icon for
 gzip-compressed tar files (the `application-x-compressed-tar` name at
 the same three sizes), a RAR-archive icon
 for RAR archive files (the `application-vnd.rar` name at the same
-three sizes), a flash-media card
+three sizes), an xz-compressed-tar icon for xz-compressed tar archive
+files (the `application-x-xz-compressed-tar` name at the same three
+sizes), a flash-media card
 icon for
 memory cards (the `media-flash` name at the same three sizes), a floppy-disk
 icon for raw floppy-disk images
