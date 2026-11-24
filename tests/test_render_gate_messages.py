@@ -21,7 +21,8 @@ class _GateProbe(RenderOutputMessages, unittest.TestCase):
     and starts a render in ``setUpClass``; the probe reuses only its
     ``test_exits_zero`` message building, driven on the attributes a
     gate's ``setUpClass`` would set. It declares no ``test_`` methods of
-    its own, so discovery collects nothing from the probe class itself.
+    its own, so like ``_Probe`` below it contributes only a no-op
+    ``runTest`` placeholder the suite counts as one trivial pass.
     """
 
     def runTest(self):
