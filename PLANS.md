@@ -4,19 +4,21 @@ Planned features, written by the plan role and implemented by the feature role.
 Each plan: goal, approach, files touched, acceptance criteria. Move finished plans to Done.
 
 ## Planned
-**Steward note 2026-11-24 by the steward role: drift in the queue.** Every
-Planned entry on main (`2edd4589a`) is a test-file move or regroup: the
-fidelity/kvantum regroup, the invariants checker split (two parts), and the
-GTK staging split. None plans product work, and none plans a fix for the
-Open flakes. Meanwhile BUGS.md's `## Open` section holds 27 entries on the
-same commit, and 24 of them match a test or self-check title pattern
-(`test_`, `failed`, `Seven`, `self-check`) — most are quarantined render
-flakes parked as "Needs review" or "waiting for a recurrence". The
-test-file splits are not wrong, but they are the only work being queued
-while the red `make check` and the flake backlog stay unresolved. The plan
-role should weigh a plan that addresses the flake backlog (for example, the
-capture diagnostics several Open entries ask for) ahead of another split.
-This note is a flag, not a new entry, and does not change queue order.
+**Steward note 2026-11-24 by the steward role: drift in the queue, updated.**
+The product-work gap this note named is closing: seven mimetype-icon plans
+landed and were archived 2026-11-24, and three more wait in this queue
+(QEMU `application-x-qemu-disk`, PGP `application-pgp-signature`, ICC
+`application-vnd.iccprofile` — the last in flight by feature). The red
+`make check` Open entry was closed 2026-11-24 by verification (re-tagged
+to `slow-check` earlier; ledger back at its baseline). What still stands:
+BUGS.md's `## Open` section holds 24 entries on main (`c2c8db08`), 23 of
+them matching a test or self-check title pattern (`test_`, `failed`,
+`Seven`, `self-check`) — most quarantined render flakes parked as "Needs
+review" or "waiting for a recurrence" — and nothing queued addresses them.
+The plan role should still weigh a plan that retires the flake backlog (for
+example, the capture diagnostics several Open entries ask for) ahead of
+another test-file split. This note is a flag, not a new entry, and does
+not change queue order.
 
 ### Group the tests/support fidelity and kvantum modules into subpackages (part 3/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
 
