@@ -15,13 +15,14 @@ import unittest
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.render import splash_capture_fixtures
 from support.platinum_palette import hex_colour
+from support.render.candidate_png import CachedCandidatePng
 from support.render.pixel_pins import PixelPins
-from support.render.renders import Renders, render_output_note
+from support.render.renders import Renders
 from support.render.skip_guards import (
     SPLASH_REAL_TOOLS,
     software_renderer_skip_reason,
 )
-from tools.png import pixel_at, read_png  # noqa: E402
+from tools.png import pixel_at  # noqa: E402
 
 
 @unittest.skipIf(
@@ -33,7 +34,7 @@ from tools.png import pixel_at, read_png  # noqa: E402
     "needs kwin_wayland, dbus-run-session, plasmawindowed, spectacle, "
     "plasma-apply-colorscheme and ksplashqml on PATH",
 )
-class TestSplashRender(PixelPins, unittest.TestCase):
+class TestSplashRender(CachedCandidatePng, PixelPins, unittest.TestCase):
     """The rendered startup splash's Platinum structure, pinned.
 
     The ``--splash`` capture is a 640x400 PNG the look-and-feel's own
@@ -94,23 +95,6 @@ class TestSplashRender(PixelPins, unittest.TestCase):
         )
         cls.output = os.path.join(cls.directory, "splash.png")
         cls._candidate = None
-
-    @classmethod
-    def candidate_image(cls):
-        """Return the splash render decoded once, reused by every read below."""
-        if cls._candidate is None:
-            cls._candidate = read_png(cls.output)
-        return cls._candidate
-
-    def test_exits_zero(self):
-        # The failure message is built from both streams: a failed render's
-        # session-log tail lands on stdout and may print nothing on stderr,
-        # so quoting stderr alone would report a bare ``0 != 1``.
-        self.assertEqual(
-            0,
-            self.returncode,
-            render_output_note(self.stdout, self.stderr) or None,
-        )
 
     def test_writes_a_640x400_png(self):
         image = self.candidate_image()

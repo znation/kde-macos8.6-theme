@@ -28,6 +28,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.aurorae_fixtures import REFERENCE_BOUNDS
 from support.platinum_palette import FACE, hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
+from support.render.candidate_png import CachedCandidatePng
 from support.render.pixel_pins import PixelPins
 from support.render.renders import Renders, render_output_note
 from support.render.skip_guards import (
@@ -160,7 +161,7 @@ def _keypad_rows(width):
     "needs kwin_wayland, dbus-run-session, plasmawindowed, spectacle and "
     "plasma-apply-colorscheme on PATH",
 )
-class TestRender(PixelPins, unittest.TestCase):
+class TestRender(CachedCandidatePng, PixelPins, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Run the CLI the way `make render` does, as one of Renders'
@@ -176,30 +177,6 @@ class TestRender(PixelPins, unittest.TestCase):
         )
         cls.output = os.path.join(cls.directory, "render.png")
         cls._candidate = None
-
-    @classmethod
-    def candidate_image(cls):
-        """Return the render output decoded once, reused by every read below.
-
-        The render writes one PNG that the size, body-colour and strip checks
-        all read; decoding it per read re-decodes the same 320x240 file, so
-        the first read caches it for the rest of the class. A failed render
-        leaves the output absent and the first read raises ``PngError`` just
-        as it did before.
-        """
-        if cls._candidate is None:
-            cls._candidate = read_png(cls.output)
-        return cls._candidate
-
-    def test_exits_zero(self):
-        # The failure message is built from both streams: a failed render's
-        # session-log tail lands on stdout and may print nothing on stderr,
-        # so quoting stderr alone would report a bare ``0 != 1``.
-        self.assertEqual(
-            0,
-            self.returncode,
-            render_output_note(self.stdout, self.stderr) or None,
-        )
 
     def test_writes_a_320x240_png(self):
         image = self.candidate_image()

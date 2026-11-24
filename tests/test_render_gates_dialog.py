@@ -19,7 +19,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import process_runner
-from support.render import gates as render_gates
+from support.render import candidate_png
 from support.render.gates import DialogGate, Renders
 from support.render.pixel_pins import band_mismatch_context
 
@@ -87,7 +87,7 @@ class TestCandidateImageCache(unittest.TestCase):
     def test_the_dialog_png_is_decoded_once_across_reads(self):
         sentinel = object()
         with mock.patch.object(Renders, "requested", set()), \
-                mock.patch.object(render_gates, "read_png", return_value=sentinel) as read:
+                mock.patch.object(candidate_png, "read_png", return_value=sentinel) as read:
             gate = self._make_gate()
             first = gate.candidate_image()
             second = gate.candidate_image()
@@ -98,7 +98,7 @@ class TestCandidateImageCache(unittest.TestCase):
 
     def test_each_gate_class_decodes_its_own_output(self):
         with mock.patch.object(Renders, "requested", set()), \
-                mock.patch.object(render_gates, "read_png", side_effect=lambda path: path) as read:
+                mock.patch.object(candidate_png, "read_png", side_effect=lambda path: path) as read:
             first_gate = self._make_gate()
 
             class OtherGate(DialogGate):

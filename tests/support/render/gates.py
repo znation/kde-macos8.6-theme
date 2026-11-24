@@ -19,11 +19,12 @@ from support.repo_root import ROOT  # noqa: F401  (puts the repository root on s
 from support.kvantum_fixtures import SVG  # noqa: E402
 from support.svg_case import parse_svg  # noqa: E402
 from support.platinum_palette import hex_colour  # noqa: E402
+from support.render.candidate_png import CachedCandidatePng  # noqa: E402
 from support.render.capture_diagnostics import preserve_capture  # noqa: E402
 from support.render.pixel_pins import PixelPins  # noqa: E402
 from support.render.renders import Renders, render_output_note  # noqa: E402
 from svg_assertions import render_slices  # noqa: E402
-from tools.png import pixel_at, read_png  # noqa: E402
+from tools.png import pixel_at  # noqa: E402
 
 # The dialog render's engine-drawn widget gate: `--checkbox-dialog` opens a
 # kdialog warning at the headless KWin session's centre in a 480x360 capture,
@@ -83,7 +84,7 @@ class RenderOutputMessages:
         return f"capture preserved at {preserved}"
 
 
-class DialogGate(RenderOutputMessages, PixelPins):
+class DialogGate(CachedCandidatePng, RenderOutputMessages, PixelPins):
     """Test scaffolding the fifteen dialog render gates share.
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
@@ -113,23 +114,6 @@ class DialogGate(RenderOutputMessages, PixelPins):
         )
         cls.output = os.path.join(cls.directory, "dialog.png")
         cls._candidate = None
-
-    @classmethod
-    def candidate_image(cls):
-        """Return the dialog render decoded once, reused by every read below."""
-        if cls._candidate is None:
-            cls._candidate = read_png(cls.output)
-        return cls._candidate
-
-    def test_exits_zero(self):
-        # The failure message is built from both streams: a failed render's
-        # session-log tail lands on stdout and may print nothing on stderr,
-        # so quoting stderr alone would report a bare ``0 != 1``.
-        self.assertEqual(
-            0,
-            self.returncode,
-            render_output_note(self.stdout, self.stderr) or None,
-        )
 
     def test_writes_a_480x360_png(self):
         image = self.candidate_image()
