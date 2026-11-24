@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original video illustration pending user-approved artwork. -->
+<!-- Platinum video icon, 16x16.
+
+     Our own 16x16 drawing in the Platinum palette: a display screen with
+     a play triangle — a #000000 frame, a #FFFFFF face, a #000000 play
+     triangle centred on the face and a two-part #000000 stand (neck and
+     base) under the frame. Drawn for this theme, not traced from
+     anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Frame. -->
+  <rect x="1" y="3" width="14" height="10" fill="#000000"/>
+  <!-- Face. -->
+  <rect x="2" y="4" width="12" height="8" fill="#FFFFFF"/>
+  <!-- Play triangle. -->
+  <path d="M7 6 L10 8 L7 10 Z" fill="#000000"/>
+  <!-- Stand neck. -->
+  <rect x="6" y="13" width="4" height="1" fill="#000000"/>
+  <!-- Stand base. -->
+  <rect x="4" y="14" width="8" height="1" fill="#000000"/>
+</svg>

@@ -80,7 +80,18 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # pair of eighth notes; the name captures the audio MIME types by
 # type-spelling fallback and is the `generic-icon` of the playlist,
 # lossless-audio and SMAF audio types in the installed shared MIME
-# database), the font
+# database), the video
+# `video-x-generic` icon at all three sizes (our own drawing of a display
+# screen with a play triangle and a stand; the name is the `generic-icon`
+# of 14 video MIME types in the installed shared MIME database —
+# `application/smil+xml`, `application/vnd.ms-wpl`, `video/x-flv`,
+# `video/x-javafx`, `video/vnd.youtube.yt`, `application/x-matroska`,
+# `application/mxf`, `application/annodex`, `application/ogg`,
+# `application/x-quicktime-media-link`,
+# `application/vnd.adobe.flash.movie`, `application/vnd.rn-realmedia`,
+# `application/x-netshow-channel` and `application/sdp` — and, through
+# KIconLoader's generic fallback, also covers `video/mp4`, `video/webm`
+# and `video/mpeg`), the font
 # `font-x-generic` icon at all three sizes (our own drawing of the
 # generic document's page under a capital letter A; the name is the
 # `generic-icon` of the 23 font MIME types in the installed shared MIME
@@ -122,6 +133,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "media-floppy.svg"),
     os.path.join("16x16", "devices", "media-floppy.svg"),
     os.path.join("22x22", "devices", "media-floppy.svg"),
+    os.path.join("32x32", "mimetypes", "video-x-generic.svg"),
+    os.path.join("16x16", "mimetypes", "video-x-generic.svg"),
+    os.path.join("22x22", "mimetypes", "video-x-generic.svg"),
     os.path.join("32x32", "devices", "printer.svg"),
     os.path.join("16x16", "devices", "printer.svg"),
     os.path.join("22x22", "devices", "printer.svg"),

@@ -162,6 +162,8 @@ name at the same three sizes), a flash-media card icon for memory cards
 floppy-disk icon for raw floppy-disk images (the `media-floppy`
 name at the same three sizes), an
 image icon for picture and graphics files (the `image-x-generic`
+name at the same three sizes), a video icon for movie files without
+their own art (the `video-x-generic`
 name at the same three sizes), an audio icon for sound files (the
 `audio-x-generic` name at the same three sizes), a font icon for font
 files (the `font-x-generic` name at the same three sizes), a keyboard

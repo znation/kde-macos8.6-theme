@@ -772,6 +772,27 @@ ICON_SHAPES = {
         _shape("rect", x="7", y="12", width="8", height="5", fill="#FFFFFF"),
         _shape("rect", x="9", y="13", width="4", height="1", fill="#999999"),
     ),
+    os.path.join("32x32", "mimetypes", "video-x-generic.svg"): (
+        _shape("rect", x="3", y="7", width="26", height="20", fill="#000000"),
+        _shape("rect", x="4", y="8", width="24", height="18", fill="#FFFFFF"),
+        _shape("path", d="M13 11 L23 17 L13 23 Z", fill="#000000"),
+        _shape("rect", x="12", y="27", width="8", height="2", fill="#000000"),
+        _shape("rect", x="8", y="29", width="16", height="2", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "video-x-generic.svg"): (
+        _shape("rect", x="1", y="3", width="14", height="10", fill="#000000"),
+        _shape("rect", x="2", y="4", width="12", height="8", fill="#FFFFFF"),
+        _shape("path", d="M7 6 L10 8 L7 10 Z", fill="#000000"),
+        _shape("rect", x="6", y="13", width="4", height="1", fill="#000000"),
+        _shape("rect", x="4", y="14", width="8", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "video-x-generic.svg"): (
+        _shape("rect", x="2", y="5", width="18", height="13", fill="#000000"),
+        _shape("rect", x="3", y="6", width="16", height="11", fill="#FFFFFF"),
+        _shape("path", d="M9 8 L15 11 L9 14 Z", fill="#000000"),
+        _shape("rect", x="8", y="19", width="6", height="1", fill="#000000"),
+        _shape("rect", x="5", y="20", width="12", height="1", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"): (
         _shape("path", d="M6 3 h14 l6 6 v20 H6 Z", fill="#000000"),
         _shape("path", d="M7 4 h12 l6 6 v18 H7 Z", fill="#FFFFFF"),
