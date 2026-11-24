@@ -95,9 +95,17 @@ class TestWriteConfigAtomically(unittest.TestCase):
         directory = make_tmp_dir(self)
         target = directory / "kwinrc"
         target.write_text("ORIGINAL\n", encoding="utf-8")
-        target.chmod(0o644)
-        theme_config_writer.write_config_atomically(target, "NEW\n")
-        self.assertEqual(0o644, target.stat().st_mode & 0o777)
+        # 0o640 is not the mode the umask default would give, so a writer
+        # that dropped the mode cannot publish the expected value: under the
+        # 0o022 umask set below, a dropped mode publishes 0o644 and the pin
+        # fails, while 0o644 (the umask 0o022 default) would pass either way.
+        target.chmod(0o640)
+        old = os.umask(0o022)
+        try:
+            theme_config_writer.write_config_atomically(target, "NEW\n")
+        finally:
+            os.umask(old)
+        self.assertEqual(0o640, target.stat().st_mode & 0o777)
         self.assertEqual("NEW\n", target.read_text(encoding="utf-8"))
 
     def test_write_replaces_output_symlink_without_changing_its_target(self):
