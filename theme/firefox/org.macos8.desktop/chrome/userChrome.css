@@ -1579,3 +1579,16 @@ toolbar#placesToolbar toolbarbutton#clearDownloadsButton:not([disabled]):hover {
   background-color: #CCCCFF !important;
   color: #000000 !important;
 }
+
+/* Private-window tab panel face (2026-11-24): Firefox's stock content-area
+   sheet paints a purple gradient behind every private window's content
+   (`:root[privatebrowsingmode="temporary"]`, `--tabpanel-background-color`,
+   !important), which made the private window's controls sit on a colour no
+   other window uses. This user-sheet !important wins over that author rule
+   and restores the stock non-private value `#F9F9FB`, so a private window's
+   content face matches an ordinary window's. The value is Firefox's own
+   non-private default, not a sampled reference pixel: no collected reference
+   screenshot shows a Firefox content area. */
+:root[privatebrowsingmode="temporary"] {
+  --tabpanel-background-color: #F9F9FB !important;
+}

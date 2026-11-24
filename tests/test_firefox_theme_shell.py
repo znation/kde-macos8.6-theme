@@ -79,6 +79,9 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
             {
                 BLACK, WHITE, GREY, FACE, TROUGH, SELECTION, ETCH_DARK,
                 TOOLTIP_FACE, BUTTON_SHADOW,
+                # The private-window tab panel face (020-maindeck.css): Firefox's
+                # own non-private content-area default, not a reference sample.
+                "#F9F9FB",
             },
         )
 

@@ -136,6 +136,12 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "::test_workflow_provisions_and_verifies_imagemagick_convert",
     ),
     Reproduction(
+        "firefox-private-window-face",
+        ("private browsing window in Firefox",),
+        "tests/test_firefox_theme_private.py::TestFirefoxPrivateWindowFace"
+        "::test_private_tabpanel_face_overrides_the_stock_gradient",
+    ),
+    Reproduction(
         "splash-capture-client-hold",
         (
             "The splash render intermittently captures a black frame at the 8-second settle",
@@ -147,4 +153,4 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
 
 # coverage. A new record must name its offline test, and raise this by one in
 # the same change instead of merging uncovered.
-REAL_RUN_NEEDED_BASELINE = 16
+REAL_RUN_NEEDED_BASELINE = 17

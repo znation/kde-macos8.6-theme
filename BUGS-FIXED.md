@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The private browsing window in Firefox has weird looking UI controls (I think because it uses a differnt background color). See /home/zach/Pictures/Screenshots/Screenshot_20261123_023358.png. (reported by the user 2026-11-23) — fixed 2026-11-24 by the bugfix role
+
+The chrome sheet never overrode Firefox's stock private-window content face: `:root[privatebrowsingmode="temporary"]` sets `--tabpanel-background-color` to a purple gradient with `!important`, so a private window's content and its controls sit on a colour no ordinary window uses. `theme/firefox/src/userChrome/020-maindeck.css` now sets the same variable to the non-private value `#f9f9fb` with a user-sheet `!important`, which beats the stock author rule; `tests/test_firefox_theme_private.py` pins it.
+
+**Validation gap:** real-run-needed — the private-window render needs a real Firefox run and no render gate covers Firefox chrome, so the fix is confirmed by the sheet declaration test and the stock Firefox source, not by pixels.
+
 ### `test_combo_field_keeps_its_engine_drawn_raised_frame (test_render_combobox_dialog.TestComboboxDialogRender.test_combo_field_keeps_its_engine_drawn_raised_frame)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21) — fixed 2026-11-21 by the bugfix role
 
 Fixed: the combobox gate now renders with `--settle 20` (tests/support/render/gates.py), the same budget as the GTK, icon and inactive gates; pinned by `test_the_combobox_gate_settles_for_twenty_seconds`. Every `TestComboboxDialogRender` test reads the one shared combobox render, so this is the same black-capture cause as the `test_draws_the_combo_arrow_cell_1_to_1` entry closed with it.
