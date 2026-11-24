@@ -11,6 +11,7 @@ import os
 from support.icon.shape_pins._shared import (
     _raised_panel,
     _shape,
+    _thick_raised_panel,
 )
 
 # The `phone` body the `smartphone` name draws too: KDE Connect and
@@ -45,14 +46,7 @@ _PHONE_22 = (
 # one place per size and all eight pins stay in step; the pins test in
 # ``test_icon_theme_geometry`` still compares each shipped file with its
 # pin element by element.
-_DRIVE_BODY_32 = (
-    _shape("rect", x="3", y="8", width="26", height="17", fill="#000000"),
-    _shape("rect", x="4", y="9", width="24", height="15", fill="#DDDDDD"),
-    _shape("rect", x="4", y="9", width="24", height="2", fill="#FFFFFF"),
-    _shape("rect", x="4", y="9", width="1", height="15", fill="#FFFFFF"),
-    _shape("rect", x="4", y="22", width="24", height="2", fill="#999999"),
-    _shape("rect", x="27", y="9", width="1", height="15", fill="#999999"),
-)
+_DRIVE_BODY_32 = _thick_raised_panel(3, 8, 26, 17)
 _DRIVE_BODY_16 = (
     *_raised_panel(1, 3, 14, 10),
 )
@@ -381,12 +375,7 @@ PINS = {
         _shape("rect", x="13", y="18", width="3", height="2", fill="#000000"),
     ),
     os.path.join("32x32", "devices", "video-display.svg"): (
-        _shape("rect", x="3", y="3", width="26", height="22", fill="#000000"),
-        _shape("rect", x="4", y="4", width="24", height="20", fill="#DDDDDD"),
-        _shape("rect", x="4", y="4", width="24", height="2", fill="#FFFFFF"),
-        _shape("rect", x="4", y="4", width="1", height="20", fill="#FFFFFF"),
-        _shape("rect", x="4", y="22", width="24", height="2", fill="#999999"),
-        _shape("rect", x="27", y="4", width="1", height="20", fill="#999999"),
+        *_thick_raised_panel(3, 3, 26, 22),
         _shape("rect", x="7", y="7", width="18", height="13", fill="#000000"),
         _shape("rect", x="9", y="9", width="7", height="2", fill="#FFFFFF"),
         _shape("rect", x="9", y="15", width="5", height="1", fill="#999999"),
@@ -401,12 +390,7 @@ PINS = {
         _shape("rect", x="4", y="15", width="8", height="1", fill="#000000"),
     ),
     os.path.join("22x22", "devices", "video-display.svg"): (
-        _shape("rect", x="2", y="2", width="18", height="15", fill="#000000"),
-        _shape("rect", x="3", y="3", width="16", height="13", fill="#DDDDDD"),
-        _shape("rect", x="3", y="3", width="16", height="2", fill="#FFFFFF"),
-        _shape("rect", x="3", y="3", width="1", height="13", fill="#FFFFFF"),
-        _shape("rect", x="3", y="14", width="16", height="2", fill="#999999"),
-        _shape("rect", x="18", y="3", width="1", height="13", fill="#999999"),
+        *_thick_raised_panel(2, 2, 18, 15),
         _shape("rect", x="5", y="5", width="12", height="8", fill="#000000"),
         _shape("rect", x="6", y="6", width="5", height="2", fill="#FFFFFF"),
         _shape("rect", x="6", y="10", width="3", height="1", fill="#999999"),
@@ -584,12 +568,7 @@ PINS = {
         _shape("rect", x="13", y="15", width="2", height="2", fill="#000000"),
     ),
     os.path.join("32x32", "devices", "computer.svg"): (
-        _shape("rect", x="4", y="2", width="24", height="18", fill="#000000"),
-        _shape("rect", x="5", y="3", width="22", height="16", fill="#DDDDDD"),
-        _shape("rect", x="5", y="3", width="22", height="2", fill="#FFFFFF"),
-        _shape("rect", x="5", y="3", width="1", height="16", fill="#FFFFFF"),
-        _shape("rect", x="5", y="17", width="22", height="2", fill="#999999"),
-        _shape("rect", x="26", y="3", width="1", height="16", fill="#999999"),
+        *_thick_raised_panel(4, 2, 24, 18),
         _shape("rect", x="8", y="6", width="16", height="10", fill="#000000"),
         _shape("rect", x="10", y="8", width="6", height="2", fill="#FFFFFF"),
         _shape("rect", x="10", y="12", width="4", height="1", fill="#999999"),

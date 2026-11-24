@@ -46,7 +46,8 @@ def _raised_panel(x, y, w, h):
     ``#999999``, in that element order; spreading the returned tuple into a
     pin keeps the pin's element list exactly what the shipped SVG draws.
     Panels whose bevel deviates from this recipe (thicker highlight rows,
-    different shadow geometry) keep their explicit shapes.
+    different shadow geometry) keep their explicit shapes or use
+    ``_thick_raised_panel``, the two-pixel-bevel variant below.
     """
     return (
         _shape("rect", x=str(x), y=str(y), width=str(w), height=str(h), fill="#000000"),
@@ -54,6 +55,28 @@ def _raised_panel(x, y, w, h):
         _shape("rect", x=str(x + 1), y=str(y + 1), width=str(w - 2), height="1", fill="#FFFFFF"),
         _shape("rect", x=str(x + 1), y=str(y + 1), width="1", height=str(h - 2), fill="#FFFFFF"),
         _shape("rect", x=str(x + 1), y=str(y + h - 2), width=str(w - 2), height="1", fill="#999999"),
+        _shape("rect", x=str(x + w - 2), y=str(y + 1), width="1", height=str(h - 2), fill="#999999"),
+    )
+
+
+def _thick_raised_panel(x, y, w, h):
+    """Return the six shapes of one raised panel whose top highlight row
+    and bottom shadow row are two pixels thick: a black outline rect at
+    ``x, y, w, h`` carries a ``#DDDDDD`` face one pixel in, the face's top
+    row is ``#FFFFFF`` two pixels tall and its left column ``#FFFFFF`` one
+    pixel wide, the face's bottom row is ``#999999`` two pixels tall ending
+    one pixel in from the outline and its right column ``#999999`` one
+    pixel wide, in that element order. The devices registry spreads this
+    at four sites (the 32x32 drive body, both video-display sizes and the
+    32x32 computer); panels with a different bevel keep their explicit
+    shapes.
+    """
+    return (
+        _shape("rect", x=str(x), y=str(y), width=str(w), height=str(h), fill="#000000"),
+        _shape("rect", x=str(x + 1), y=str(y + 1), width=str(w - 2), height=str(h - 2), fill="#DDDDDD"),
+        _shape("rect", x=str(x + 1), y=str(y + 1), width=str(w - 2), height="2", fill="#FFFFFF"),
+        _shape("rect", x=str(x + 1), y=str(y + 1), width="1", height=str(h - 2), fill="#FFFFFF"),
+        _shape("rect", x=str(x + 1), y=str(y + h - 3), width=str(w - 2), height="2", fill="#999999"),
         _shape("rect", x=str(x + w - 2), y=str(y + 1), width="1", height=str(h - 2), fill="#999999"),
     )
 
