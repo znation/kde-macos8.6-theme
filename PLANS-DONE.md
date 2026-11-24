@@ -5,6 +5,90 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render-gate diagnostics: preserve the failing capture and name the failing pixel (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** When a render capture gate fails, the failure must keep the
+capture image itself and name the first differing pixel's coordinates
+and both colours. BUGS.md's umbrella entry "Seven icon-dialog render
+gates failed with the same pixel mismatch" and the quarantined gate
+entries under it ask for exactly this on recurrence: a recorded
+`#CCCCCC` versus `#000000` mismatch shows the capture was the desktop
+face, but `Renders._remove_directories` removes every scratch directory
+at interpreter exit, so nothing distinguishes "the window was never
+painted before the settle" from "the capture never showed a window".
+The 2026-11-24 plan "Render gate failures name the render kind and
+carry its own output" added kind attribution and the session-log tail;
+this plan adds the two diagnostics that plan left out. Landing it does
+not by itself close any BUGS.md entry — a recurrence recorded with the
+new diagnostics does.
+
+**Approach.**
+
+- `tests/support/render/gates.py`:
+  - Add a module helper, `preserve_capture(kind, directory, filename)`:
+    when the capture PNG exists, copy it byte-for-byte into a
+    diagnostics directory that survives the run —
+    `${TMPDIR:-/tmp}/platinum-render-diagnostics/<UTC
+    timestamp>-<pid>-<kind>/` under the capture's filename — and return
+    that path; when no PNG was written, return `None`. That None is
+    itself a diagnostic the entries ask for: a finished render with no
+    capture says so. Prune the diagnostics root to its newest 8
+    timestamped directories so parallel workers and repeated runs stay
+    bounded, remove with `ignore_errors=True`, and never let a copy or
+    prune error mask the gate's own failure (fall back to `None`).
+  - Attach the capture's whereabouts to every failure-reporting path:
+    `RenderOutputMessages.assertEqual` and `DialogGate.test_exits_zero`
+    append a line naming the preserved path (or, when the render wrote
+    no capture, saying so) after the render-output note;
+    `Renders._finish_failure` does the same for batch-finish failures.
+    A passing run creates no diagnostics: unittest builds a
+    `msg` argument eagerly even for passing assertions, so the
+    preservation must happen in the failure path (catch the
+    `AssertionError` and re-raise with the note appended), never in the
+    eager message-building path.
+  - Name the failing pixel: `PixelPins.assert_band`'s per-row subTest
+    context (today `band_mismatch_context`'s whole-band colour summary
+    and stderr tail) gains the failing row's first differing cell — its
+    absolute coordinates in the capture with the expected and observed
+    hex colours. `band_mismatch_context`'s signature and output stay as
+    they are; the pixel line is added at the `assert_band` call site.
+- No production tooling under `tools/` changes; the sibling gates'
+  own copies of `test_exits_zero` outside `gates.py`
+  (`tests/test_render_surface.py`, `tests/test_render_splash_gate.py`)
+  keep their current messages.
+
+**Files.** `tests/support/render/gates.py`,
+`tests/test_render_gate_messages.py`, `tests/test_render_gates_batch.py`.
+
+**Acceptance criteria.**
+
+- Preservation on a pixel mismatch: in `tests/test_render_gate_messages.py`
+  (beside the existing `TestPixelAssertionMessages` probes), a probe
+  gate whose `directory` holds a written `dialog.png` fails an
+  `assertEqual` with a message naming a path outside the scratch tree
+  at which a byte-identical copy of the PNG exists; a probe whose
+  directory holds no `dialog.png` reports instead that the render
+  wrote no capture; a passing assertion creates no diagnostics
+  directory.
+- Batch failure: in `tests/test_render_gates_batch.py` (extending the
+  existing `_run_with_stubbed_runner` stubbing), a stubbed
+  `process_runner.finish` raising for a kind whose directory holds a
+  capture yields the attributable message naming the preserved copy's
+  path; one whose directory holds no capture still names the kind and
+  says no capture was written.
+- Failing pixel: a band whose first differing cell sits at capture
+  coordinates (x, y) fails with a message containing those coordinates
+  beside the expected and observed hex colours; a fully matching band
+  produces no diagnostics copy.
+- Pruning: after the helper runs against a diagnostics root pre-seeded
+  with more than 8 timestamped directories, only the 8 newest remain
+  and the newly preserved capture is among them.
+- The existing `tests/test_render_gate_messages.py` and
+  `tests/test_render_gates_batch.py` cases pass unchanged; no test name
+  elsewhere changes.
+- `make check` passes after the final edit, apart from main's
+  known-red tests.
+
 ### Platinum icon theme: draw BitTorrent files with an original `application-x-bittorrent` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A `.torrent` item in the file manager or an open or save dialog

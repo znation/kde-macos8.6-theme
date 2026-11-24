@@ -20,6 +20,7 @@ from collections import Counter
 import shutil
 import sys
 import tempfile
+import time
 from unittest import mock
 
 from support.repo_root import ROOT
@@ -86,6 +87,24 @@ def band_mismatch_context(colours, stderr):
     else:
         render = "render printed no stderr"
     return f"whole band colours: {summary}\n{render}"
+
+
+def first_differing_pixel_note(x, y, expected, observed):
+    """Return the failing band row's first differing cell as a note line.
+
+    *x*/*y* are the band's top-left capture coordinates and *expected*/*observed*
+    the row's colour lists; the note names the first differing cell's absolute
+    capture coordinates beside both hex colours, so a mismatch points at a
+    pixel instead of only a row. A matching row (a length mismatch fails on
+    the list comparison itself) adds nothing.
+    """
+    for offset, (want, got) in enumerate(zip(expected, observed)):
+        if want != got:
+            return (
+                f"\nfirst differing pixel ({x + offset}, {y}): "
+                f"expected {want}, observed {got}"
+            )
+    return ""
 
 
 def _stream_text(part):
@@ -174,7 +193,9 @@ class PixelPins:
         resampled grip bar or a one-pixel crop slip shows up here
         immediately. Each mismatch also carries :func:`band_mismatch_context`
         so a failure names the band's whole colour set and the render's
-        stderr, not only the first cell that differed.
+        stderr, not only the first cell that differed, and
+        :func:`first_differing_pixel_note` names that cell's absolute capture
+        coordinates beside both colours at the call site below.
         """
         image = self.candidate_image()
         x, y, width, height = rect
@@ -185,11 +206,13 @@ class PixelPins:
         ]
         context = band_mismatch_context(band, getattr(self, "stderr", ""))
         for row in range(height):
+            expected = list(rows[row])
+            observed = band[row * width:(row + 1) * width]
             with self.subTest(row=y + row):
                 self.assertEqual(
-                    list(rows[row]),
-                    band[row * width:(row + 1) * width],
-                    context,
+                    expected,
+                    observed,
+                    context + first_differing_pixel_note(x, y + row, expected, observed),
                 )
 
     def candidate_colour_map(self, rect):
@@ -394,7 +417,9 @@ class Renders:
         replacement names the kind and its capture path and quotes the
         partial output the exception carries (``output``/``stderr``, which
         ``support.process_runner.finish`` attaches), so a recurrence records
-        its cause by itself.
+        its cause by itself, and the capture the kind already wrote is
+        preserved outside the scratch tree the exit sweep removes (or the
+        message says the render wrote no capture).
         """
         capture = os.path.join(cls.directories[kind], filename)
         message = (
@@ -407,6 +432,11 @@ class Renders:
         )
         if note:
             message = f"{message}\n{note}"
+        preserved = preserve_capture(kind, cls.directories[kind], filename)
+        if preserved is None:
+            message = f"{message}\nthe render wrote no capture"
+        else:
+            message = f"{message}\ncapture preserved at {preserved}"
         return RuntimeError(message)
 
     @classmethod
@@ -427,19 +457,101 @@ def render_output_note(stdout, stderr):
     return "render output:\n" + "\n".join(parts)
 
 
+# Where a failed gate's capture survives the scratch-tree sweep: the
+# diagnostics root sits outside every scratch directory the batch's exit
+# sweep removes, and keeping only the newest timestamped directories bounds
+# the space parallel workers and repeated runs spend on captures.
+DIAGNOSTICS_DIRECTORY = "platinum-render-diagnostics"
+DIAGNOSTIC_DIRECTORIES_KEPT = 8
+
+
+def diagnostics_root():
+    """Return the capture-diagnostics root under this run's ``TMPDIR``."""
+    return os.path.join(os.environ.get("TMPDIR", "/tmp"), DIAGNOSTICS_DIRECTORY)
+
+
+def preserve_capture(kind, directory, filename):
+    """Copy the capture at *directory*/*filename* into the diagnostics root.
+
+    The scratch tree is removed at interpreter exit, so a gate failure's
+    capture would vanish with it; this copies the PNG byte for byte into
+    ``<TMPDIR>/platinum-render-diagnostics/<UTC timestamp>-<pid>-<kind>/``
+    under the capture's own filename and returns the copy's path. A ``None``
+    return is itself a diagnostic the quarantined gate entries ask for: a
+    finished render with no capture says the capture never happened. The
+    diagnostics root is pruned to its newest
+    :data:`DIAGNOSTIC_DIRECTORIES_KEPT` timestamped directories, and no copy
+    or prune error may mask the gate's own failure, so every fault here
+    falls back to ``None``.
+    """
+    try:
+        capture = os.path.join(directory, filename)
+        if not os.path.isfile(capture):
+            return None
+        root = diagnostics_root()
+        stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+        target_directory = os.path.join(root, f"{stamp}-{os.getpid()}-{kind}")
+        os.makedirs(target_directory, exist_ok=True)
+        target = os.path.join(target_directory, filename)
+        shutil.copyfile(capture, target)
+        _prune_diagnostics(root)
+        return target
+    except Exception:
+        return None
+
+
+def _prune_diagnostics(root):
+    """Remove every diagnostics directory but the newest kept count."""
+    names = sorted(os.listdir(root))
+    for name in names[:-DIAGNOSTIC_DIRECTORIES_KEPT]:
+        shutil.rmtree(os.path.join(root, name), ignore_errors=True)
+
+
 class RenderOutputMessages:
     """Append the render's own output to every pixel assertion's failure.
 
     A pixel assertion passes no message, so the render's stdout and stderr
     join the mismatch: a recurrence then names the settle path that ran
-    instead of a bare colour pair. An explicit message is kept as given. The
-    mixin reads ``stdout`` and ``stderr`` from the gate's ``setUpClass``.
+    instead of a bare colour pair. An explicit message is kept as given, and
+    every failure additionally names the preserved capture's path (or says
+    the render wrote no capture) through :meth:`capture_preservation_note`.
+    The mixin reads ``stdout`` and ``stderr`` from the gate's ``setUpClass``.
     """
 
     def assertEqual(self, first, second, msg=None):
         if msg is None:
             msg = render_output_note(self.stdout, self.stderr) or None
-        super().assertEqual(first, second, msg)
+        try:
+            super().assertEqual(first, second, msg)
+        except AssertionError as error:
+            note = self.capture_preservation_note()
+            if note:
+                # unittest builds the ``msg`` argument eagerly even for
+                # passing assertions, so the preservation must happen here,
+                # in the failure path only; the note is spliced into the
+                # caught error instead of a re-raise with a new traceback.
+                error.args = (f"{error}\n{note}",)
+            raise
+
+    def capture_preservation_note(self):
+        """Preserve this gate's capture on a failure and return the note line.
+
+        A gate without a ``directory`` -- the plain message probes -- adds
+        nothing. The capture's filename comes from the gate's ``output``
+        when it sets one (the dialog gates' ``dialog.png``) and defaults to
+        the dialog capture otherwise, and the kind label from the gate's
+        ``KIND`` when it has one.
+        """
+        directory = getattr(self, "directory", None)
+        if directory is None:
+            return ""
+        filename = os.path.basename(
+            getattr(self, "output", "") or os.path.join(directory, "dialog.png")
+        )
+        preserved = preserve_capture(getattr(self, "KIND", "gate"), directory, filename)
+        if preserved is None:
+            return "the render wrote no capture"
+        return f"capture preserved at {preserved}"
 
 
 class DialogGate(RenderOutputMessages, PixelPins):

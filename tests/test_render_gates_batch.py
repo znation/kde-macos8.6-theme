@@ -17,13 +17,52 @@ from __future__ import annotations
 import atexit
 import contextlib
 import os
+import shutil
 import subprocess
+import tempfile
 import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.render import gates as render_gates
 from support.render.gates import Renders
+
+
+@contextlib.contextmanager
+def _stubbed_runner(finish_raises=None):
+    """Stub ``process_runner.start``/``finish`` around a batch run.
+
+    Yields the ``(argv, kwargs)`` list ``start`` received in call order
+    and the ``(process, timeout)`` list ``finish`` received. When
+    *finish_raises* is given, every ``finish`` call raises it instead of
+    answering, so the batch's failure attribution can be probed.
+    """
+    started = []
+
+    def fake_start(argv, **kwargs):
+        started.append((argv, kwargs))
+        return mock.Mock(returncode=None, argv=argv)
+
+    finished = []
+
+    def fake_finish(process, timeout=None):
+        finished.append((process, timeout))
+        if finish_raises is not None:
+            raise finish_raises
+        # Each session answers with its own capture path and a distinct
+        # exit status, so a result filed under the wrong kind shows.
+        process.returncode = len(finished)
+        return (f"out {process.argv[2]}", f"err {process.argv[2]}")
+
+    with (
+        mock.patch.object(
+            render_gates.process_runner, "start", side_effect=fake_start
+        ),
+        mock.patch.object(
+            render_gates.process_runner, "finish", side_effect=fake_finish
+        ),
+    ):
+        yield started, finished
 
 
 class TestRenderBatch(unittest.TestCase):
@@ -56,42 +95,6 @@ class TestRenderBatch(unittest.TestCase):
             Renders.failure,
         ) = self._saved
 
-    @contextlib.contextmanager
-    def _stubbed_runner(self, finish_raises=None):
-        """Stub ``process_runner.start``/``finish`` around a batch run.
-
-        Yields the ``(argv, kwargs)`` list ``start`` received in call order
-        and the ``(process, timeout)`` list ``finish`` received. When
-        *finish_raises* is given, every ``finish`` call raises it instead of
-        answering, so the batch's failure attribution can be probed.
-        """
-        started = []
-
-        def fake_start(argv, **kwargs):
-            started.append((argv, kwargs))
-            return mock.Mock(returncode=None, argv=argv)
-
-        finished = []
-
-        def fake_finish(process, timeout=None):
-            finished.append((process, timeout))
-            if finish_raises is not None:
-                raise finish_raises
-            # Each session answers with its own capture path and a distinct
-            # exit status, so a result filed under the wrong kind shows.
-            process.returncode = len(finished)
-            return (f"out {process.argv[2]}", f"err {process.argv[2]}")
-
-        with (
-            mock.patch.object(
-                render_gates.process_runner, "start", side_effect=fake_start
-            ),
-            mock.patch.object(
-                render_gates.process_runner, "finish", side_effect=fake_finish
-            ),
-        ):
-            yield started, finished
-
     def _run_with_stubbed_runner(self, *kinds):
         """Request *kinds* and run the batch with a stubbed process runner.
 
@@ -99,7 +102,7 @@ class TestRenderBatch(unittest.TestCase):
         order and the ``(process, timeout)`` list ``finish`` received.
         """
         Renders.request(*kinds)
-        with self._stubbed_runner() as (started, finished):
+        with _stubbed_runner() as (started, finished):
             Renders._run_all()
         return started, finished
 
@@ -250,7 +253,7 @@ class TestRenderBatch(unittest.TestCase):
         )
         Renders.request("checkbox")
         with (
-            self._stubbed_runner(finish_raises=error),
+            _stubbed_runner(finish_raises=error),
             mock.patch.object(atexit, "register"),
         ):
             with self.assertRaises(RuntimeError) as raised:
@@ -274,7 +277,7 @@ class TestRenderBatch(unittest.TestCase):
         error = subprocess.TimeoutExpired([render_gates.SCRIPT, "capture.png"], 150)
         Renders.request("checkbox")
         with (
-            self._stubbed_runner(finish_raises=error),
+            _stubbed_runner(finish_raises=error),
             mock.patch.object(atexit, "register"),
         ):
             with self.assertRaises(RuntimeError) as raised:
@@ -283,6 +286,111 @@ class TestRenderBatch(unittest.TestCase):
         self.assertIn("checkbox", message)
         self.assertIn("dialog.png", message)
         self.assertNotIn("render output:", message)
+
+
+class TestFinishFailurePreservesTheCapture(unittest.TestCase):
+    """A batch-finish failure preserves the kind's capture, or says there is none.
+
+    The scratch tree is swept at interpreter exit, so the attributable finish
+    failure must copy the capture the kind already wrote into the diagnostics
+    root and name the copy; a kind that wrote no capture says so instead.
+    The diagnostics root is steered into this test's own scratch tree with
+    ``TMPDIR``.
+    """
+
+    def setUp(self):
+        self.parent = tempfile.mkdtemp(prefix="finish-failure-")
+        self.addCleanup(shutil.rmtree, self.parent, ignore_errors=True)
+        patcher = mock.patch.dict(os.environ, {"TMPDIR": self.parent})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.root = os.path.join(self.parent, "platinum-render-diagnostics")
+
+    def _saved_state(self):
+        saved = (
+            Renders.requested,
+            Renders.directories,
+            Renders.results,
+            Renders.completed,
+            Renders.failure,
+        )
+        Renders.requested = set()
+        Renders.directories = {}
+        Renders.results = {}
+        Renders.completed = False
+        Renders.failure = None
+        return saved
+
+    def _restore_state(self, saved):
+        Renders._remove_directories()
+        (
+            Renders.requested,
+            Renders.directories,
+            Renders.results,
+            Renders.completed,
+            Renders.failure,
+        ) = saved
+
+    def test_a_finish_failure_names_the_preserved_copys_path(self):
+        saved = self._saved_state()
+        payload = b"\x89PNG capture bytes"
+        error = RuntimeError("render batch broke")
+
+        def raising_finish(process, timeout=None):
+            # The capture lands in the kind's scratch directory before the
+            # failure propagates, exactly as a finished render would leave it.
+            with open(
+                os.path.join(Renders.directories["checkbox"], "dialog.png"), "wb"
+            ) as handle:
+                handle.write(payload)
+            raise error
+
+        try:
+            Renders.request("checkbox")
+            with (
+                mock.patch.object(
+                    render_gates.process_runner,
+                    "start",
+                    side_effect=lambda argv, **kwargs: mock.Mock(
+                        returncode=None, argv=argv
+                    ),
+                ),
+                mock.patch.object(
+                    render_gates.process_runner, "finish", side_effect=raising_finish
+                ),
+            ):
+                with self.assertRaises(RuntimeError) as raised:
+                    Renders._run_all()
+        finally:
+            self._restore_state(saved)
+        message = str(raised.exception)
+        self.assertIn("checkbox", message)
+        self.assertIn("capture preserved at", message)
+        preserved = next(
+            line[len("capture preserved at "):]
+            for line in message.splitlines()
+            if line.startswith("capture preserved at ")
+        )
+        self.assertTrue(preserved.startswith(self.root))
+        with open(preserved, "rb") as handle:
+            self.assertEqual(payload, handle.read())
+
+    def test_a_finish_failure_without_a_capture_says_so(self):
+        saved = self._saved_state()
+        error = subprocess.TimeoutExpired([render_gates.SCRIPT, "capture.png"], 150)
+        try:
+            Renders.request("checkbox")
+            with _stubbed_runner(finish_raises=error):
+                with self.assertRaises(RuntimeError) as raised:
+                    Renders._run_all()
+        finally:
+            self._restore_state(saved)
+        message = str(raised.exception)
+        self.assertIn("checkbox", message)
+        self.assertIn("dialog.png", message)
+        self.assertIn("the render wrote no capture", message)
+        self.assertNotIn("capture preserved at", message)
+        self.assertFalse(os.path.isdir(self.root))
 
 
 if __name__ == "__main__":
