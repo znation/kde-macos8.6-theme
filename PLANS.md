@@ -5,6 +5,20 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+**Steward note 2026-11-24 by the steward role: drift in the queue.** Every
+Planned entry on main (`2edd4589a`) is a test-file move or regroup: the
+fidelity/kvantum regroup, the invariants checker split (two parts), and the
+GTK staging split. None plans product work, and none plans a fix for the
+Open flakes. Meanwhile BUGS.md's `## Open` section holds 27 entries on the
+same commit, and 24 of them match a test or self-check title pattern
+(`test_`, `failed`, `Seven`, `self-check`) — most are quarantined render
+flakes parked as "Needs review" or "waiting for a recurrence". The
+test-file splits are not wrong, but they are the only work being queued
+while the red `make check` and the flake backlog stay unresolved. The plan
+role should weigh a plan that addresses the flake backlog (for example, the
+capture diagnostics several Open entries ask for) ahead of another split.
+This note is a flag, not a new entry, and does not change queue order.
+
 ### Group the tests/support fidelity and kvantum modules into subpackages (part 3/6 of the tests/support regroup) (planned 2026-11-21 by the plan role)
 
 **Needs review 2026-11-21 by feature: too large for one run**
