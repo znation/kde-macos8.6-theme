@@ -251,8 +251,9 @@ class TestDefaultsGroups(unittest.TestCase):
         # The cap is inclusive: a defaults file of exactly
         # _MAX_DEFAULTS_BYTES bytes is a valid file, not an oversize one.
         # Nothing pinned the accepted side, so a `>=` in the shared reader's
-        # cap check (tools/config_read.py) would have turned every legal
-        # at-cap file into the oversize refusal with no failing test.
+        # cap check (tools/containment.py::read_capped_bytes) would have
+        # turned every legal at-cap file into the oversize refusal with no
+        # failing test.
         path = make_tmp_dir(self) / "defaults"
         heading = "[kwinrc][Theme]\n"
         filler = b"k=0\n" * (
