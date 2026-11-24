@@ -650,6 +650,48 @@ PINS = {
         _shape("rect", x="8", y="10", width="1", height="5", fill="#000000"),
         _shape("rect", x="4", y="15", width="5", height="1", fill="#000000"),
     ),
+    # The RAR-archive item icon KDE draws for `application/vnd.rar`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/vnd.rar` type, whose `generic-icon`
+    # is the shipped `package-x-generic`); one file covers exactly its
+    # own name, and the drawing shares the sealed package box and holds
+    # a stepped diamond on the white body left of the grey tape stripe.
+    os.path.join("32x32", "mimetypes", "application-vnd.rar.svg"): (
+        _shape("rect", x="3", y="6", width="26", height="22", fill="#000000"),
+        _shape("rect", x="4", y="7", width="24", height="3", fill="#DDDDDD"),
+        _shape("rect", x="4", y="7", width="24", height="1", fill="#FFFFFF"),
+        _shape("rect", x="4", y="10", width="24", height="17", fill="#FFFFFF"),
+        _shape("rect", x="15", y="10", width="2", height="17", fill="#999999"),
+        _shape("rect", x="9", y="16", width="1", height="1", fill="#000000"),
+        _shape("rect", x="8", y="17", width="3", height="1", fill="#000000"),
+        _shape("rect", x="7", y="18", width="5", height="1", fill="#000000"),
+        _shape("rect", x="8", y="19", width="3", height="1", fill="#000000"),
+        _shape("rect", x="9", y="20", width="1", height="1", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-vnd.rar.svg"): (
+        _shape("rect", x="1", y="3", width="14", height="11", fill="#000000"),
+        _shape("rect", x="2", y="4", width="12", height="2", fill="#DDDDDD"),
+        _shape("rect", x="2", y="4", width="12", height="1", fill="#FFFFFF"),
+        _shape("rect", x="2", y="6", width="12", height="7", fill="#FFFFFF"),
+        _shape("rect", x="7", y="6", width="2", height="7", fill="#999999"),
+        _shape("rect", x="4", y="7", width="1", height="1", fill="#000000"),
+        _shape("rect", x="3", y="8", width="3", height="1", fill="#000000"),
+        _shape("rect", x="2", y="9", width="5", height="1", fill="#000000"),
+        _shape("rect", x="3", y="10", width="3", height="1", fill="#000000"),
+        _shape("rect", x="4", y="11", width="1", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-vnd.rar.svg"): (
+        _shape("rect", x="2", y="4", width="18", height="16", fill="#000000"),
+        _shape("rect", x="3", y="5", width="16", height="2", fill="#DDDDDD"),
+        _shape("rect", x="3", y="5", width="16", height="1", fill="#FFFFFF"),
+        _shape("rect", x="3", y="7", width="16", height="12", fill="#FFFFFF"),
+        _shape("rect", x="10", y="7", width="2", height="12", fill="#999999"),
+        _shape("rect", x="6", y="10", width="1", height="1", fill="#000000"),
+        _shape("rect", x="5", y="11", width="3", height="1", fill="#000000"),
+        _shape("rect", x="4", y="12", width="5", height="1", fill="#000000"),
+        _shape("rect", x="5", y="13", width="3", height="1", fill="#000000"),
+        _shape("rect", x="6", y="14", width="1", height="1", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"): (
         _shape("rect", x="3", y="3", width="26", height="26", fill="#000000"),
         _shape("rect", x="4", y="4", width="24", height="24", fill="#DDDDDD"),

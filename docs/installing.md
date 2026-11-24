@@ -199,7 +199,9 @@ icon for 7z archive files (the `application-x-7z-compressed` name at the
 same three sizes), a gzip-archive icon for gzip archive files (the
 `application-gzip` name at the same three sizes), a deb-package icon
 for Debian package files (the `application-vnd.debian.binary-package`
-name at the same three sizes), a flash-media card
+name at the same three sizes), a RAR-archive icon
+for RAR archive files (the `application-vnd.rar` name at the same
+three sizes), a flash-media card
 icon for
 memory cards (the `media-flash` name at the same three sizes), a floppy-disk
 icon for raw floppy-disk images
