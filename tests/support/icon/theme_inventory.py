@@ -81,7 +81,12 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `application-gzip` icon at all three sizes (the sealed
 # package box holding a downward arrow; the name is the type-spelled
 # icon name of the `application/gzip` MIME type in the
-# installed shared MIME database), the flash-media `media-flash`
+# installed shared MIME database), the deb-package
+# `application-vnd.debian.binary-package` icon at all three sizes (the
+# sealed package box holding a black capital letter D; the name is the
+# type-spelled icon name of the `application/vnd.debian.binary-package`
+# MIME type in the installed shared MIME database), the flash-media
+# `media-flash`
 # icon at all three sizes (our own drawing of an upright card standing on
 # its contact pins; the name is a KDE-required value read from
 # `libKF6Solid.so.6`, which also loads it with the reduced subnames
@@ -259,13 +264,13 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "package-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "package-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "package-x-generic.svg"),
-    # The type-spelled archive series: each name is a MIME type in the
-    # installed shared MIME database (`application/zip`,
-    # `application/x-tar`, `application/x-7z-compressed` and
-    # `application/gzip`), which gives the types the
-    # `package-x-generic` generic icon and no icon of their own; at the
-    # exact names Breeze's own files beat the theme's generic-icon
-    # fallback.
+    # The type-spelled package and archive series: each name is a MIME
+    # type in the installed shared MIME database (`application/zip`,
+    # `application/x-tar`, `application/x-7z-compressed`,
+    # `application/gzip` and `application/vnd.debian.binary-package`),
+    # which gives the types the `package-x-generic` generic icon and no
+    # icon of their own; at the exact names Breeze's own files beat the
+    # theme's generic-icon fallback.
     os.path.join("32x32", "mimetypes", "application-zip.svg"),
     os.path.join("16x16", "mimetypes", "application-zip.svg"),
     os.path.join("22x22", "mimetypes", "application-zip.svg"),
@@ -278,6 +283,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-gzip.svg"),
     os.path.join("16x16", "mimetypes", "application-gzip.svg"),
     os.path.join("22x22", "mimetypes", "application-gzip.svg"),
+    os.path.join("32x32", "mimetypes", "application-vnd.debian.binary-package.svg"),
+    os.path.join("16x16", "mimetypes", "application-vnd.debian.binary-package.svg"),
+    os.path.join("22x22", "mimetypes", "application-vnd.debian.binary-package.svg"),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"),
     os.path.join("16x16", "mimetypes", "x-office-document.svg"),
     os.path.join("22x22", "mimetypes", "x-office-document.svg"),
