@@ -7,7 +7,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ### The private browsing window in Firefox has weird looking UI controls (I think because it uses a differnt background color). See /home/zach/Pictures/Screenshots/Screenshot_20261123_023358.png. (reported by the user 2026-11-23) — fixed 2026-11-24 by the bugfix role
 
-The chrome sheet never overrode Firefox's stock private-window content face: `:root[privatebrowsingmode="temporary"]` sets `--tabpanel-background-color` to a purple gradient with `!important`, so a private window's content and its controls sit on a colour no ordinary window uses. `theme/firefox/src/userChrome/020-maindeck.css` now sets the same variable to the non-private value `#f9f9fb` with a user-sheet `!important`, which beats the stock author rule; `tests/test_firefox_theme_private.py` pins it.
+The screenshot shows the private window's tab-strip and navigation icons and its "Private browsing" label in white on the sheet's `#DDDDDD` toolbars. Firefox applies its dark variant to private windows, and the sheet did not pin the tokens ESR 153 reads for that ink. `theme/firefox/src/userChrome/020-maindeck.css` now pins `--toolbox-text-color`, `--toolbox-text-color-inactive`, `--toolbar-text-color` and `--toolbarbutton-icon-fill` to black under `:root[privatebrowsingmode="temporary"]`; `tests/test_firefox_theme_private.py` pins it. (An earlier fix recoloured `--tabpanel-background-color`, which is not the cause: the about:privatebrowsing page paints its own gradient.)
 
 **Validation gap:** real-run-needed — the private-window render needs a real Firefox run and no render gate covers Firefox chrome, so the fix is confirmed by the sheet declaration test and the stock Firefox source, not by pixels.
 

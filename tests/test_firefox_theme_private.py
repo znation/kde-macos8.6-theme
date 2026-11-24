@@ -1,4 +1,4 @@
-"""Private-window tab panel face in the Firefox chrome sheet."""
+"""Private-window toolbar ink in the Firefox chrome sheet."""
 
 from __future__ import annotations
 
@@ -9,17 +9,20 @@ from support.firefox.chrome_cases import FirefoxChromeTestCase
 PRIVATE_ROOT = ':root[privatebrowsingmode="temporary"]'
 
 
-class TestFirefoxPrivateWindowFace(FirefoxChromeTestCase):
-    """The private window's content face matches the ordinary window's."""
+class TestFirefoxPrivateWindowInk(FirefoxChromeTestCase):
+    """A private window's chrome text and icons are black on the grey face."""
 
-    def test_private_tabpanel_face_overrides_the_stock_gradient(self):
-        # Firefox's stock content-area sheet sets this variable to a purple
-        # gradient with !important; the shipped sheet must override it with a
-        # user-sheet !important so the private window keeps a flat face.
-        self.assertIn(PRIVATE_ROOT, self.rules)
+    def test_private_chrome_ink_is_black(self):
+        # Firefox's dark private variant turns these stock tokens white; they
+        # are the names the installed ESR reads for toolbar text and icons.
         self.assertEqual(
             self.rules[PRIVATE_ROOT],
-            {"--tabpanel-background-color": "#F9F9FB !important"},
+            {
+                "--toolbox-text-color": "#000000 !important",
+                "--toolbox-text-color-inactive": "#000000 !important",
+                "--toolbar-text-color": "#000000 !important",
+                "--toolbarbutton-icon-fill": "#000000 !important",
+            },
         )
 
 

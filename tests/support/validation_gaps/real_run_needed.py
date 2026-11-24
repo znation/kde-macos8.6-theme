@@ -136,10 +136,10 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "::test_workflow_provisions_and_verifies_imagemagick_convert",
     ),
     Reproduction(
-        "firefox-private-window-face",
+        "firefox-private-window-ink",
         ("private browsing window in Firefox",),
-        "tests/test_firefox_theme_private.py::TestFirefoxPrivateWindowFace"
-        "::test_private_tabpanel_face_overrides_the_stock_gradient",
+        "tests/test_firefox_theme_private.py::TestFirefoxPrivateWindowInk"
+        "::test_private_chrome_ink_is_black",
     ),
     Reproduction(
         "splash-capture-client-hold",

@@ -1580,15 +1580,18 @@ toolbar#placesToolbar toolbarbutton#clearDownloadsButton:not([disabled]):hover {
   color: #000000 !important;
 }
 
-/* Private-window tab panel face (2026-11-24): Firefox's stock content-area
-   sheet paints a purple gradient behind every private window's content
-   (`:root[privatebrowsingmode="temporary"]`, `--tabpanel-background-color`,
-   !important), which made the private window's controls sit on a colour no
-   other window uses. This user-sheet !important wins over that author rule
-   and restores the stock non-private value `#F9F9FB`, so a private window's
-   content face matches an ordinary window's. The value is Firefox's own
-   non-private default, not a sampled reference pixel: no collected reference
-   screenshot shows a Firefox content area. */
+/* Private-window chrome ink (2026-11-24): Firefox applies its dark variant to
+   private windows (`browser.theme.dark-private-windows`), so the stock
+   `light-dark()` and system text tokens resolve to white on this sheet's
+   #DDDDDD toolbars. Pin the tokens the installed ESR 153 consumes for the tab
+   strip and window (`--toolbox-text-color` and its inactive form), the
+   navigation toolbars (`--toolbar-text-color`) and the toolbar icons
+   (`--toolbarbutton-icon-fill`). The black is the sheet's existing ink: no
+   collected reference screenshot shows a Firefox private window. The
+   about:privatebrowsing page paints its own content and stays Firefox's. */
 :root[privatebrowsingmode="temporary"] {
-  --tabpanel-background-color: #F9F9FB !important;
+  --toolbox-text-color: #000000 !important;
+  --toolbox-text-color-inactive: #000000 !important;
+  --toolbar-text-color: #000000 !important;
+  --toolbarbutton-icon-fill: #000000 !important;
 }
