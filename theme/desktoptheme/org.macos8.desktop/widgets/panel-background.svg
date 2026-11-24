@@ -16,8 +16,8 @@
      or right slices; the white row 0 therefore lives in `north-center`, an
      8x1080 tile whose first row is #FFFFFF. Plasma tiles it down a taller
      top panel from its top edge, so the cut-off bottom leaves one highlight
-     row per panel; the 1082-row bottom slice sits below it. The 12x1084 canvas
-     holds both states,
+     row per panel; the 2-row bottom slice sits below it at y=1082. The
+     12x1084 canvas holds both states,
      overlapping at the origin. `hint-tile-center` is read without a prefix,
      so the 8x8 hint also tiles the north centre 1:1.
 
