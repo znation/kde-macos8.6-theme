@@ -5,6 +5,52 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `test_title_ink_is_the_inactive_text_colour (test_render_dialog_gates.TestInactiveDialogRender.test_title_ink_is_the_inactive_text_colour)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21) — fixed 2026-11-24 by the bugfix role
+
+**Director handoff 2026-11-21**
+
+Bugfix role, 2026-11-21: not reproduced. The logged `'#CCCCCC' != '#000000'` cannot come from this test: its body only calls `assertTrue`, so its own failure reads "the inactive title has no full-strength text ink". The failure message now names the band's colours (`band_colour_summary` in `tests/test_render_dialog_gates.py`), so a recurrence shows a black capture versus a colour change. One module run before the change passed (35 tests). After the change, the full `make check` had one failure, `test_render_surface`'s `test_bar_rows_pin_the_platinum_structure`, and the dialog-gate tests passed. Handed to the director; see `.tumwater-director-request.md`.
+
+Progress (director 2026-11-23): explained from the code, not reproduced; parked for a recurrence.
+This test samples the left window's `GLYPH_BAND` (tests/test_render_dialog_gates.py) for
+full-strength `#777777` ink, so it fails with "the inactive title has no full-strength text ink"
+whenever the capture holds no painted title. That is the same paint race the sibling
+`test_right_window_keeps_its_active_frame` entry documents (director note 2026-11-23): the
+inactive-dialog session takes no readiness end (`tools/render/workflow.py` sets `readiness_script`
+to `None` when `mode.focus_settle` holds, with the comment that the mode needs both windows before
+capture) and relies on the fixed `--settle 20` sleep, so under the parallel check's load the
+second-spawned `kdialog` can miss that budget and the capture holds the virtual framebuffer's
+`#CCCCCC` desktop face where the glyph band belongs — which the band-colour summary on a
+recurrence will show directly. The five same-day quarantines are one incident, matching the
+2026-11-13 five-pin signature. Decision the bugfix run asked for: park this entry open until a
+recurrence records the band colours, and do not close the `TestIconDialogRender` quarantines —
+their `waiting for a recurrence` holds stand, since the same mechanism explains them without
+distinguishing their recorded excerpts. No code change now: the readiness gap is real but a fix
+is separate work and the diagnostics already in place (the band summary here, `RenderOutputMessages`
+render-log notes) capture what a recurrence needs.
+
+Progress (bugfix 2026-11-24): the readiness gap the director named has since landed. Commit f5a0ba38 (feature, 2026-11-24) gives the inactive-dialog render its own pair readiness script (`tools/render/window_rules.py::pair_readiness_text`, wired in `tools/render/workflow.py`), so the settle ends once both titled windows are in the right focus state instead of sleeping a fixed 20 s, with a 45 s ceiling. This run did not reproduce the flake and made no code change. Whether this closes the entry is the director's call: the hold's stated trigger was a recurrence, and no recurrence has been recorded since this fix. Next step: director to decide between closing against f5a0ba38 and keeping the hold until a recurrence shows `band_colour_summary`.
+
+Progress (bugfix 2026-11-24, closing): the pair readiness script f5a0ba38 shipped removes the mechanism the director's park was premised on — the two-window render no longer sleeps a fixed settle with no readiness end; the settle ends once both titled windows hold the gate's focus states, and the 45 s budget is only the ceiling for a pair that never settles. This run ran the quarantined class on the current tree and it passed (7 tests, one `--inactive-dialog` render, the glyph band held its `#777777` ink). The entry closes against f5a0ba38 without a recurrence; `band_colour_summary` stays in the test, so a recurrence of a different mechanism still names the colours. The `TestIconDialogRender` quarantines keep their own holds, as the director's note directs.
+
+**Validation gap:** slow-check (closest fit, said so per the tag contract: the ledger's confirmation-under-render-load entries cover this family) — the flake only ever surfaced under the full parallel `make check`'s render load and never reproduced in isolation, so the fix is confirmed offline by the pair-readiness pins plus this run's passing quarantined class, not by a deterministic failure reproduction.
+
+The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
+
+~~~~
+AssertionError: '#CCCCCC' != '#000000'
+test_unresolvable_data_home_refusal_names_the_data_home_fallback (test_xdg_homes.TestRequireHome.test_unresolvable_data_home_refusal_names_the_data_home_fallback) ... ok
+test_unresolvable_refusal_names_both_received_values (test_xdg_homes.TestRequireHome.test_unresolvable_refusal_names_both_received_values) ... ok
+test_the_diagnostics_resolve_the_config_home_through_xdg_homes (test_xdg_homes.TestUninstallConfigSharesTheRule.test_the_diagnostics_resolve_the_config_home_through_xdg_homes) ... ok
+test_a_relative_value_is_named_in_shell_quoting (test_xdg_homes.TestUnresolvedHomeState.test_a_relative_value_is_named_in_shell_quoting) ... ok
+test_an_empty_value_counts_as_unset (test_xdg_homes.TestUnresolvedHomeState.test_an_empty_value_counts_as_unset) ... ok
+----------------------------------------------------------------------
+Ran 16 tests in 0.001s
+OK
+check: 549 modules, 2 modules failed
+make: *** [Makefile:497: check] Error 1
+~~~~
+
 ### A white line runs through a top panel taller than 20px: the `north-` panel tile repeats its highlight row (reported by the user 2026-11-24) — fixed 2026-11-24 by the bugfix role
 
 **Symptom.** With the KDE panel at the top of the screen, a full-width white line crosses the bar below its middle. The active task's fill hides it. User screenshot: `/home/zach/kde-macos8.6-theme/.tumwater/inbox/1795511354737-000000-76079.png` (3840x2160, a 1.5x display scale).

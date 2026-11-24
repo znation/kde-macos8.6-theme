@@ -12,11 +12,14 @@ from __future__ import annotations
 from .records import Reproduction
 
 # The four ``slow-check`` records the archive held when the newest entry
-# joined. Each failure was only confirmable under render or wall-clock-shaped
+# joined, plus the quarantined inactive-dialog title-ink pin fixed 2026-11-24,
+# whose flake only ever surfaced under the full parallel check's render load;
+# the pair readiness script that removed it is pinned offline by the test
+# naming both titles and their focus states. Each failure was only confirmable under render or wall-clock-shaped
 # load; its reproduction now pins the shipped paint budget offline -- a shipped
 # flag list, or a stubbed save whose diagnosis runs without the wall clock.
 # A new record must name such a test instead of raising this.
-SLOW_CHECK_BASELINE = 4
+SLOW_CHECK_BASELINE = 5
 
 SLOW_CHECK_REPRODUCTIONS = (
     Reproduction(
@@ -39,6 +42,15 @@ SLOW_CHECK_REPRODUCTIONS = (
         "tests/test_render_live_capture.py"
         "::TestLiveCapture"
         "::test_an_expired_setup_wait_is_reported_by_name_not_as_a_status_mismatch",
+    ),
+    Reproduction(
+        "inactive-dialog-title-ink-quarantine",
+        (
+            "test_render_dialog_gates.TestInactiveDialogRender."
+            "test_title_ink_is_the_inactive_text_colour",
+        ),
+        "tests/test_render_window_rules.py::TestWindowRules"
+        "::test_the_pair_readiness_script_names_both_titles_and_their_focus_states",
     ),
     Reproduction(
         "inactive-dialog-focus-settle",
