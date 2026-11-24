@@ -650,6 +650,24 @@ quarantine excerpt did not keep this test's own message. Keep this entry and its
 
 ### `test_right_window_keeps_its_active_frame (test_render_dialog_gates.TestInactiveDialogRender.test_right_window_keeps_its_active_frame)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21)
 
+**Director note 2026-11-23: explained from the code, not reproduced; parked for a recurrence.**
+The `'#CCCCCC'` in the mismatch is the virtual framebuffer's desktop face, not a decoration colour:
+`band_mismatch_context` in `tests/support/render/gates.py` documents a desktop-face `#CCCCCC` where a
+dialog pixel belongs as the signature of "the capture ran before the dialog mapped". So the failing
+capture caught the focused (right-hand) window before it painted — unmapped or mapped but not yet
+decorated — which confirms the paint-race inference below from the code, not just placement reasoning.
+The mechanism: the inactive-dialog session takes no readiness end (`tools/render/workflow.py` sets
+`readiness_script` to `None` whenever `mode.focus_settle` holds, with the comment that the
+inactive-dialog mode needs both windows before capture) and relies on the fixed `--settle 20` sleep;
+under the parallel check's load the second-spawned `kdialog` can miss that budget, and the render's
+`_capture_is_unpainted` guard only catches entirely-black captures, not a half-painted pair. The
+focus-settle script settles activation but not mapping. Director decision the previous note asked
+for: keep the `RenderOutputMessages` render-log note — it widens only failure messages (a passing
+render adds nothing), and `assert_ring`'s dict `assertEqual` already routes through it, so a
+recurrence names the settle path; no further code change now. Next step on recurrence: read the
+"render output:" lines in the failure to see which settle path ran and whether the focused window
+reported mapping at all.
+
 **Director handoff 2026-11-21**
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
