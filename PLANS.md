@@ -155,6 +155,101 @@ either order works.
   test_placeholders test_invariants'` passes, and so does full `make check`
   after the final edit, apart from main's known-red tests.
 
+### Platinum icon theme: draw images with an original `image-x-generic` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A photograph or graphics file in the file manager is drawn with
+Breeze's art beside the Platinum documents. Ship one original placeholder
+icon, `image-x-generic`, at 16x16, 22x22 and 32x32.
+
+Planning-time probes this run with `kiconfinder6` under scratch
+`XDG_DATA_HOME`, `XDG_CONFIG_HOME` (with `[Icons]
+Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+`XDG_RUNTIME_DIR`, with `DISPLAY` and `WAYLAND_DISPLAY` unset and
+`QT_QPA_PLATFORM=offscreen`: with the theme installed, `image-png`,
+`image-x-generic`, `video-mp4`, `video-x-generic`, `audio-mpeg` and
+`audio-x-generic` all resolved to Breeze files, so images, audio and video
+draw Breeze art today. In the installed shared MIME database the raster
+image types (`image/png`, `image/jpeg`, `image/gif` and their kin) carry
+no `generic-icon` element: KIO resolves their icon name by type spelling
+(`image-png`) and its per-type fallback, not through a database
+generic-icon. A second probe on a copy of the theme that gained a
+stand-in `image-x-generic.svg` in its three `mimetypes` directories:
+`image-png`, `image-x-generic`, `image-x-photoshop` and
+`application-x-karbon` all resolved to the copy's file, so one file
+captures every raster image name plus the 35 types the database gives
+`generic-icon name="image-x-generic"` (Photoshop, Illustrator, Visio,
+OpenDocument graphics, Blender, glTF, STL and their kin). Audio and video
+stay out of scope: this plan ships nothing but `image-x-generic`.
+
+**Approach.**
+
+- Add `mimetypes/image-x-generic.svg` under `16x16`, `22x22` and `32x32`
+  of `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original image illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette, not
+  traced from anyone's artwork, and a root with matching `width`, `height`
+  and `viewBox`. The art is a framed photograph: a black frame, a
+  `#DDDDDD` matte, a white photo paper, a grey sun, a grey mountain
+  staircase and a grey ground band. Each file holds these `rect` elements
+  in order, written `x,y width×height fill`:
+  - 32x32: `3,3 26×26 #000000`; `4,4 24×24 #DDDDDD`; `6,6 20×20 #FFFFFF`;
+    `21,9 3×3 #999999`; `6,18 4×3 #999999`; `10,16 4×5 #999999`;
+    `14,14 4×7 #999999`; `18,16 4×5 #999999`; `22,18 4×3 #999999`;
+    `6,21 20×5 #999999`.
+  - 22x22: `2,2 18×18 #000000`; `3,3 16×16 #DDDDDD`; `4,4 14×14 #FFFFFF`;
+    `15,6 2×2 #999999`; `4,12 3×2 #999999`; `7,10 3×4 #999999`;
+    `10,9 3×5 #999999`; `13,11 3×3 #999999`; `4,14 14×4 #999999`.
+  - 16x16: `1,1 14×14 #000000`; `2,2 12×12 #DDDDDD`; `3,3 10×10 #FFFFFF`;
+    `10,4 2×2 #999999`; `3,8 2×2 #999999`; `5,7 2×3 #999999`;
+    `7,6 2×4 #999999`; `9,8 2×2 #999999`; `3,10 10×3 #999999`.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `package-x-generic` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `mimetypes` paths, name the image icon
+  in the inventory comment above them, and say in the comment that the
+  name captures the raster image icon names by type-spelling fallback and
+  is the `generic-icon` of the graphics and 3D-model MIME types in the
+  installed shared MIME database.
+- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `image-x-generic` in the last cell: no reference pixels
+  were used, the name is the `generic-icon` of the graphics and
+  3D-model MIME types in the installed shared MIME database and the
+  framed-photo drawing is this theme's own choice.
+- `docs/installing.md`: add the image icon to the sentence listing the
+  icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the rectangles listed for that size, carries a placeholder marker and
+  comment and has a `PLACEHOLDERS.md` row; the existing inventory, palette,
+  geometry and placeholder-register tests cover all three.
+- Changing a rectangle's position, size or fill, or the element order, in
+  one file makes the geometry pin fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `image-png`, `image-x-generic`,
+  `image-x-photoshop` and `application-x-karbon` resolve to the theme's
+  file, and `video-mp4` and `audio-mpeg` stay on Breeze. Report the output
+  in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
