@@ -33,7 +33,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from support.executable_stubs import write_executable
+from support.executable_stubs import write_colorscheme_apply_ok, write_executable
 from tools.render import session as render_session, workflow as render_workflow  # noqa: E402
 
 
@@ -246,8 +246,7 @@ class TestSessionScript(unittest.TestCase):
 
     def test_waits_for_client_termination_and_preserves_capture_status(self):
         root = tmp_dir.make_tmp_dir(self)
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
-        environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
+        environment = write_colorscheme_apply_ok(root)
         ready = root / "ready"
         stopped = root / "stopped"
         client = root / "client.py"
@@ -317,8 +316,7 @@ class TestSessionScript(unittest.TestCase):
         import time
 
         root = tmp_dir.make_tmp_dir(self)
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
-        environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
+        environment = write_colorscheme_apply_ok(root)
         client = root / "client.py"
         client.write_text(
             "import os, signal\n"
@@ -347,8 +345,7 @@ class TestSessionScript(unittest.TestCase):
         import time
 
         root = tmp_dir.make_tmp_dir(self)
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
-        environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
+        environment = write_colorscheme_apply_ok(root)
         client = root / "client.py"
         client.write_text(
             "import signal\n"
@@ -373,7 +370,7 @@ class TestSessionScript(unittest.TestCase):
         import time
 
         root = tmp_dir.make_tmp_dir(self)
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
+        write_colorscheme_apply_ok(root)
         write_executable(root / "qdbus6", "#!/bin/sh\necho 17\n")
         write_executable(
             root / "dbus-monitor",
@@ -410,7 +407,7 @@ class TestSessionScript(unittest.TestCase):
         import time
 
         root = tmp_dir.make_tmp_dir(self)
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
+        write_colorscheme_apply_ok(root)
         # Keep the session PATH deliberately small: the readiness probe must
         # take its documented missing-monitor path even on hosts with D-Bus
         # tools installed. These commands are used by the ordinary shell path.
@@ -440,7 +437,7 @@ class TestSessionScript(unittest.TestCase):
         import time
 
         root = tmp_dir.make_tmp_dir(self)
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
+        write_colorscheme_apply_ok(root)
         monitor_pid = root / "monitor.pid"
         write_executable(
             root / "dbus-monitor", "#!/bin/sh\necho $$ > \"$RENDER_MONITOR_PID\"\n"
@@ -473,7 +470,7 @@ class TestSessionScript(unittest.TestCase):
         import time
 
         root = tmp_dir.make_tmp_dir(self)
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
+        write_colorscheme_apply_ok(root)
         write_executable(root / "qdbus6", "#!/bin/sh\necho 17\n")
         monitor_pid = root / "monitor.pid"
         write_executable(
@@ -515,8 +512,7 @@ class TestSessionScript(unittest.TestCase):
         # render's black-capture diagnosis greps for must all be in the
         # log, and the capture status must survive.
         root = tmp_dir.make_tmp_dir(self)
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
-        environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
+        environment = write_colorscheme_apply_ok(root)
         ready = root / "ready"
         pidfile = root / "client.pid"
         client = root / "client.py"
@@ -574,8 +570,7 @@ class TestSessionScript(unittest.TestCase):
         # cannot run its termination handler inside the session's bounded
         # wait.
         root = tmp_dir.make_tmp_dir(self)
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
-        environment = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}")
+        environment = write_colorscheme_apply_ok(root)
         ready = root / "ready"
         pidfile = root / "client.pid"
         captured_state = root / "captured-state"

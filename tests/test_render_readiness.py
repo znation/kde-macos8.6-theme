@@ -9,13 +9,13 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from support.executable_stubs import write_executable
+from support.executable_stubs import write_colorscheme_apply_ok, write_executable
 from tools.render import session as render_session, workflow as render_workflow  # noqa: E402
 
 
 class TestRenderReadiness(unittest.TestCase):
     def _session(self, root, path, settle):
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
+        environment = write_colorscheme_apply_ok(root, dict(os.environ, PATH=path))
         client = root / "client.py"
         client.write_text("import signal; signal.pause()\n", encoding="utf-8")
         return render_workflow.run_logged(
@@ -27,7 +27,7 @@ class TestRenderReadiness(unittest.TestCase):
                 "sh", str(settle), str(root / "capture.png"), sys.executable,
                 str(client),
             ],
-            {**os.environ, "PATH": f"{root}:{path}"},
+            environment,
             root / "session.log", 10, root,
         )
 
@@ -228,7 +228,7 @@ class TestRenderReadiness(unittest.TestCase):
             "fi\n"
             'exec /usr/bin/sleep "$@"\n',
         )
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
+        write_colorscheme_apply_ok(root)
         client = root / "client.py"
         client.write_text(
             "import os, pathlib, signal\n"

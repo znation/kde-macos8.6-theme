@@ -11,7 +11,7 @@ from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from support.executable_stubs import write_executable
+from support.executable_stubs import write_colorscheme_apply_ok, write_executable
 from tools.render import session as render_session, workflow as render_workflow  # noqa: E402
 
 
@@ -122,7 +122,7 @@ class TestSessionFocusSettle(unittest.TestCase):
         # land inside the capture, the sentinel must exist after the
         # session (the loop's stop), and the capture status must survive.
         root = tmp_dir.make_tmp_dir(self)
-        write_executable(root / "plasma-apply-colorscheme", "#!/bin/sh\nexit 0\n")
+        environment = write_colorscheme_apply_ok(root)
         calls = root / "qdbus-calls"
         capturing = root / "capturing"
         write_executable(
@@ -168,7 +168,7 @@ class TestSessionFocusSettle(unittest.TestCase):
             ["sh", "-c", prefix + render_session.session_script(str(settle_script)),
              "sh", "0", str(root / "capture.png"), sys.executable,
              str(client), str(ready)],
-            dict(os.environ, PATH=f"{root}:{os.environ['PATH']}"),
+            environment,
             root / "session.log", 10, root,
         )
         self.assertEqual(0, status)
