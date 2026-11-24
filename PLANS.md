@@ -56,6 +56,117 @@ desktoptheme, kvantum and render tests).
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw a modem with an original `modem` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A modem is drawn with no Platinum art at all today: the name
+`modem` resolves to nothing on this system. Ship one original
+placeholder icon, `modem`, at 16x16, 22x22 and 32x32, in the same
+devices series as the landed `computer`, `media-flash`, `printer`,
+`phone`, `battery`, `camera-photo`, `media-floppy`, `network-server`
+and `network-vpn` files and the waiting `video-display` entry.
+Provenance: the installed `libKF6BluezQt.so.6.13.0` carries the bare
+`modem` literal (`strings -e l`) and no reduced `modem-*` subnames
+(`grep -o "modem[a-z-]*"` over the same library prints only `modem`),
+the same library-literal pattern as the `media-floppy` plan's Solid
+anchor; BluezQt's modem device type is what a Solid modem device is
+listed as. Breeze ships the name nowhere: `find
+/usr/share/icons/breeze -name 'modem*'` is empty, and the planning-time
+`kiconfinder6 modem` probe (theme installed, 2026-11-24) exits 1 with
+no output — so unlike the floppy, VPN and server entries, the theme
+wins the name outright instead of competing with Breeze's art. This
+time that also means the resolution change is from "nothing" to the
+theme's file, which the manual check below pins. No reference
+screenshot shows a modem icon: no reference pixels are used, and the
+drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `devices/modem.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original modem illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a flat Platinum external modem
+  seen from the front: a wide box with the 1px #000000 outline and the
+  #FFFFFF/#999999 bevels on the #DDDDDD face, a telephone jack on the
+  right, and a row of black indicator LEDs along the front. Each file
+  holds these elements in order, written `x,y width×height fill` for
+  rects:
+  - 32x32: `3,8 26×18 #000000`; `4,9 24×16 #DDDDDD`; `4,9 24×1
+    #FFFFFF`; `4,9 1×16 #FFFFFF`; `4,24 24×1 #999999`; `27,9 1×16
+    #999999`; `21,11 5×3 #000000`; `22,12 3×1 #FFFFFF`; `7,20 2×2
+    #000000`; `11,20 2×2 #000000`; `15,20 2×2 #000000`.
+  - 22x22: `2,6 18×13 #000000`; `3,7 16×11 #DDDDDD`; `3,7 16×1
+    #FFFFFF`; `3,7 1×11 #FFFFFF`; `3,17 16×1 #999999`; `18,7 1×11
+    #999999`; `14,9 4×3 #000000`; `15,10 2×1 #FFFFFF`; `5,15 2×2
+    #000000`; `9,15 2×2 #000000`; `13,15 2×2 #000000`.
+  - 16x16: `1,4 14×10 #000000`; `2,5 12×8 #DDDDDD`; `2,5 12×1
+    #FFFFFF`; `2,5 1×8 #FFFFFF`; `2,12 12×1 #999999`; `13,5 1×8
+    #999999`; `9,7 3×2 #000000`; `4,10 1×1 #000000`; `6,10 1×1
+    #000000`; `8,10 1×1 #000000`.
+
+  In each list the first six elements are the body outline, fill and
+  bevels, the next two or three are the jack frame and slot (the
+  16x16 drawing keeps the frame and drops the slot, as the small
+  floppy drawing drops its label line), and the last ones are the
+  LEDs. Validate by XML only, never by rasterizing: `convert`'s MSVG
+  reader bleeds 1px rects, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `media-floppy` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `devices` paths, and name the
+  modem icon in the comment above the list where `media-floppy` is
+  named.
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `modem` in the last cell: no reference pixels were
+  used, the name is a KDE-required value read from
+  `libKF6BluezQt.so.6` (the installed `libKF6BluezQt.so.6.13.0` carries
+  the bare `modem` literal), Breeze ships the name nowhere (the
+  planning-time `kiconfinder6 modem` probe of 2026-11-24 exited 1 with
+  no output), and the box-with-LEDs-and-jack drawing is this theme's
+  own choice.
+- `docs/installing.md`: add the modem icon to the sentence listing the
+  icon theme's placeholder illustrations and their sizes, beside the
+  floppy-disk sentence.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and has
+  a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing an element's position, size, fill or order, the jack's
+  position or size, or an LED's position or size, in one file makes
+  `test_each_icon_draws_its_pinned_artwork` fail; dropping a file while
+  leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `modem` resolves to the theme's 32x32
+  file (at planning time, before this change, the probe exited 1 with
+  no output), and `x-office-document` stays on the theme's 32x32 file.
+  Also record what `camera-web` and `input-tablet` resolve to, without
+  pinning them. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make
+  check` after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw displays with an original `video-display` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
 
 **Goal.** A display — the device the installed KInfoCenter draws for its
