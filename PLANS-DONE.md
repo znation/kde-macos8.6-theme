@@ -1393,7 +1393,7 @@ quarantine reports, first seen 2026-11-18) and blocks part 2/2's re-pin.
 
 **Cause.** The 2026-11-18 readiness change (1b1c24b8c) gives every mode but
 `--splash` and the two-window inactive dialog the KWin readiness script.
-`tools/render/window_rules.py::readiness_settle_text` reports any
+`tools/render/settle_scripts.py::readiness_settle_text` reports any
 `window.desktopWindow`, so for `--desktop` the session's `_settle_wait`
 (`tools/render/session_script.py`) ends the mode's 30 s settle 1 s after
 plasmashell maps its desktop window, before the containment's wallpaper
