@@ -18,28 +18,6 @@ user 2026-11-01; recorded by the director role.)
 
 ## Open
 
-### `make check` is red at main tip 856baac9: the no-repro ledger grew past its baseline (found by the ci role 2026-11-20)
-
-**Needs review 2026-11-21 by bugfix: the red no longer reproduces on this tree; `make check CHECK_TESTS='test_validation_gaps'` passes with 6 no-repro records, because fed3a30a9 re-tagged BUGS-FIXED.md:42 to slow-check. Decide whether that re-tag is acceptable (the record still says its close is unexplained, which is the case the guard exists to stop) or reopen the entry per option (a); if the count rises again, `test_the_record_count_does_not_grow` names the new record lines.**
-
-The workflow's `make check` step fails on main tip 856baac9b (commit `856baac9b tumwater(operator): Close 1 bug whose bugfix wait saw no recurrence in 7 days`). That commit moved the inactive-dialog pixel-pin entry from BUGS.md into BUGS-FIXED.md at line 42 with `**Validation gap:** no-repro — the failure never came back to show its cause, so the bug closes unexplained.` The no-repro count is now 7 against `NO_REPRO_BASELINE = 6` (`tests/support/validation_gaps/no_repro.py:17`).
-
-Failing output, from `QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check CHECK_TESTS='test_validation_gaps'` (reproduces on the module alone, so it is deterministic, not a flake):
-
-```
-FAIL: test_every_record_names_a_reproduction (test_validation_gaps.TestNoReproLedger.test_every_record_names_a_reproduction) (source='.../BUGS-FIXED.md', line=42)
-AssertionError: unexpectedly None : .../BUGS-FIXED.md:42 is tagged no-repro but names no reproduction; make the failure deterministic in a test and add its ledger entry instead of growing the ledger
-
-FAIL: test_the_record_count_does_not_grow (test_validation_gaps.TestNoReproLedger.test_the_record_count_does_not_grow)
-AssertionError: 7 not less than or equal to 6 : the no-repro tag grew past its baseline (records at BUGS-FIXED.md lines .../BUGS-FIXED.md:42, :131, :306, :856, :4444, :5304, :5386); ...
-
-FAILED (failures=2)
-```
-
-Not fixed by the ci role: the guard says to reproduce the failure in a test and add its ledger entry instead of raising `NO_REPRO_BASELINE`, but the bugfix role recorded that the race was never reproduced, so no deterministic test can be written honestly from the current evidence. Raising the baseline, re-tagging the record to dodge the guard, or deleting the tag would each hide the gap rather than fix it.
-
-Decision needed (operator/user): either (a) reopen the entry in BUGS.md while the race stays unexplained, or (b) accept the ledger growth explicitly by raising `NO_REPRO_BASELINE` with a dated note. Recommendation: (a), since a no-repro close is the exact case the guard is meant to stop. Until one is chosen, `make check` on main stays red and `make check-references` passes (`reference set is consistent`).
-
 ### Review the held-client test's remaining poll-cap risk (found by the director role 2026-11-18)
 
 **Needs review 2026-11-18 by director: Decide whether to park this unconfirmed risk until a recurrence records a final non-`T` state and poll count; code review confirms the stub records after polling and the session sends STOP before capture and CONT afterward, but does not establish that the current cap expires.**

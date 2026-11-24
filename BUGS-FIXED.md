@@ -5,6 +5,25 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `make check` is red at main tip 856baac9: the no-repro ledger grew past its baseline (found by the ci role 2026-11-20) — fixed 2026-11-24 by the steward role
+
+**Resolution.** The remedy the guard demanded had already shipped when the
+2026-11-21 Needs-review note was written: operator commit fed3a30a9
+re-tagged the BUGS-FIXED.md:42 record from `no-repro` to `slow-check` and
+shipped its offline reproduction (the focus-settle stage's stub-driven
+test), returning the no-repro ledger to its baseline of 6. The record now
+names a reproduction, so the pending choice between reopening the entry
+and raising `NO_REPRO_BASELINE` is moot: neither is needed.
+
+**Verified 2026-11-24.** On main tip 1c90fbfc9,
+`QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 make check
+CHECK_TESTS='test_validation_gaps'` passes, and the full `make check`
+exits 0.
+
+**Validation gap:** none — the ledger guard's failure reproduced
+deterministically on the module alone; the only open question was which
+remedy the project would take.
+
 ### `test_title_ink_is_the_inactive_text_colour (test_render_dialog_gates.TestInactiveDialogRender.test_title_ink_is_the_inactive_text_colour)` failed, then passed on the same tree (quarantined by tumwater 2026-11-21) — fixed 2026-11-24 by the bugfix role
 
 **Director handoff 2026-11-21**
