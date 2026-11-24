@@ -42,7 +42,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # code lines; the name is the `generic-icon` of 30 script MIME types in
 # the installed shared MIME database, one of which,
 # `application/x-shellscript`, already draws its own shipped icon), the
-# web-document
+# office-presentation
+# `x-office-presentation` icon at all three sizes (our own drawing of the
+# generic document's page holding a slide; the name is the `generic-icon`
+# of the presentation MIME types in the installed shared MIME database),
+# the web-document
 # `text-html` icon at all three sizes (our own drawing of a window
 # holding a globe), the flash-media `media-flash`
 # icon at all three sizes (our own drawing of an upright card standing on
@@ -96,6 +100,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "x-office-spreadsheet.svg"),
     os.path.join("16x16", "mimetypes", "x-office-spreadsheet.svg"),
     os.path.join("22x22", "mimetypes", "x-office-spreadsheet.svg"),
+    os.path.join("32x32", "mimetypes", "x-office-presentation.svg"),
+    os.path.join("16x16", "mimetypes", "x-office-presentation.svg"),
+    os.path.join("22x22", "mimetypes", "x-office-presentation.svg"),
     os.path.join("32x32", "mimetypes", "text-html.svg"),
     os.path.join("16x16", "mimetypes", "text-html.svg"),
     os.path.join("22x22", "mimetypes", "text-html.svg"),

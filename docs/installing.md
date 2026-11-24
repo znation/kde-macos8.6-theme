@@ -152,7 +152,8 @@ package icon for archive, compressed and package files (the `package-x-generic` 
 the same three sizes), an office-document icon for document files (the
 `x-office-document` name at the same three sizes), a spreadsheet icon for
 spreadsheet and office-table files (the `x-office-spreadsheet` name at the
-same three sizes), a
+same three sizes), a presentation icon for presentation files (the
+`x-office-presentation` name at the same three sizes), a
 web-document icon for HTML, XHTML and XML files (the `text-html`
 name at the same three sizes), a flash-media card icon for memory cards
 (the `media-flash` name at the same three sizes), an

@@ -5,6 +5,102 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw presentations with an original `x-office-presentation` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** A presentation file in the file manager is drawn with Breeze's
+slide beside the Platinum documents. Ship one original placeholder icon,
+`x-office-presentation`, at 16x16, 22x22 and 32x32. The name is the
+`generic-icon` of 19 MIME types in the installed shared MIME database
+(`grep -c '<generic-icon name="x-office-presentation"'
+/usr/share/mime/packages/freedesktop.org.xml`): the Impress, PowerPoint,
+Keynote and KPresenter presentation types, so it is the icon Dolphin
+shows for every slide deck a user opens.
+
+Planning-time probe with `kiconfinder6` under scratch `XDG_DATA_HOME`,
+`XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+`kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, with `DISPLAY` and
+`WAYLAND_DISPLAY` unset and `QT_QPA_PLATFORM=offscreen`:
+`x-office-presentation` resolved to
+`:/icons/breeze/mimetypes/32/x-office-presentation.svg` while the shipped
+`x-office-document`, `text-x-generic` and `x-office-spreadsheet`
+resolved to this theme's files. No repo file mentions
+`x-office-presentation`, no Planned entry covers it, and the finished
+`package-x-generic` plan names it only in its out-of-scope list. Out of
+scope: ship no alias files and nothing but `x-office-presentation`.
+
+**Approach.**
+
+- Add `mimetypes/x-office-presentation.svg` under `16x16`, `22x22` and
+  `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme` already
+  declares the three directories. Give each file the XML declaration, the
+  comment `<!-- PLACEHOLDER: original office-presentation illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is the generic document's page (the
+  `x-office-document` icon's outline, page and folded-corner paths at
+  that size, so the office icons share one sheet) holding a slide: a
+  black frame, a white field, a grey title band and three black bars of
+  rising height. Each file holds the three shared `path` elements
+  (identical to `x-office-document.svg` at the same size) followed by
+  these `rect` elements in order, written `x,y width×height fill`:
+  - 32x32: `10,12 12×9 #000000`; `11,13 10×7 #FFFFFF`; `11,13 10×2
+    #DDDDDD`; `12,17 2×2 #000000`; `15,16 2×3 #000000`; `18,15 2×4
+    #000000`.
+  - 22x22: `6,8 10×8 #000000`; `7,9 8×6 #FFFFFF`; `7,9 8×1 #DDDDDD`;
+    `8,13 1×1 #000000`; `10,12 1×2 #000000`; `12,11 1×3 #000000`.
+  - 16x16: `4,6 8×6 #000000`; `5,7 6×4 #FFFFFF`; `5,7 6×1 #DDDDDD`;
+    `6,9 1×1 #000000`; `8,8 1×2 #000000`; `10,9 1×1 #000000`.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `x-office-document` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `mimetypes` paths, name the
+  presentation icon in the inventory comment above them, and say in the
+  comment that the name is the `generic-icon` of the presentation
+  MIME types in the installed shared MIME database.
+- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+  `ICON_SHAPES` from the paths and lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, extend the
+  guarantee cell to say the `x-office-presentation` presentation shares
+  the generic document's page under its slide, and record the provenance
+  of `x-office-presentation` in the last cell: no reference pixels were
+  used, the name is the `generic-icon` of the presentation MIME types in
+  the installed shared MIME database (`freedesktop.org.xml`, 19 MIME
+  types), and the document-with-slide drawing is this theme's own
+  choice.
+- `docs/installing.md`: add the presentation icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/test_icon_theme_geometry.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding the
+  `x-office-document` page paths followed by exactly the rectangles
+  listed for that size, carries a placeholder marker and has a
+  `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing a path, a rectangle's position, size or fill, or the element
+  order, in one file makes the geometry test fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME`
+  and `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `x-office-presentation` resolves to the
+  theme's new 32x32 file, and `x-office-document`, `text-x-generic` and
+  `x-office-spreadsheet` stay on their shipped theme files. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make
+  check` after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw scripts with an original `text-x-script` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A script file — Perl, Ruby, PHP, awk, JavaScript, JSON, batch,
