@@ -170,7 +170,8 @@ name at the same three sizes), a phone icon for phones (the `phone`
 name at the same three sizes), a battery icon for battery devices (the `battery`
 name at the same three sizes), a camera icon for the digital-camera control module (the `camera-photo`
 name at the same three sizes), a network-server icon for the machine that serves the desktop's shared
-folders (the `network-server` name at the same three sizes), for the
+folders (the `network-server` name at the same three sizes), a VPN icon for the VPN import tool (the `network-vpn`
+name at the same three sizes), for the
 Home and Desktop places and the standard Documents, Downloads, Music, Pictures, Videos,
 Templates, Public and Temporary Files places (the same Platinum folder at every size),
 and for the menu bar's kicker logo (`start-here-kde-symbolic`, our own mark rather than Apple's)

@@ -137,6 +137,11 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "camera-photo.svg"),
     os.path.join("16x16", "devices", "camera-photo.svg"),
     os.path.join("22x22", "devices", "camera-photo.svg"),
+    # The VPN import tool's VPN (the name is required by the installed
+    # `org.kde.vpnimport.desktop` entry).
+    os.path.join("32x32", "devices", "network-vpn.svg"),
+    os.path.join("16x16", "devices", "network-vpn.svg"),
+    os.path.join("22x22", "devices", "network-vpn.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "text-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "text-x-generic.svg"),

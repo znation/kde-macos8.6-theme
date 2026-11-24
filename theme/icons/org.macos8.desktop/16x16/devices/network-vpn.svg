@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original network-vpn illustration pending user-approved artwork. -->
+<!-- Platinum network-vpn icon, 16x16.
+
+     Our own 16x16 drawing in the Platinum palette: a raised network
+     card with a black outline, a white and #999999 bevel and two
+     black edge-connector tabs below the card, carrying a centred
+     padlock with a grey shackle, a raised lock face and a black
+     keyhole. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <rect x="1" y="5" width="14" height="9" fill="#000000"/>
+  <rect x="2" y="6" width="12" height="7" fill="#DDDDDD"/>
+  <rect x="2" y="6" width="12" height="1" fill="#FFFFFF"/>
+  <rect x="2" y="6" width="1" height="7" fill="#FFFFFF"/>
+  <rect x="13" y="6" width="1" height="7" fill="#999999"/>
+  <rect x="2" y="12" width="12" height="1" fill="#999999"/>
+  <rect x="6" y="7" width="4" height="1" fill="#999999"/>
+  <rect x="6" y="8" width="1" height="1" fill="#999999"/>
+  <rect x="9" y="8" width="1" height="1" fill="#999999"/>
+  <rect x="5" y="9" width="6" height="4" fill="#000000"/>
+  <rect x="6" y="10" width="4" height="2" fill="#DDDDDD"/>
+  <rect x="8" y="10" width="1" height="2" fill="#000000"/>
+  <rect x="4" y="14" width="2" height="1" fill="#000000"/>
+  <rect x="10" y="14" width="2" height="1" fill="#000000"/>
+</svg>
