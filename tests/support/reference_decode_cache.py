@@ -108,7 +108,10 @@ def _read_entry(path: str):
 
 
 def _prune_stale(directory: str) -> None:
-    """Drop entries untouched for _MAX_AGE_SECONDS; ignore every failure."""
+    """Drop entries last written more than _MAX_AGE_SECONDS ago.
+
+    Every failure is ignored; pruning is best effort.
+    """
     cutoff = time.time() - _MAX_AGE_SECONDS
     try:
         with os.scandir(directory) as entries:
