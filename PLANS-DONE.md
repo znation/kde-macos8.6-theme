@@ -308,8 +308,9 @@ post-hoc diagnosis stays as the backstop.
    verification.
 
 **Files touched.** New `tools/render/field_probe.py`; `tools/render/session_script.py`,
-`tools/render/session.py`, `tools/render/workflow.py`; new
-`tests/test_render_field_probe.py`; `tests/test_render_surface_units.py`,
+`tools/render/session.py`, `tools/render/workflow.py`,
+`tools/render/surface_options.py` (the probe's pinned field pixel and colour);
+new `tests/test_render_field_probe.py`; `tests/test_render_surface_units.py`,
 `tests/test_render_live_capture.py`, `tests/test_render_session_modes.py`;
 `docs/invariants.md`, `docs/rendering.md`.
 
