@@ -183,7 +183,8 @@ sizes), a script icon for the script types without their own shipped name (the
 `text-x-script` name at the same three sizes), a package icon for archive,
 compressed and package files (the `package-x-generic` name at the same three
 sizes), a ZIP-archive icon for ZIP archive files (the `application-zip` name
-at the same three sizes), an office-document icon for document files (the
+at the same three sizes), a tar-archive icon for tar archive files (the
+`application-x-tar` name at the same three sizes), an office-document icon for document files (the
 `x-office-document` name at the same three sizes), a spreadsheet icon for spreadsheet and
 office-table files (the `x-office-spreadsheet` name at the same three sizes), a
 presentation icon for presentation files (the `x-office-presentation` name at

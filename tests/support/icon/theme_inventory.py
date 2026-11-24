@@ -33,7 +33,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `application-zip` icon at all three sizes (our own drawing of that
 # sealed box with a zipper slider tab riding its tape stripe; the name
 # is the type-spelled `application/zip` MIME type in the installed
-# shared MIME database), the office-document
+# shared MIME database), the tar-archive
+# `application-x-tar` icon at all three sizes (our own drawing of that
+# sealed box with a black capital letter T standing on its white body;
+# the name is the type-spelled `application/x-tar` MIME type in the
+# installed shared MIME database), the office-document
 # `x-office-document` icon at all three sizes (our own drawing of the
 # generic document's page with a heading band, body lines and a signature
 # line; the name is the `generic-icon` of the document MIME types in the
@@ -251,14 +255,18 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "package-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "package-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "package-x-generic.svg"),
-    # The type-spelled archive series: the name is the
-    # `application/zip` MIME type in the installed shared MIME database,
-    # which gives the type the `package-x-generic` generic icon and no
-    # icon of its own; at the exact name Breeze's own file beats the
-    # theme's generic-icon fallback.
+    # The type-spelled archive series: each name is a MIME type in the
+    # installed shared MIME database (`application/zip` and
+    # `application/x-tar`), which gives the types the
+    # `package-x-generic` generic icon and no icon of their own; at the
+    # exact names Breeze's own files beat the theme's generic-icon
+    # fallback.
     os.path.join("32x32", "mimetypes", "application-zip.svg"),
     os.path.join("16x16", "mimetypes", "application-zip.svg"),
     os.path.join("22x22", "mimetypes", "application-zip.svg"),
+    os.path.join("32x32", "mimetypes", "application-x-tar.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-tar.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-tar.svg"),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"),
     os.path.join("16x16", "mimetypes", "x-office-document.svg"),
     os.path.join("22x22", "mimetypes", "x-office-document.svg"),
