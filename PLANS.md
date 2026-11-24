@@ -58,23 +58,6 @@ desktoptheme, kvantum and render tests).
 
 ### Platinum icon theme: draw videos with an original `video-x-generic` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
 
-**Needs review 2026-11-24 by feature: plan defect — the acceptance criterion
-“video-mp4 stays on Breeze's own file” is disproven by measurement.** With the
-theme installed (`make install INSTALL_PACKAGES=icon-theme` into a scratch
-`XDG_DATA_HOME`) and the three planned `video-x-generic.svg` files added,
-`kiconfinder6` (offscreen, scratch `HOME`/`XDG_CONFIG_HOME`/`XDG_CACHE_HOME`/
-`XDG_RUNTIME_DIR`) resolves `video-mp4`, `video-webm` and `video-mpeg` to the
-theme's own 32x32 `video-x-generic.svg` — not to Breeze's per-type files
-(control without the theme installed: `:/icons/breeze/mimetypes/32/
-video-mp4.svg` and kin). KIconLoader's generic fallback substitutes
-`<type>-x-generic` for a missing MIME icon before the internal Breeze
-resource, so shipping `video-x-generic` captures `video/mp4`, `video/webm`
-and `video/mpeg` too, contradicting the plan's “one file covers only its own
-name” scope claim (“video/mp4 … keep Breeze's per-type art”). The criterion
-is self-contradictory while the plan also mandates shipping the icon; the
-plan role needs to decide whether the fallback capture is acceptable and
-rewrite the criterion and scope, or retire the entry.
-
 **Goal.** A video file without Breeze art of its own type name — Flash
 movies, Matroska, RealMedia, SMIL, MXF and their kin in the file manager
 or an open or save dialog — is drawn with the theme's own screen art
@@ -87,20 +70,26 @@ database gives exactly 14 MIME types `generic-icon name="video-x-generic"`
 `application/mxf`, `application/annodex`, `application/ogg`,
 `application/x-quicktime-media-link`,
 `application/vnd.adobe.flash.movie`, `application/vnd.rn-realmedia`,
-`application/x-netshow-channel` and `application/sdp`. Types the
-database gives no `generic-icon` for (`video/mp4`, `video/webm`,
-`video/mpeg`) keep Breeze's per-type art and are out of scope.
+`application/x-netshow-channel` and `application/sdp`. KIconLoader's generic
+fallback also substitutes `video-x-generic` for video MIME types that
+would otherwise draw a per-type icon — `video/mp4`, `video/webm` and
+`video/mpeg` are measured cases — so one file covers those names too,
+and that wider capture is accepted: the theme's own placeholder art
+winning over Breeze's per-type art is the theme's direction everywhere
+else in the icon theme.
 Planning-time probe with `kiconfinder6` under scratch `XDG_DATA_HOME`,
 `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
 `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, with `DISPLAY` and
 `WAYLAND_DISPLAY` unset and `QT_QPA_PLATFORM=offscreen`: with the theme
-installed, `video-x-generic` resolved to
-`:/icons/breeze/mimetypes/32/video-x-generic.svg` (the loader's fallback
-past the missing name) and `video-mp4` to Breeze's own
-`video-mp4.svg`; after a stand-in `video-x-generic.svg` was added to the
-installed copy's three `mimetypes` directories, `video-x-generic`
-resolved to the copy's 32x32 file — so one file covers only its own
-name; ship no alias files and nothing but `video-x-generic`. Audio,
+installed with no video icon of its own, `video-x-generic`,
+`video-mp4`, `video-webm` and `video-mpeg` all resolved to Breeze's
+internal `mimetypes/32/` files (the loader's fallback past the missing
+names); after a stand-in `video-x-generic.svg` was added to the
+installed copy's three `mimetypes` directories, all four names resolved
+to the copy's 32x32 `video-x-generic.svg` — the fallback substitutes
+`<type>-x-generic` for a missing MIME icon, so one file covers its own
+name plus the per-type video names (re-verified 2026-11-24 by the plan
+role). Ship no alias files and nothing but `video-x-generic`. Audio,
 presentation, font and text names are covered by other plans or stay out
 of scope; this plan shares no drawing with them.
 
@@ -147,10 +136,10 @@ of scope; this plan shares no drawing with them.
   `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
   provenance of `video-x-generic` in the last cell: no reference pixels
   were used, the name is the `generic-icon` of 14 MIME types in the
-  installed shared MIME database (the types the database gives no
-  `generic-icon` of their own — `video/mp4`, `video/webm`, `video/mpeg`
-  — keep Breeze's per-type art), the screen-and-triangle drawing is this
-  theme's own choice.
+  installed shared MIME database and, through KIconLoader's generic
+  fallback, also covers `video/mp4`, `video/webm` and `video/mpeg`
+  (measured with `kiconfinder6`: all four resolve to the shipped file),
+  the screen-and-triangle drawing is this theme's own choice.
 - `docs/installing.md`: add the video icon to the sentence listing the
   icon theme's placeholder illustrations and their sizes.
 
@@ -176,8 +165,8 @@ of scope; this plan shares no drawing with them.
   `HOME`, `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
   `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY`
   and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
-  `video-x-generic` resolves to the theme's file, and `video-mp4` stays
-  on Breeze's own file. Report the output in VERIFIED.
+  `video-x-generic`, `video-mp4`, `video-webm` and `video-mpeg` all
+  resolve to the theme's file. Report the output in VERIFIED.
 - The existing icon files, `index.theme` and the cursors are unchanged.
 - `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
   test_placeholders test_invariants'` passes, and so does full `make check`
