@@ -124,6 +124,64 @@ class TestSessionScript(unittest.TestCase):
             script.index('kill "$client"'), script.index('wait "$client"')
         )
 
+    def test_the_session_script_stays_inert_without_a_content_probe(self):
+        # The recapture loop is the desktop mode's own stage: the applet,
+        # splash and dialog sessions pin no capture-time field, so their
+        # script text must carry no probe and no attempt counter at all.
+        script = render_session.session_script()
+        self.assertNotIn("probe_status", script)
+        self.assertNotIn("attempt=", script)
+
+    def test_the_content_probe_recaptures_bounded_after_an_unpainted_capture(
+        self,
+    ):
+        # The desktop session runs its probe command on the capture after
+        # each spectacle returns, resumes the held client for the resume
+        # window so a late wallpaper paint can land, re-freezes it and
+        # recaptures, at most four attempts in total, and exits with the
+        # last capture's status -- so an always-unpainted capture still
+        # reaches the workflow's black-frame diagnosis. Every attempt is
+        # logged, so a recurrence shows each verdict.
+        script = render_session.session_script(
+            content_probe='probe.py "$capture" 63639C 2 398',
+        )
+        # The probe command is embedded verbatim as a statement, right
+        # after the capture it verifies, and its verdict is kept.
+        self.assertIn('probe.py "$capture" 63639C 2 398; probe_status=$?', script)
+        self.assertLess(
+            script.index("spectacle -b"),
+            script.index('probe.py "$capture" 63639C 2 398'),
+        )
+        self.assertIn(
+            'echo "render-session: capture attempt $attempt unpainted '
+            '(probe exit $probe_status) at $(date +%s%3N)" >&2',
+            script,
+        )
+        # Four attempts in total (1 + 3 retries), behind the 5 s resume
+        # window: the loop body's order is freeze, capture, probe, the
+        # unpainted log, the attempt guard, then the resume window whose
+        # re-freeze is the next iteration's top.
+        self.assertIn('if [ "$attempt" -ge 4 ]; then break; fi', script)
+        for earlier, later in (
+            ('kill -STOP "$client"', "spectacle -b"),
+            ("spectacle -b", 'probe.py "$capture" 63639C 2 398'),
+            (
+                'probe.py "$capture" 63639C 2 398',
+                'capture attempt $attempt unpainted',
+            ),
+            ('capture attempt $attempt unpainted',
+             'if [ "$attempt" -ge 4 ]'),
+            ('if [ "$attempt" -ge 4 ]', 'command sleep 5'),
+            ('command sleep 5', 'if [ -n "${settle_loop'),
+        ):
+            self.assertLess(script.index(earlier), script.index(later))
+        # The last capture's status is the session's exit status, and the
+        # capture-stage tail (aliveness marker, resume, reap) is shared
+        # with the plain stage's text.
+        self.assertIn("exit $status", script)
+        self.assertIn("client alive after the capture", script)
+        self.assertIn(render_session.CLIENT_EXITED_DURING_CAPTURE, script)
+
     def test_resume_wait_reads_state_after_a_process_name_with_spaces(self):
         # Linux comm may contain spaces and closing parentheses; state follows
         # the final ') ', rather than the third whitespace-delimited field.

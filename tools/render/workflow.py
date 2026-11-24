@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import shlex
+import sys
 from pathlib import Path
 
 if __package__.startswith("tools"):
@@ -30,6 +32,9 @@ if __package__.startswith("tools"):
         write_kvantum_selection,
         write_session_configs,
     )
+    from tools.render.surface_options import (
+        DESKTOP_FIELD_COLOR, DESKTOP_FIELD_PIXEL,
+    )
     from tools.repo_root import ROOT
 else:  # run directly from render_surface.py
     from diagnostics import report_error, report_failure
@@ -56,6 +61,9 @@ else:  # run directly from render_surface.py
         write_kvantum_selection,
         write_session_configs,
     )
+    from render.surface_options import (
+        DESKTOP_FIELD_COLOR, DESKTOP_FIELD_PIXEL,
+    )
     from repo_root import ROOT
 
 TOOL = "render_surface"
@@ -72,6 +80,22 @@ def _selected_dialog_mode(args: argparse.Namespace) -> DialogMode | None:
         if getattr(args, mode.attr):
             return mode
     return None
+
+
+def _desktop_content_probe() -> str:
+    """Build the desktop session's capture-verification probe command.
+
+    The command names the field probe at the repository root, the desktop
+    gate's pinned field colour and pixel (both owned by
+    :mod:`tools.render.surface_options`), and the capture path as the
+    literal ``"$capture"`` the session shell expands: the interpreter and
+    probe path are ``shlex``-quoted at generation time, so the session
+    script embeds the command verbatim as a statement.
+    """
+    interpreter = shlex.quote(sys.executable)
+    probe = shlex.quote(str(ROOT / "tools" / "render" / "field_probe.py"))
+    x, y = DESKTOP_FIELD_PIXEL
+    return f'{interpreter} {probe} "$capture" {DESKTOP_FIELD_COLOR} {x} {y}'
 
 
 def _client_command(args: argparse.Namespace, session: Session) -> list[str]:
@@ -190,9 +214,17 @@ def render(args: argparse.Namespace) -> int:
         # time, so a recurrence shows whether the client's window had mapped
         # instead of leaving only the settle path and stage timestamps.
         window_report_script = str(write_window_report_script(session))
+        # Only the desktop mode verifies the capture's wallpaper field
+        # in-session: plasmashell maps its desktop window before the
+        # wallpaper paints, so a capture after the measured settle ceiling
+        # can still show the unpainted field, and the session recaptures
+        # bounded instead of failing the gate on a black field a later paint
+        # would have filled. The other modes pin no capture-time field, so
+        # they carry no probe and their session text is unchanged.
+        content_probe = _desktop_content_probe() if desktop else None
         command = session_command(
             session, client, args.settle, args.width, args.height, args.timeout,
-            focus_script, readiness_script, window_report_script,
+            focus_script, readiness_script, window_report_script, content_probe,
         )
         try:
             status = run_logged(command.argv, session.environment, command.log, command.timeout, ROOT)

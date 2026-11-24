@@ -202,7 +202,14 @@ itself (`plasmashell`, the 640x400 virtual session's only client) so the flush
 and window list — paints into the capture; the scratch session selects the
 look-and-feel (`[KDE] LookAndFeelPackage` in the scratch `plasmarc` and
 `kdeglobals`) and defaults to a 30 s settle and a 180 s timeout because
-plasmashell's first start imports the layout. The desktop gate
+plasmashell's first start imports the layout.
+The shell's desktop window maps before the wallpaper paints, though, so the
+session also verifies each capture in-session: after every `spectacle` it
+probes pixel (2, 398) against the gate's flat `#63639C` field
+(`tools/render/field_probe.py`) and, while the field is unpainted, recaptures
+behind a 5 s client resume, at most four attempts inside the timeout -- every
+attempt logged, and an always-unpainted capture still failing with the
+existing entirely-black diagnosis. The desktop gate
 (`tests/test_render_surface.py::TestDesktopRender`) pins the bar's Platinum
 structure — the white top row, the `#DDDDDD` face rows, the 14x10 raised
 leftmost mark, the empty corridor before the bar's right half and the two

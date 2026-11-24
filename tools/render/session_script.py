@@ -110,16 +110,16 @@ def _window_report(report: str = "report") -> str:
     )
 
 
-def _capture_and_terminate(focus: str = "focus") -> str:
+def _resume_and_reap() -> str:
+    """End the capture stage: stop the settle loop, resume, reap, exit $status.
+
+    Shared by the plain and the probed capture stages, so both leave the
+    client's freeze, resume and termination, the mid-capture exit marker and
+    the capture-status exit byte for byte as one text.
+    """
     return (
-        'if kill -STOP "$client" 2>/dev/null; then '
-        'echo "render-session: client held at $(date +%s%3N)" >&2; fi; '
-        'echo "render-session: capturing at $(date +%s%3N)" >&2; '
-        'spectacle -b -n -f -o "$capture"; status=$?; '
-        'capture_done=$(date +%s%3N); '
-        'echo "render-session: capture status $status at $capture_done" >&2; '
         'if [ -n "${settle_loop:-}" ]; then '
-        f'touch "${focus}.done"; '
+        'touch "$focus.done"; '
         'kill "$settle_loop" 2>/dev/null; wait "$settle_loop" 2>/dev/null; fi; '
         'if kill -0 "$client" 2>/dev/null; then '
         'echo "render-session: client alive after the capture at $capture_done" >&2; '
@@ -144,10 +144,66 @@ def _capture_and_terminate(focus: str = "focus") -> str:
     )
 
 
+CAPTURE_ATTEMPTS = 4
+PROBE_RESUME_SECONDS = 5
+
+
+def _probed_capture_and_terminate(probe: str) -> str:
+    """Capture, verify the frame with *probe*, and recapture bounded.
+
+    The loop freezes the client before each capture exactly as the plain
+    stage does, runs the probe command after ``spectacle`` returns, and on
+    an unpainted verdict resumes the client for
+    :data:`PROBE_RESUME_SECONDS` so a late paint can land, re-freezes it and
+    recaptures, at most :data:`CAPTURE_ATTEMPTS` attempts in total. The
+    session exits with the last capture's status, so an always-unpainted
+    capture still reaches the workflow's black-frame diagnosis, and the
+    client's aliveness after the last capture still records the
+    mid-capture exit marker.
+    """
+    return (
+        'attempt=0; status=0; '
+        'while :; do '
+        'attempt=$((attempt + 1)); '
+        'if kill -STOP "$client" 2>/dev/null; then '
+        'echo "render-session: client held at $(date +%s%3N)" >&2; fi; '
+        'echo "render-session: capturing at $(date +%s%3N)" >&2; '
+        'spectacle -b -n -f -o "$capture"; status=$?; '
+        'capture_done=$(date +%s%3N); '
+        'echo "render-session: capture status $status at $capture_done" >&2; '
+        # The probe command is generated with its interpreter and path
+        # already shlex-quoted, so it is embedded verbatim as a statement.
+        f'{probe}; probe_status=$?; '
+        'echo "render-session: capture attempt $attempt probed '
+        '(probe exit $probe_status) at $(date +%s%3N)" >&2; '
+        'if [ "$probe_status" -eq 0 ]; then break; fi; '
+        'echo "render-session: capture attempt $attempt unpainted '
+        f'(probe exit $probe_status) at $(date +%s%3N)" >&2; '
+        f'if [ "$attempt" -ge {CAPTURE_ATTEMPTS} ]; then break; fi; '
+        'kill -CONT "$client" 2>/dev/null; '
+        f'command sleep {PROBE_RESUME_SECONDS}; '
+        'done; '
+        + _resume_and_reap()
+    )
+
+
+def _capture_and_terminate(focus: str = "focus") -> str:
+    return (
+        'if kill -STOP "$client" 2>/dev/null; then '
+        'echo "render-session: client held at $(date +%s%3N)" >&2; fi; '
+        'echo "render-session: capturing at $(date +%s%3N)" >&2; '
+        'spectacle -b -n -f -o "$capture"; status=$?; '
+        'capture_done=$(date +%s%3N); '
+        'echo "render-session: capture status $status at $capture_done" >&2; '
+        + _resume_and_reap()
+    )
+
+
 def session_script(
     focus_script: str | None = None,
     readiness_script: str | None = None,
     window_report_script: str | None = None,
+    content_probe: str | None = None,
 ) -> str:
     """Return the ``sh -c`` script that opens the client, settles and captures.
 
@@ -192,6 +248,25 @@ def session_script(
     With no path given the stage is not joined at all, so the earlier
     callers' session text is byte-identical.
 
+    *content_probe* is a shell command the capture stage runs on the
+    captured surface after ``spectacle`` returns: the desktop mode builds
+    it around ``tools/render/field_probe.py`` (interpreter and path
+    ``shlex``-quoted at generation time, so it is embedded verbatim) to
+    verify the capture's wallpaper-field pixel, since plasmashell maps its
+    desktop window before the wallpaper paints and the measured settle
+    ceiling can end inside that gap. On a probe exit of 0 the capture is
+    painted and the stage continues to the existing aliveness check; on any
+    other exit the stage logs the unpainted attempt, resumes the client
+    for :data:`PROBE_RESUME_SECONDS` so a late paint can land, re-freezes
+    it and recaptures, at most :data:`CAPTURE_ATTEMPTS` attempts in total
+    (1 + 3 retries; the added waits bound near 15 s plus probe time against
+    the desktop mode's 180 s timeout). The stage exits with the last
+    capture's status, so an always-unpainted capture still fails the
+    render with the workflow's existing black-frame diagnosis, and every
+    attempt is logged, so a recurrence still shows each verdict. With no
+    command given the capture stage is the plain one, and the session text
+    is byte-identical.
+
     Missing tools or a client that never maps retain the settle ceiling.
     D-Bus readiness includes up to one second of paint grace before capture,
     bounded by the settle ceiling.
@@ -235,5 +310,12 @@ def session_script(
         # when a caller passes a script: the four fixture combinations must
         # keep their byte-identical text.
         *(() if report is None else (_window_report("report"),)),
-        _capture_and_terminate("focus"),
+        # The same holds for the capture stage: without a probe command it
+        # is the plain single-capture stage whose text the existing
+        # fixtures pin byte for byte.
+        (
+            _probed_capture_and_terminate(content_probe)
+            if content_probe is not None
+            else _capture_and_terminate("focus")
+        ),
     ))

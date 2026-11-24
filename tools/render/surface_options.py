@@ -22,6 +22,15 @@ _DESKTOP_CAPTURE = (640, 400)
 _SPLASH_CAPTURE = (640, 400)
 _DESKTOP_SETTLE = 30.0
 _DESKTOP_TIMEOUT = 180.0
+# The desktop gate's pinned wallpaper field, one place owning the pixel and
+# colour the desktop session's content probe verifies: (2, 398) sits in the
+# gate's flat field rows 20..399 (re-derived 2026-11-21 from a consecutive
+# pair of captures; clear of the bar's rows 0..19 and of the excluded right
+# half x=351..639), and `#63639C` is the shipped wallpaper's own flat field,
+# re-derived from the reference macos8.6-screenshots/desktop_betawiki.png --
+# no visual value is introduced here.
+DESKTOP_FIELD_PIXEL = (2, 398)
+DESKTOP_FIELD_COLOR = "63639C"
 _SPLASH_SETTLE = 8.0
 _SPLASH_TIMEOUT = 90.0
 

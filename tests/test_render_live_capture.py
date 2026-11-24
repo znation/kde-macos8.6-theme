@@ -56,6 +56,101 @@ class TestLiveCapture(StubTools, unittest.TestCase):
         self.stub("dbus-monitor", "exit 0")
         self.stub("dbus-run-session", 'for script; do :; done; eval "$script"')
 
+    def stub_desktop_session(self, spectacle_body):
+        """Stub the desktop session's tools like ``stub_live_session`` does.
+
+        The desktop mode's client is ``plasmashell`` alone, so the launcher
+        stub is a long-lived sleep and ``spectacle`` is what *spectacle_body*
+        builds: the sleep stub is a no-op so the probe's bounded recapture
+        waits (the 5 s resume window and the reap waits) do not spend real
+        seconds, while the probe itself still runs the real interpreter.
+        """
+        # The client holds through the session on the real sleep binary: the
+        # no-op sleep stub below would end it instantly if it shadowed this
+        # one too.
+        self.stub("plasmashell", f'exec "{self.real_sleep}" 60')
+        self.stub("spectacle", spectacle_body)
+        self.stub("sleep", "exit 0")
+        self.stub("dbus-monitor", "exit 0")
+        self.stub("dbus-run-session", 'for script; do :; done; eval "$script"')
+
+    def desktop_png(self, field):
+        """Return a 640x400 PNG fixture: the painted wallpaper field or black.
+
+        *field* true gives the desktop gate's flat ``#63639C`` field (every
+        pixel, which also keeps the workflow's entirely-black check off); it
+        false gives the all-black capture of a session that has not painted.
+        """
+        if field:
+            plane = bytes([0x63, 0x63, 0x9C]) * (640 * 400)
+        else:
+            plane = bytes(640 * 400 * 3)
+        return encode_png(640, 400, plane)
+
+    def desktop_capture_stub(self, *fixtures):
+        """Return a spectacle body that copies the *fixtures* in turn.
+
+        The stub counts its own invocations in *self.root*, so the attempt
+        count survives the scratch cleanup the run's outcome triggers; the
+        last fixture repeats for any further call.
+        """
+        counter = self.root / "capture-calls"
+        paths = []
+        for index, data in enumerate(fixtures):
+            fixture = self.root / f"capture-{index}.png"
+            fixture.write_bytes(data)
+            paths.append(shlex.quote(str(fixture)))
+        cases = ' '.join(
+            f'{index + 1}) cp {fixture} "$out";;'
+            for index, fixture in enumerate(paths)
+        )
+        return (
+            'out=; while [ "$#" -gt 0 ]; do '
+            'if [ "$1" = -o ]; then shift; out=$1; fi; shift; done; '
+            f"n=$(cat {shlex.quote(str(counter))} 2>/dev/null); "
+            '[ -n "$n" ] || n=0; n=$((n + 1)); '
+            f'echo "$n" > {shlex.quote(str(counter))}; '
+            f'case "$n" in {cases} *) cp {paths[-1]} "$out";; esac',
+            counter,
+        )
+
+    def test_a_desktop_capture_is_recaptured_until_the_field_paints(self):
+        # plasmashell maps its desktop window before the wallpaper paints,
+        # so a capture after the measured settle ceiling can still show the
+        # unpainted field (measured 2026-11-21: two black runs in four). The
+        # session verifies each capture's field pixel in-session and
+        # recaptures behind a 5 s resume window: a first flat-black capture
+        # and a second painted one must publish the painted one, exit 0,
+        # and log exactly one unpainted attempt between the two captures.
+        body, counter = self.desktop_capture_stub(
+            self.desktop_png(False), self.desktop_png(True),
+        )
+        self.stub_desktop_session(body)
+        status, stderr, output = self.run_main("--desktop", "--settle", "0")
+        self.assertEqual((0, ""), (status, stderr))
+        self.assertTrue(output.exists())
+        self.assertEqual("2", counter.read_text().strip())
+        self.assert_scratch_removed()
+
+    def test_an_always_unpainted_desktop_capture_still_fails_after_four_attempts(
+        self,
+    ):
+        # A desktop capture that never paints must fail the render with the
+        # existing entirely-black diagnosis -- the in-session recapture is a
+        # bounded repair, not a mask: the probe verdicts are logged and the
+        # session exits with the last capture's status, so the failure keeps
+        # naming the paint budget instead of publishing black. Exactly four
+        # attempts run (1 + 3 retries) before the session gives up.
+        body, counter = self.desktop_capture_stub(self.desktop_png(False))
+        self.stub_desktop_session(body)
+        status, stderr, output = self.run_main("--desktop", "--settle", "0")
+        self.assert_failed_run(
+            status, stderr, output, 1,
+            "capture is entirely black", "did not paint",
+        )
+        self.assertEqual("4", counter.read_text().strip())
+        self.assertIn("capture attempt 4 unpainted (probe exit 1)", stderr)
+
     def test_a_running_applet_is_still_captured(self):
         self.stub_live_session("exec sleep 60")
         status, stderr, output = self.run_main("--settle", "0")

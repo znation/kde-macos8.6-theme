@@ -173,16 +173,23 @@ def session_command(
     focus_script: str | None = None,
     readiness_script: str | None = None,
     window_report_script: str | None = None,
+    content_probe: str | None = None,
 ) -> SessionCommand:
     """Build the KWin session command for *session* and its supervision timeout.
 
-    The settle and window-report script paths ride to :func:`session_script`.
+    The settle, window-report and content-probe commands ride to
+    :func:`session_script`: the first two are scratch KWin script paths, the
+    third a capture-verification shell command the desktop mode verifies its
+    wallpaper field with.
     """
     script = shlex.join(
         [
             "sh",
             "-c",
-            session_script(focus_script, readiness_script, window_report_script),
+            session_script(
+                focus_script, readiness_script, window_report_script,
+                content_probe,
+            ),
             "sh",
             str(settle),
             str(session.surface),

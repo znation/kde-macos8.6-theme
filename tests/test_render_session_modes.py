@@ -149,6 +149,47 @@ class TestSessionModes(StubTools, unittest.TestCase):
             status, stderr, output, 1, "render session exited 1",
         )
 
+    def test_only_the_desktop_mode_carries_the_content_probe(self):
+        # The desktop session verifies the capture's wallpaper field
+        # in-session (the probe command names the field probe, the gate's
+        # pinned colour and pixel); every other mode pins no capture-time
+        # field, so its session text must carry no probe command at all.
+        from tools.repo_root import ROOT
+
+        probe_name = "field_probe.py"
+        for extra, carried in (
+            (("--desktop",), True),
+            ((), False),
+            (("--splash",), False),
+            (("--checkbox-dialog",), False),
+            (("--inactive-dialog",), False),
+        ):
+            with self.subTest(extra=extra):
+                with mock.patch.object(
+                    render_workflow, "run_logged", return_value=1
+                ) as run, mock.patch.object(
+                    render_workflow, "write_session_configs"
+                ), mock.patch.object(
+                    render_workflow, "write_desktop_selection"
+                ), mock.patch.object(
+                    render_workflow, "write_kvantum_selection"
+                ), mock.patch.object(
+                    render_workflow, "write_window_rules"
+                ):
+                    status, _, _ = self.run_main(*extra)
+                script = shlex.split(run.call_args.args[0][-1])[2]
+                self.assertEqual(carried, probe_name in script)
+                if carried:
+                    colour, (x, y) = (
+                        render_workflow.DESKTOP_FIELD_COLOR,
+                        render_workflow.DESKTOP_FIELD_PIXEL,
+                    )
+                    self.assertIn(f'{colour} {x} {y}; probe_status=$?', script)
+                    self.assertIn(
+                        shlex.quote(str(ROOT / "tools" / "render" / "field_probe.py")),
+                        script,
+                    )
+
     def test_splash_render_launches_the_ksplashqml_client(self):
         # The splash mode must reach the session as ksplashqml pointing at
         # the session-local installed look-and-feel package (the splash
