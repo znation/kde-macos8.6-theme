@@ -239,6 +239,30 @@ class TestUnreadableConfigFile(GhosttyCase):
         self.assertEqual((self.target / "keep").read_bytes(), b"x = 1\n")
 
 
+class TestKeepsFileMode(GhosttyCase):
+    """An existing config file keeps its permission bits through apply and remove.
+
+    The umask default is 0o644, so the file is first set to 0o640, a mode no
+    umask produces; a rewrite that drops the mode would publish 0o644 instead.
+    """
+
+    def test_apply_keeps_the_existing_config_file_mode(self):
+        self.target.parent.mkdir(parents=True)
+        self.target.write_bytes(b"font-size = 12\n")
+        self.target.chmod(0o640)
+        assert_succeeded(self, self.run_tool())
+        self.assertEqual(stat.S_IMODE(self.target.stat().st_mode), 0o640)
+        self.assertEqual(self.target.read_bytes(), b"font-size = 12\n" + self.block())
+
+    def test_remove_keeps_the_existing_config_file_mode(self):
+        self.target.parent.mkdir(parents=True)
+        self.target.write_bytes(b"font-size = 12\n" + self.block())
+        self.target.chmod(0o640)
+        assert_succeeded(self, self.run_tool("--remove"))
+        self.assertEqual(stat.S_IMODE(self.target.stat().st_mode), 0o640)
+        self.assertEqual(self.target.read_bytes(), b"font-size = 12\n")
+
+
 class TestMakeTargets(unittest.TestCase):
     def test_apply_runs_the_ghostty_step_after_the_cursor_step(self):
         result = theme_install.run_make(
