@@ -242,7 +242,9 @@ at the same three sizes), an
 ISO disc-image icon for disc-image files (the `application-vnd.efi.iso`
 name at the same three sizes), a Squashfs filesystem-image icon for
 Squashfs filesystem image files (the `application-vnd.squashfs`
-name at the same three sizes), a JSON-document icon for JSON files (the
+name at the same three sizes), an ICC color-profile icon for ICC
+profile files (the `application-vnd.iccprofile` name at the same
+three sizes), a JSON-document icon for JSON files (the
 `application-json` name at the same three sizes), a
 flash-media card
 icon for

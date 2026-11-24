@@ -1256,6 +1256,37 @@ PINS = {
         _shape("circle", cx="9", cy="9", r="2", fill="#DDDDDD"),
         _shape("rect", x="11", y="12", width="1", height="2", fill="#FFFFFF"),
     ),
+    # The ICC color-profile item icon KDE draws for `application/vnd.iccprofile`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/vnd.iccprofile` "ICC profile" type, which
+    # has no `generic-icon`, no aliases and no per-type fallback, so one
+    # file covers exactly its own name); the drawing shares the generic
+    # document's page and holds a black framed two by two grid of color
+    # swatches, the swatches a color profile describes.
+    os.path.join("32x32", "mimetypes", "application-vnd.iccprofile.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="9", y="11", width="15", height="15", fill="#000000"),
+        _shape("rect", x="11", y="13", width="5", height="5", fill="#FFFFFF"),
+        _shape("rect", x="17", y="13", width="5", height="5", fill="#DDDDDD"),
+        _shape("rect", x="11", y="19", width="5", height="5", fill="#999999"),
+        _shape("rect", x="17", y="19", width="5", height="5", fill="#DDDDDD"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-vnd.iccprofile.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="5", y="6", width="7", height="7", fill="#000000"),
+        _shape("rect", x="6", y="7", width="2", height="2", fill="#FFFFFF"),
+        _shape("rect", x="9", y="7", width="2", height="2", fill="#DDDDDD"),
+        _shape("rect", x="6", y="10", width="2", height="2", fill="#999999"),
+        _shape("rect", x="9", y="10", width="2", height="2", fill="#DDDDDD"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-vnd.iccprofile.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="6", y="7", width="11", height="11", fill="#000000"),
+        _shape("rect", x="8", y="9", width="3", height="3", fill="#FFFFFF"),
+        _shape("rect", x="12", y="9", width="3", height="3", fill="#DDDDDD"),
+        _shape("rect", x="8", y="13", width="3", height="3", fill="#999999"),
+        _shape("rect", x="12", y="13", width="3", height="3", fill="#DDDDDD"),
+    ),
     # The JSON-document item icon KDE draws for `application/json` items
     # (the type-spelled icon name of the installed shared MIME database's
     # `application/json` type, whose `generic-icon` is the shipped

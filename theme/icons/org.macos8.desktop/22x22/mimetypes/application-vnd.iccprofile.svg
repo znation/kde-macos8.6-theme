@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original ICC color-profile illustration pending user-approved artwork. -->
+<!-- Platinum ICC color-profile icon, 22x22.
+
+     Our own 22x22 drawing in the Platinum palette: the generic document's
+     page (black outline, white page and folded corner) holding a black
+     framed two by two grid of color swatches, the swatches a color
+     profile describes. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M4 1 h10 l4 4 v15 H4 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M5 2 h8 l4 4 v13 H5 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M13 2 L17 2 L17 6 Z" fill="#DDDDDD"/>
+  <!-- Swatch grid frame. -->
+  <rect x="6" y="7" width="11" height="11" fill="#000000"/>
+  <!-- Swatch cells. -->
+  <rect x="8" y="9" width="3" height="3" fill="#FFFFFF"/>
+  <rect x="12" y="9" width="3" height="3" fill="#DDDDDD"/>
+  <rect x="8" y="13" width="3" height="3" fill="#999999"/>
+  <rect x="12" y="13" width="3" height="3" fill="#DDDDDD"/>
+</svg>
