@@ -29,7 +29,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # (our own drawing of a document with a terminal prompt), the package
 # `package-x-generic` icon at all three sizes (our own drawing of a sealed
 # box; the name is the `generic-icon` of the archive and package MIME types
-# in the installed shared MIME database), the
+# in the installed shared MIME database), the office-document
+# `x-office-document` icon at all three sizes (our own drawing of the
+# generic document's page with a heading band, body lines and a signature
+# line; the name is the `generic-icon` of the document MIME types in the
+# installed shared MIME database), the
 # `media-optical` optical disc at all three sizes (our own drawing of a
 # CD or DVD: a disc with white glints and a hub),
 # the kicker logo the menu bar's top-left button shows at the two panel sizes,
@@ -60,6 +64,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "package-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "package-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "package-x-generic.svg"),
+    os.path.join("32x32", "mimetypes", "x-office-document.svg"),
+    os.path.join("16x16", "mimetypes", "x-office-document.svg"),
+    os.path.join("22x22", "mimetypes", "x-office-document.svg"),
     os.path.join("32x32", "places", "folder.svg"),
     os.path.join("32x32", "places", "inode-directory.svg"),
     os.path.join("32x32", "places", "user-home.svg"),
