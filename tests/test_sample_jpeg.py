@@ -251,6 +251,23 @@ class TestJpegFailureRoutes(CliTestCase):
         self.assertIn("larger than the 8-byte limit", str(caught.exception))
         self.assertNotIn("file is 8 bytes", str(caught.exception))
 
+    def test_a_jpeg_of_exactly_the_cap_is_read_whole_not_refused(self):
+        """A file of exactly the cap sits inside the bounded read.
+
+        The size check refuses only a file ``larger than`` the cap and the
+        read refuses only bytes seen ``past`` it, so a file of exactly the
+        cap must come back whole: with the cap mocked down to 8 bytes, an
+        8-byte file reads through intact and no refusal fires.
+        """
+        payload = b"JFIF0cap"  # exactly the mocked-down cap, 8 bytes
+        self.assertEqual(len(payload), 8)
+        path = self._image("at-cap.jpg", payload)
+
+        with open(path, "rb") as handle:
+            fd = handle.fileno()
+            with mock.patch.object(sample, "_MAX_JPEG_BYTES", 8):
+                self.assertEqual(sample._read_entire(fd, path), payload)
+
     def test_out_of_bounds_pixel_reports_the_decoded_size(self):
         path = self._image()
         result = self._run(path, str(QUILT_WIDTH), "0")
