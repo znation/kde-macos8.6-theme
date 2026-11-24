@@ -79,6 +79,23 @@ SHIPPED_ICONS += tuple(
     for place in STANDARD_PLACES
 )
 
+# The blank-document names: files whose type KDE does not recognise, and empty
+# files. `application-octet-stream` and `application-x-zerosize` are the
+# `application/octet-stream` and `application/x-zerosize` MIME types spelled as
+# icon names (both declared in the installed shared MIME database), and
+# `unknown` is a string in the installed `libKF6KIOGui.so.6`. Each needs its
+# own file: a probe showed that adding one name's file changes only that name.
+BLANK_DOCUMENTS = (
+    "application-octet-stream",
+    "application-x-zerosize",
+    "unknown",
+)
+SHIPPED_ICONS += tuple(
+    os.path.join(size, "mimetypes", name + ".svg")
+    for size in ("16x16", "22x22", "32x32")
+    for name in BLANK_DOCUMENTS
+)
+
 # The standard places data's folder names that this package draws. KDE
 # writes these into a user's Places list, and its Downloads entry is the
 # plural `folder-downloads` rather than the `folder-download` the KIO places

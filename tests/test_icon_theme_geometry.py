@@ -8,6 +8,7 @@ import os
 import unittest
 
 from support.icon.theme_inventory import (
+    BLANK_DOCUMENTS,
     FOLDER_ALIASES,
     PACKAGE,
     SHIPPED_ICONS,
@@ -35,6 +36,26 @@ def _drawing_elements(tree):
         for element in tree.getroot()
     )
 
+
+# The blank-document page, one tuple per size, shared by the three blank
+# document names. It is the generic document's first three drawing elements
+# (the page outline, the white page and the folded corner) without its text
+# lines; the page-sharing test below compares it with the shipped generic file.
+_BLANK_DOCUMENT_16 = (
+    _shape("path", d="M3 1 h7 l3 3 v10 H3 Z", fill="#000000"),
+    _shape("path", d="M4 2 h5 l3 3 v8 H4 Z", fill="#FFFFFF"),
+    _shape("path", d="M9 2 L12 2 L12 5 Z", fill="#DDDDDD"),
+)
+_BLANK_DOCUMENT_22 = (
+    _shape("path", d="M4 1 h10 l4 4 v15 H4 Z", fill="#000000"),
+    _shape("path", d="M5 2 h8 l4 4 v13 H5 Z", fill="#FFFFFF"),
+    _shape("path", d="M13 2 L17 2 L17 6 Z", fill="#DDDDDD"),
+)
+_BLANK_DOCUMENT_32 = (
+    _shape("path", d="M6 3 h14 l6 6 v20 H6 Z", fill="#000000"),
+    _shape("path", d="M7 4 h12 l6 6 v18 H7 Z", fill="#FFFFFF"),
+    _shape("path", d="M19 4 L25 4 L25 10 Z", fill="#DDDDDD"),
+)
 
 # Every drawing element of every shipped icon, in document order. The icon art
 # is our own, so nothing else re-derives it; the size, palette and structural
@@ -136,6 +157,15 @@ ICON_SHAPES = {
         _shape("rect", x="7", y="13", width="8", height="1", fill="#999999"),
         _shape("rect", x="7", y="16", width="5", height="1", fill="#999999"),
     ),
+    os.path.join("16x16", "mimetypes", "application-octet-stream.svg"): _BLANK_DOCUMENT_16,
+    os.path.join("16x16", "mimetypes", "application-x-zerosize.svg"): _BLANK_DOCUMENT_16,
+    os.path.join("16x16", "mimetypes", "unknown.svg"): _BLANK_DOCUMENT_16,
+    os.path.join("22x22", "mimetypes", "application-octet-stream.svg"): _BLANK_DOCUMENT_22,
+    os.path.join("22x22", "mimetypes", "application-x-zerosize.svg"): _BLANK_DOCUMENT_22,
+    os.path.join("22x22", "mimetypes", "unknown.svg"): _BLANK_DOCUMENT_22,
+    os.path.join("32x32", "mimetypes", "application-octet-stream.svg"): _BLANK_DOCUMENT_32,
+    os.path.join("32x32", "mimetypes", "application-x-zerosize.svg"): _BLANK_DOCUMENT_32,
+    os.path.join("32x32", "mimetypes", "unknown.svg"): _BLANK_DOCUMENT_32,
     os.path.join("32x32", "places", "folder.svg"): (
         _shape("path", d="M3 8 h10 l3 3 h13 v14 H3 Z", fill="#000000"),
         _shape("path", d="M4 9 h9 l3 3 h12 v12 H4 Z", fill="#DDDDDD"),
@@ -311,6 +341,27 @@ class TestIconGeometry(unittest.TestCase):
                 _drawing_elements(disk)[:6],
                 size,
             )
+
+    def test_each_blank_document_shares_the_generic_page(self):
+        # The blank-document names draw the generic document's page without
+        # its text lines, so at each size each one must equal the first three
+        # drawing elements of the shipped `text-x-generic.svg`. Comparing the
+        # files catches a path edited in either file and a text line added to
+        # a blank document, which would make it four or more elements long.
+        for size in ("16x16", "22x22", "32x32"):
+            generic = _drawing_elements(
+                parse_svg(
+                    os.path.join(PACKAGE, size, "mimetypes", "text-x-generic.svg")
+                )
+            )[:3]
+            for name in BLANK_DOCUMENTS:
+                with self.subTest(size=size, name=name):
+                    drawing = _drawing_elements(
+                        parse_svg(
+                            os.path.join(PACKAGE, size, "mimetypes", name + ".svg")
+                        )
+                    )
+                    self.assertEqual(drawing, generic)
 
     def test_standard_places_file_names_are_shipped(self):
         # The shared inventory must cover the names the standard places data

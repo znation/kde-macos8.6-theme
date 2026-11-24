@@ -141,7 +141,9 @@ at the right edge with each icon's name on one line under it, as Mac OS 8.6 does
 `[plasmarc][Theme]` in its `contents/defaults`. The global theme also selects the
 `org.macos8.desktop` icon theme through `[kdeglobals][Icons]` in the same `contents/defaults`; it
 ships original placeholder illustrations for the desktop's hard-disk, removable-drive, folder,
-document, Trash and full-Trash icons, drawn at 32x32 with 16x16 and 22x22 renditions, for the Home and
+document, Trash and full-Trash icons, drawn at 32x32 with 16x16 and 22x22 renditions, a blank
+document for untyped and empty files (the `application-octet-stream`, `application-x-zerosize`
+and `unknown` names at the same three sizes), for the Home and
 Desktop places and the standard Documents, Downloads, Music, Pictures, Videos,
 Templates, Public and Temporary Files places (the same Platinum folder at every size),
 and for the menu bar's kicker logo (`start-here-kde-symbolic`, our own mark rather than Apple's)

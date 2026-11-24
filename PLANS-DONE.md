@@ -5,6 +5,86 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw untyped and empty files with an original blank-document icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** The theme draws text files with the Platinum page, but files whose
+type is not recognised, and empty files, get Breeze's art. Ship one original
+placeholder drawing, a blank page, at 16x16, 22x22 and 32x32 under the three
+names `application-octet-stream`, `application-x-zerosize` and `unknown`.
+The first two are the MIME types `application/octet-stream` and
+`application/x-zerosize` spelled as icon names; both types are declared in
+the installed shared MIME database. `unknown` is a string in the installed
+`libKF6KIOGui.so.6`.
+
+Planning-time probe with `kiconfinder6` and a copy of the theme selected
+through scratch XDG homes: all three names resolved to Breeze. Adding
+`unknown.svg` to the copy's `32x32/mimetypes` changed only `unknown` among
+them, and adding `application-octet-stream.svg` changed that name too but
+left `application-x-zerosize` on Breeze, so each name needs its own file.
+Other MIME-type icons are out of scope.
+
+**Approach.**
+
+- Add the three names under `mimetypes/` in `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`, nine regular files. `index.theme`
+  already declares the three directories. Each file has the XML declaration,
+  `<!-- PLACEHOLDER: original blank-document illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette and
+  shares the generic document's page, and a root with matching `width`,
+  `height` and `viewBox`. Its drawing is the same size's
+  `text-x-generic.svg` without the text lines, so exactly three `path`
+  elements, in order, with fills `#000000`, `#FFFFFF`, `#DDDDDD`:
+  - 32x32: `M6 3 h14 l6 6 v20 H6 Z`; `M7 4 h12 l6 6 v18 H7 Z`;
+    `M19 4 L25 4 L25 10 Z`.
+  - 22x22: `M4 1 h10 l4 4 v15 H4 Z`; `M5 2 h8 l4 4 v13 H5 Z`;
+    `M13 2 L17 2 L17 6 Z`.
+  - 16x16: `M3 1 h7 l3 3 v10 H3 Z`; `M4 2 h5 l3 3 v8 H4 Z`;
+    `M9 2 L12 2 L12 5 Z`.
+- `PLACEHOLDERS.md`: one row per file beside that size's `text-x-generic`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add a `BLANK_DOCUMENTS` tuple of
+  the three names with a comment recording where each comes from, and extend
+  `SHIPPED_ICONS` with the nine paths after the `STANDARD_PLACES` extension.
+- `tests/test_icon_theme_geometry.py`: pin the nine drawings in
+  `ICON_SHAPES` from the lists above (one literal tuple per size, shared by
+  the three names). Add a test that, at each size, each blank document's
+  drawing equals the first three drawing elements of that size's
+  `text-x-generic.svg`, comparing the shipped files.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, say the three names
+  share the generic document's page without its text lines. In its last cell
+  record the provenance: the references give no pixel ground truth for this
+  art, the names are KDE-required values from the MIME database and
+  `libKF6KIOGui.so.6`, and the drawing is this theme's own choice.
+- `docs/installing.md`: add the blank-document icon to the sentence listing
+  the icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Nine new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the three paths listed for that size, carries a placeholder marker and has
+  a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all nine.
+- Changing any path in one blank-document file makes the page-sharing test
+  fail, as does adding a text line to it.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts the
+  nine files in the installed theme, and uninstalling removes them (the
+  existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. The three names resolve to the theme's own
+  files and `text-x-generic` still does. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw removable drives with an original `drive-removable-media` icon (planned 2026-11-24 by the plan role; independent of the waiting regroup, invariants, staging and inactive-dialog plans) — done 2026-11-24 by the feature role
 
 **Goal.** The icon theme's only device icon is `drive-harddisk`, so a USB
