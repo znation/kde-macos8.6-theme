@@ -239,6 +239,28 @@ class TestFailurePaths(StubTools, unittest.TestCase):
             "(render log 6 bytes)",
         )
 
+    def test_a_present_but_unreadable_capture_stays_a_decode_failure(self):
+        # The sibling branch of the missing-capture case above: the session
+        # wrote the surface, but its bytes are not a PNG, so the diagnostic
+        # must stay the plain decode failure. The missing-capture detail is
+        # reserved for an absent surface -- claiming "wrote no capture" for
+        # a capture that exists sends the operator after the wrong state.
+        fixture = self.root / "corrupt.bin"
+        fixture.write_bytes(b"plainly not a PNG signature\n")
+        self.stub(
+            "dbus-run-session",
+            'for a; do :; done; '
+            "dest=$(printf '%s\\n' \"$a\" | sed -n "
+            "'s/.* sh [^ ]* \\([^ ]*\\) plasmawindowed.*/\\1/p'); "
+            f'cp "{fixture}" "$dest"',
+        )
+        status, stderr, output = self.run_main()
+        self.assert_failed_run(
+            status, stderr, output, 1, "capture is not a readable PNG",
+        )
+        self.assertNotIn("wrote no capture", stderr)
+        self.assertNotIn("render log", stderr)
+
     def test_timeout_kills_the_session_group_and_exits_1(self):
         # The session must write its pid before the one-second timeout fires,
         # or the timeout kills it first and the read below has nothing to
