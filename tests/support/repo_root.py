@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from unittest import mock
 
 
 _BOOTSTRAP_ROOT = Path(__file__).resolve().parents[2]
@@ -38,5 +37,11 @@ def patched_root(root):
     patches only its own binding. Use as ``with patched_root(fixture):``;
     the original ``ROOT`` is restored on exit.
     """
+    # Imported here, not at module level: this module is the suite's path
+    # bootstrap, so almost every test module imports it, and ``unittest.mock``
+    # alone costs ~20 ms per worker process (it drags asyncio, ssl, inspect
+    # and dataclasses with it) for the suites that never patch anything.
+    from unittest import mock
+
     module = sys.modules[sys._getframe(1).f_globals["__name__"]]
     return mock.patch.object(module, "ROOT", root)

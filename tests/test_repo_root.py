@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import importlib
 import os
+import subprocess
 import sys
 import unittest
 
@@ -44,6 +45,32 @@ class TestRepoRoot(unittest.TestCase):
         before = sys.path.count(str(repo_root.ROOT))
         importlib.reload(repo_root)
         self.assertEqual(sys.path.count(str(repo_root.ROOT)), before)
+
+    def test_importing_the_bootstrap_leaves_mock_unloaded(self):
+        # repo_root is the suite's path bootstrap: nearly every test module's
+        # worker process imports it, and ``unittest.mock`` (~20 ms once its
+        # asyncio, ssl, inspect and dataclasses dependencies are counted)
+        # must load only when patched_root actually patches, not on every
+        # import. A fresh interpreter pins the import; patching through the
+        # deferred import pins that the swap still works when mock loads.
+        script = "\n".join(
+            [
+                "ROOT = 1",
+                "import sys",
+                "from support import repo_root",
+                "assert 'unittest.mock' not in sys.modules, 'mock loaded on import'",
+                "with repo_root.patched_root(2):",
+                "    assert ROOT == 2, ROOT",
+                "assert ROOT == 1, ROOT",
+            ]
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            capture_output=True,
+            text=True,
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
 
 
 class TestSharedRoot(unittest.TestCase):
