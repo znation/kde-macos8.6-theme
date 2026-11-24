@@ -260,8 +260,9 @@ SHIPPED_ICONS = (
     os.path.join("16x16", "mimetypes", "package-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "package-x-generic.svg"),
     # The type-spelled archive series: each name is a MIME type in the
-    # installed shared MIME database (`application/zip` and
-    # `application/x-tar`), which gives the types the
+    # installed shared MIME database (`application/zip`,
+    # `application/x-tar`, `application/x-7z-compressed` and
+    # `application/gzip`), which gives the types the
     # `package-x-generic` generic icon and no icon of their own; at the
     # exact names Breeze's own files beat the theme's generic-icon
     # fallback.
@@ -271,6 +272,12 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-tar.svg"),
     os.path.join("16x16", "mimetypes", "application-x-tar.svg"),
     os.path.join("22x22", "mimetypes", "application-x-tar.svg"),
+    os.path.join("32x32", "mimetypes", "application-x-7z-compressed.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-7z-compressed.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-7z-compressed.svg"),
+    os.path.join("32x32", "mimetypes", "application-gzip.svg"),
+    os.path.join("16x16", "mimetypes", "application-gzip.svg"),
+    os.path.join("22x22", "mimetypes", "application-gzip.svg"),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"),
     os.path.join("16x16", "mimetypes", "x-office-document.svg"),
     os.path.join("22x22", "mimetypes", "x-office-document.svg"),
@@ -292,12 +299,6 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-pdf.svg"),
     os.path.join("16x16", "mimetypes", "application-pdf.svg"),
     os.path.join("22x22", "mimetypes", "application-pdf.svg"),
-    os.path.join("32x32", "mimetypes", "application-x-7z-compressed.svg"),
-    os.path.join("16x16", "mimetypes", "application-x-7z-compressed.svg"),
-    os.path.join("22x22", "mimetypes", "application-x-7z-compressed.svg"),
-    os.path.join("32x32", "mimetypes", "application-gzip.svg"),
-    os.path.join("16x16", "mimetypes", "application-gzip.svg"),
-    os.path.join("22x22", "mimetypes", "application-gzip.svg"),
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "image-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "image-x-generic.svg"),
