@@ -11,9 +11,10 @@ marked file with no row, a row whose path is missing, a row whose file
 carries no marker, a file or the register that is not valid UTF-8 text, or a
 text asset whose symlink resolves outside ``theme/``.
 
-A row whose path exists but is not a regular file (a directory) and a row
-whose parent exists but is a file are named as such instead of being
-reported as missing; "does not exist" would mislead in both cases.
+A row whose path exists but is not a regular file (a directory, a FIFO,
+a dangling link) and a row whose parent exists but is a file are named
+as such instead of being reported as missing; "does not exist" would
+mislead in all those cases.
 
 ``tests/test_placeholders.py`` drives these checks.
 
@@ -240,8 +241,8 @@ def cross_check(root, register):
             if os.path.lexists(target):
                 raise AssertionError(
                     escape_controls(
-                        f"{register} lists {asset}, which exists but is not "
-                        "a regular file (a directory)"
+                        f"{register} lists {asset}, which exists but is "
+                        "not a regular file"
                     )
                 )
             parent = os.path.dirname(target)
