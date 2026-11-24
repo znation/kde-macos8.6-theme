@@ -171,8 +171,10 @@ def _check_entry(
              "it may be an HTML error page or a truncated download")
         ]
     if not is_complete(head, tail, size):
+        # The name is contributor-supplied text like any other declared-name
+        # diagnostic: a control character in it is escaped, not printed raw.
         return [
-            (lineno, f"{sources}:{lineno}: {filename!r} "
+            (lineno, f"{sources}:{lineno}: {safe_filename!r} "
              f"{_incomplete_stream_suffix(head, size)}")
         ]
     return []

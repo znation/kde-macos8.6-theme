@@ -17,6 +17,7 @@ from support.check_references_fixtures import (
     check_references_in,
     reference_set,
 )
+from support.error_assertions import assert_escapes_escape_character
 from tools.image_format import (
     GIF_MAGICS,
     JPEG_MAGIC,
@@ -250,6 +251,21 @@ class TestTruncatedDeclaredImage(CheckerTestCase):
                 for line in problems),
             problems,
         )
+
+    def test_truncation_diagnostic_escapes_a_control_character_in_the_name(self):
+        # The name in a sources.txt entry is contributor-supplied text, so its
+        # diagnostic carries the shared escape_controls spelling (\u001b) the
+        # other declared-name diagnostics render; a bare repr() of the raw
+        # name would print the different \x1b spelling instead.
+        module = self.checker
+        problems = check_references_in(
+            module,
+            "evil\x1b[31m.png | https://example.test/x | label\n",
+            {"evil\x1b[31m.png": b"RIFF" + (64).to_bytes(4, "little") + b"WEBP"},
+        )
+        joined = "\n".join(problems)
+        self.assertIn("declares 64 RIFF bytes but holds 12", joined)
+        assert_escapes_escape_character(self, joined)
 
     def test_truncated_set_exits_one_through_the_cli(self):
         module = self.checker
