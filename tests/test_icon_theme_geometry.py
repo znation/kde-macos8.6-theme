@@ -191,6 +191,27 @@ class TestIconGeometry(unittest.TestCase):
             )
             self.assertEqual(script[:3], generic, size)
 
+    def test_the_font_document_shares_the_generic_page(self):
+        # The font document is the generic document's page (its first
+        # three drawing elements: the black outline, the white page and the
+        # folded corner) holding a capital letter A in place of the
+        # generic's text lines, so at each size the shipped
+        # `font-x-generic.svg`'s first three drawing elements must be the
+        # shipped `text-x-generic.svg`'s. Compare the files, so a drift in
+        # either file fails both.
+        for size in ("16x16", "22x22", "32x32"):
+            generic = _drawing_elements(
+                parse_svg(
+                    os.path.join(PACKAGE, size, "mimetypes", "text-x-generic.svg")
+                )
+            )[:3]
+            font = _drawing_elements(
+                parse_svg(
+                    os.path.join(PACKAGE, size, "mimetypes", "font-x-generic.svg")
+                )
+            )
+            self.assertEqual(font[:3], generic, size)
+
     def test_office_presentation_shares_the_generic_page(self):
         # The presentation is the generic document's page (its first three
         # drawing elements: the black outline, the white page and the folded
