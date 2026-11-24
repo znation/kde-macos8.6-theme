@@ -92,7 +92,8 @@ choice.
     fill="#DDDDDD"` (body face) and `rect x="7" y="10" width="2"
     height="1" fill="#000000"` (keyhole), drawn in that order. Every
     element sits inside the white page and clears the folded corner
-    (the flap reaches `y="5"` at `x="9"`).
+    (the flap reaches `y="5"` only at `x="12"`, its apex sitting at
+    `x="9"`, `y="2"`).
 
   Validate by XML only, never by rasterizing: `convert`'s MSVG
   reader bleeds 1px shapes, so the pins below are the drawing
