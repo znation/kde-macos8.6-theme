@@ -142,7 +142,7 @@ def select_kvantum_theme(
 def _warn_off_default_data_home(env: dict[str, str]) -> None:
     """Note when the engine cannot read our theme from the resolved data home.
 
-    Kvantum joins its literal ``$HOME/.local/share/themes/<name>/Kvantum/
+    Kvantum joins its literal ``$HOME/.local/share/themes/<name>/Kvantum/``
     search path from ``$HOME``, ignoring ``$XDG_DATA_HOME``; with the data
     home elsewhere the selection still succeeds but the engine keeps drawing
     its built-in default theme. Like every note here this is best-effort: a
