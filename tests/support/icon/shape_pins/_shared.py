@@ -37,6 +37,7 @@ _PAGE_32 = (
     _shape("path", d="M19 4 L25 4 L25 10 Z", fill="#DDDDDD"),
 )
 
+
 def _raised_panel(x, y, w, h):
     """Return the six shapes of one raised panel: the recipe the devices
     pins repeat for every case, bezel and plate they draw. A black outline
