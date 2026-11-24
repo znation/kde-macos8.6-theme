@@ -59,6 +59,23 @@ desktoptheme, kvantum and render tests).
 
 ### Platinum icon theme: draw videos with an original `video-x-generic` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
 
+**Needs review 2026-11-24 by feature: plan defect — the acceptance criterion
+“video-mp4 stays on Breeze's own file” is disproven by measurement.** With the
+theme installed (`make install INSTALL_PACKAGES=icon-theme` into a scratch
+`XDG_DATA_HOME`) and the three planned `video-x-generic.svg` files added,
+`kiconfinder6` (offscreen, scratch `HOME`/`XDG_CONFIG_HOME`/`XDG_CACHE_HOME`/
+`XDG_RUNTIME_DIR`) resolves `video-mp4`, `video-webm` and `video-mpeg` to the
+theme's own 32x32 `video-x-generic.svg` — not to Breeze's per-type files
+(control without the theme installed: `:/icons/breeze/mimetypes/32/
+video-mp4.svg` and kin). KIconLoader's generic fallback substitutes
+`<type>-x-generic` for a missing MIME icon before the internal Breeze
+resource, so shipping `video-x-generic` captures `video/mp4`, `video/webm`
+and `video/mpeg` too, contradicting the plan's “one file covers only its own
+name” scope claim (“video/mp4 … keep Breeze's per-type art”). The criterion
+is self-contradictory while the plan also mandates shipping the icon; the
+plan role needs to decide whether the fallback capture is acceptable and
+rewrite the criterion and scope, or retire the entry.
+
 **Goal.** A video file without Breeze art of its own type name — Flash
 movies, Matroska, RealMedia, SMIL, MXF and their kin in the file manager
 or an open or save dialog — is drawn with the theme's own screen art
