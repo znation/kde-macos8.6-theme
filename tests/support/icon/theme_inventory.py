@@ -58,7 +58,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # its contact pins; the name is a KDE-required value read from
 # `libKF6Solid.so.6`, which also loads it with the reduced subnames
 # `media-flash-sd-mmc`, `media-flash-memory-stick` and
-# `media-flash-smart-media` that one file covers), the image
+# `media-flash-smart-media` that one file covers), the printer
+# `printer` icon at all three sizes (our own drawing of a body with
+# paper sheets feeding through it; the name is required by the
+# installed KDE print desktop entries `org.kde.PrintQueue.desktop`,
+# `org.kde.ConfigurePrinter.desktop` and `org.kde.kde-add-printer.desktop`), the image
 # `image-x-generic` icon at all three sizes (our own drawing of a framed
 # photograph; the name captures the raster image icon names by
 # type-spelling fallback and is the `generic-icon` of the graphics and
@@ -102,6 +106,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "media-flash.svg"),
     os.path.join("16x16", "devices", "media-flash.svg"),
     os.path.join("22x22", "devices", "media-flash.svg"),
+    os.path.join("32x32", "devices", "printer.svg"),
+    os.path.join("16x16", "devices", "printer.svg"),
+    os.path.join("22x22", "devices", "printer.svg"),
     os.path.join("32x32", "devices", "computer.svg"),
     os.path.join("16x16", "devices", "computer.svg"),
     os.path.join("22x22", "devices", "computer.svg"),

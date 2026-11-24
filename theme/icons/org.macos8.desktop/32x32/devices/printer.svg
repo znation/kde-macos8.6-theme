@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original printer illustration pending user-approved artwork. -->
+<!-- Platinum printer icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: a sheet feeding
+     from the top, the raised body with a black outline, a white and
+     #999999 bevel, a black output slot, a sheet emerging from the slot
+     down the front, and a black power light. Drawn for this theme,
+     not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <rect x="8" y="2" width="16" height="8" fill="#000000"/>
+  <rect x="9" y="3" width="14" height="6" fill="#FFFFFF"/>
+  <rect x="11" y="5" width="10" height="1" fill="#999999"/>
+  <rect x="4" y="10" width="24" height="13" fill="#000000"/>
+  <rect x="5" y="11" width="22" height="11" fill="#DDDDDD"/>
+  <rect x="5" y="11" width="22" height="1" fill="#FFFFFF"/>
+  <rect x="5" y="11" width="1" height="11" fill="#FFFFFF"/>
+  <rect x="5" y="21" width="22" height="1" fill="#999999"/>
+  <rect x="26" y="11" width="1" height="11" fill="#999999"/>
+  <rect x="9" y="14" width="14" height="1" fill="#000000"/>
+  <rect x="8" y="15" width="14" height="12" fill="#000000"/>
+  <rect x="9" y="16" width="12" height="10" fill="#FFFFFF"/>
+  <rect x="11" y="18" width="8" height="1" fill="#999999"/>
+  <rect x="11" y="21" width="8" height="1" fill="#999999"/>
+  <rect x="11" y="24" width="5" height="1" fill="#999999"/>
+  <circle cx="24" cy="18" r="1" fill="#000000"/>
+</svg>
