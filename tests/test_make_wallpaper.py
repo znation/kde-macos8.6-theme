@@ -320,6 +320,24 @@ class TestTiledRgbValidation(unittest.TestCase):
                 self.assertIn(f"tile has {length} bytes", message)
                 self.assertIn(f"needs {expected}", message)
 
+    def test_the_tiled_pixels_wrap_both_axes_by_the_tile_size(self):
+        # ``tiled_rgb``'s contract is "pixel (x, y) is tile[y % 128][x % 128]":
+        # past one tile edge the output must repeat the tile horizontally and
+        # vertically and crop each repeated row to the requested width. The
+        # shipped tile is one uniform colour, so a transposed or mis-cropped
+        # repeat is invisible in every real image; this pin re-derives every
+        # pixel from that contract at a size that wraps both axes, with a
+        # tile whose bytes are all distinct so any index mistake shifts them.
+        tile = bytes((i * 7) % 256 for i in range(TILE * TILE * 3))
+        width, height = 130, TILE + 3
+        expected = bytes(
+            tile[((y % TILE) * TILE + (x % TILE)) * 3 + channel]
+            for y in range(height)
+            for x in range(width)
+            for channel in range(3)
+        )
+        self.assertEqual(expected, make_wallpaper.tiled_rgb(tile, width, height))
+
     def test_a_bytearray_tile_is_accepted_like_bytes(self):
         # The guard accepts bytes and bytearray, matching Image.rgb; a
         # bytearray must tile identically, wrapping rows and columns past one
