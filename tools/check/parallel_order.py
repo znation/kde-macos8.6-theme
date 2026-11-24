@@ -1,12 +1,12 @@
 """Order check workers by each module's recorded wall duration.
 
-175 modules share the worker budget, and one suite (the real render
-surface) alone runs for seconds while most modules finish well under a
-second. Starting the slowest recorded module first keeps the whole critical
-path covered by the other workers: with plain discovery (alphabetical)
-order the render module starts only after roughly a run's worth of shorter
-modules, and nearly every other module is already finished when its run
-begins.
+The suite's test modules share one bounded worker budget, and one
+module (the real render surface) alone runs for seconds while most
+modules finish well under a second. Starting the slowest recorded
+module first keeps the whole critical path covered by the other
+workers: with plain discovery (alphabetical) order the render module
+starts only after roughly a run's worth of shorter modules, and nearly
+every other module is already finished when its run begins.
 
 The durations come from the previous run's completion times, saved to a
 small JSON cache under ``$XDG_CACHE_HOME`` (default ``~/.cache``). The

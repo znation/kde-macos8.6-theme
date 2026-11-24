@@ -1,14 +1,14 @@
 """Tests for tools/check/parallel_order.py and the coordinator's use of it.
 
-`make check` runs 175 modules over a bounded worker budget, and one suite
-(the real render surface) alone runs for seconds while most modules finish
-in far less than one. The coordinator therefore queues the slowest recorded
-module first -- durations come from the previous run's completion times,
-persisted in a small best-effort JSON cache -- so the critical path starts
-covered by workers instead of starting after roughly a batch of shorter
-modules. Everything about the cache is best-effort: a missing, malformed or
-unwritable file must never fail a run or change the results' discovery
-order.
+`make check` runs the tree's test modules over a bounded worker budget,
+and one module (the real render surface) alone runs for seconds while
+most modules finish in far less than one. The coordinator therefore
+queues the slowest recorded module first -- durations come from the
+previous run's completion times, persisted in a small best-effort JSON
+cache -- so the critical path starts covered by workers instead of
+starting after roughly a batch of shorter modules. Everything about
+the cache is best-effort: a missing, malformed or unwritable file must
+never fail a run or change the results' discovery order.
 """
 
 from __future__ import annotations
