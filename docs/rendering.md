@@ -148,7 +148,7 @@ that activates the focused-title window whenever KWin does not already treat it 
 surface shows the unfocused window — the earlier-spawned one, on the left — drawn
 with the inactive decoration art; the inactive gate
 (`tests/test_render_dialog_gates.py::TestInactiveDialogRender`) pins that window's outline
-ring, recoloured client edge, flat bar and title ink there.
+ring, recoloured client edge, flat bar and title ink there. The settle ends early once the pair is in that state (the inactive-titled window is not active and the focused-titled window is), and its 45-second settle is only the ceiling for a pair that never settles.
 `--file-dialog` opens a `kdialog` file chooser (KDE's KIO file dialog) whose places
 sidebar, file list view, toolbar and name-filter surfaces the engine draws with the theme's
 palette and the shipped field and button art, captured at the same 480x360 size; the chooser

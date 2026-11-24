@@ -27,6 +27,7 @@ from tools.render.window_rules import (
     RULES_FILE,
     READINESS_MEMBER,
     focus_settle_text,
+    pair_readiness_text,
     readiness_settle_text,
     rules_text,
     write_focus_settle_script,
@@ -80,6 +81,57 @@ class TestWindowRules(unittest.TestCase):
             path = write_readiness_settle_script(session)
             self.assertEqual(Path(root) / READINESS_SETTLE_SCRIPT, path)
             self.assertEqual(readiness_settle_text().encode("utf-8"), path.read_bytes())
+
+    def test_the_pair_readiness_script_names_both_titles_and_their_focus_states(self):
+        # The pair is settled only when the inactive-titled window is not
+        # active and the focused-titled window is. A swapped focus state, or
+        # a missing "not active" test, would report a pair that the gate's
+        # pins still read as active on the wrong window.
+        script = pair_readiness_text()
+        self.assertIn(f'window.caption === "{INACTIVE_TITLE}" && !window.active', script)
+        self.assertIn(f'window.caption === "{FOCUSED_TITLE}" && window.active)', script)
+        self.assertNotIn(f'window.caption === "{FOCUSED_TITLE}" && !window.active', script)
+        self.assertNotIn(f'window.caption === "{INACTIVE_TITLE}" && window.active', script)
+
+    def test_the_pair_readiness_script_reports_at_most_once(self):
+        script = pair_readiness_text()
+        self.assertIn("let reported = false;", script)
+        self.assertIn("if (reported) {", script)
+        self.assertIn("reported = true;", script)
+
+    def test_the_pair_readiness_script_connects_added_activated_and_caption_signals(self):
+        script = pair_readiness_text()
+        self.assertIn("workspace.windowList()", script)
+        self.assertIn("workspace.windowAdded.connect(function (window) {", script)
+        self.assertIn("workspace.windowActivated.connect(check)", script)
+        self.assertIn("window.captionChanged.connect(check)", script)
+        self.assertIn("watch(window);", script)
+
+    def test_the_pair_readiness_script_calls_the_readiness_service(self):
+        script = pair_readiness_text()
+        self.assertIn(
+            f'callDBus("{READINESS_SERVICE}", "/", "{READINESS_INTERFACE}", "ClientReady")',
+            script,
+        )
+
+    def test_the_pair_readiness_script_has_no_any_window_eligibility_test(self):
+        # The single-window script reports any normal, dialog, splash or
+        # desktop window. The pair must not, or the first mapped window would
+        # end the settle before the second window exists.
+        script = pair_readiness_text()
+        self.assertNotIn("window.normalWindow", script)
+        self.assertNotIn("window.dialog ||", script)
+        self.assertNotIn("window.splash", script)
+
+    def test_write_readiness_settle_script_pair_writes_the_pair_text(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as root:
+            session = _FakeSession(Path(root) / "cfg", Path(root))
+            path = write_readiness_settle_script(session, pair=True)
+            self.assertEqual(Path(root) / READINESS_SETTLE_SCRIPT, path)
+            self.assertEqual(pair_readiness_text().encode("utf-8"), path.read_bytes())
+            self.assertNotEqual(readiness_settle_text(), pair_readiness_text())
 
     def test_the_rules_file_is_the_kwin_rules_store_name(self):
         # The workflow matches the mode's extra_config_files entry against

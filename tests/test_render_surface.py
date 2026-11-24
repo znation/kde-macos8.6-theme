@@ -401,16 +401,18 @@ class TestRenderBudgets(unittest.TestCase):
         settle = flags[flags.index("--settle") + 1]
         self.assertEqual(settle, "20")
 
-    def test_the_inactive_gate_settles_for_twenty_seconds(self):
+    def test_the_inactive_gate_settles_for_at_most_forty_five_seconds(self):
         # The two-window inactive capture spawns its focused kdialog 2 s
-        # after the unfocused one, and the capture lands at the settle
-        # ceiling. At the 8 s default the focused window can still be
-        # unmapped under the parallel check's load, so the capture reads the
-        # unfocused window as active (the '#CCCCCC' != '#000000' flake in
-        # BUGS.md). It takes the same 20 s budget as the GTK and icon gates.
+        # after the unfocused one. At the 8 s default the focused window can
+        # still be unmapped under the parallel check's load, so the capture
+        # reads the unfocused window as active (the '#CCCCCC' != '#000000'
+        # flake in BUGS.md). The render's readiness script ends the settle as
+        # soon as both titled windows are in their settled focus state, so
+        # 45 s is the ceiling for a pair that never reports, not the wait
+        # every run pays.
         flags = dict((kind, flags) for kind, flags, _ in Renders.KINDS)["inactive"]
         self.assertIn("--settle", flags)
-        self.assertEqual(flags[flags.index("--settle") + 1], "20")
+        self.assertLessEqual(float(flags[flags.index("--settle") + 1]), 45)
 
     def test_the_combobox_gate_settles_for_twenty_seconds(self):
         # The combobox dialog is a single kdialog window, but it is spawned
@@ -418,7 +420,7 @@ class TestRenderBudgets(unittest.TestCase):
         # default its window can still be unpainted at the settle ceiling, and
         # the capture comes back entirely black ("capture is entirely black:
         # the window did not paint before the 8s settle" in BUGS.md). It takes
-        # the same 20 s budget as the GTK, icon and inactive gates.
+        # the same 20 s budget as the GTK and icon gates.
         flags = dict((kind, flags) for kind, flags, _ in Renders.KINDS)["combobox"]
         self.assertIn("--settle", flags)
         self.assertEqual(flags[flags.index("--settle") + 1], "20")

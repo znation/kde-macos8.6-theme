@@ -45,6 +45,39 @@ class TestSessionModes(StubTools, unittest.TestCase):
             status, stderr, output, 1, "render session exited 1",
         )
 
+    def _written_readiness_texts(self, *extra):
+        """Run the render with *extra* and return the readiness texts written."""
+        written = []
+        real = render_workflow.write_readiness_settle_script
+
+        def record(session, **kwargs):
+            path = real(session, **kwargs)
+            written.append(path.read_bytes())
+            return path
+
+        with mock.patch.object(render_workflow, "run_logged", return_value=1), \
+                mock.patch.object(render_workflow, "write_session_configs"), \
+                mock.patch.object(render_workflow, "write_kvantum_selection"), \
+                mock.patch.object(render_workflow, "write_window_rules"), \
+                mock.patch.object(render_workflow, "write_readiness_settle_script", side_effect=record):
+            self.run_main(*extra)
+        return written
+
+    def test_the_inactive_mode_writes_the_pair_readiness_text(self):
+        written = self._written_readiness_texts("--inactive-dialog")
+        self.assertEqual(
+            [render_window_rules.pair_readiness_text().encode("utf-8")], written,
+        )
+        self.assertNotEqual(
+            render_window_rules.readiness_settle_text().encode("utf-8"), written[0],
+        )
+
+    def test_a_single_dialog_mode_writes_the_existing_readiness_text(self):
+        written = self._written_readiness_texts("--combobox-dialog")
+        self.assertEqual(
+            [render_window_rules.readiness_settle_text().encode("utf-8")], written,
+        )
+
     def test_inactive_dialog_launches_its_two_window_wrapper(self):
         # The inactive mode must reach the session as the two-window sh -c
         # wrapper (one kdialog per fixed title, opened inactive-window
@@ -64,7 +97,13 @@ class TestSessionModes(StubTools, unittest.TestCase):
         selection.assert_called_once_with(configs.call_args.args[0])
         rules.assert_called_once_with(configs.call_args.args[0])
         argv = run.call_args.args[0]
-        self.assertIn('readiness=""', shlex.split(argv[-1])[2])
+        # Both settle paths are wired: the focus loop and the pair readiness
+        # script, which ends the settle once both titled windows are settled.
+        prologue = shlex.split(argv[-1])[2]
+        self.assertNotIn('focus=""', prologue)
+        self.assertIn(render_window_rules.FOCUS_SETTLE_SCRIPT, prologue)
+        self.assertNotIn('readiness=""', prologue)
+        self.assertIn(render_window_rules.READINESS_SETTLE_SCRIPT, prologue)
         self.assertIn("kdialog", argv[-1])
         self.assertIn(render_window_rules.INACTIVE_TITLE, argv[-1])
         self.assertIn(render_window_rules.FOCUSED_TITLE, argv[-1])

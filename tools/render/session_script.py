@@ -152,8 +152,10 @@ def session_script(
     fails its guard), so the other modes' session stages are unchanged.
 
     *readiness_script* is a KWin script path used with the session D-Bus
-    monitor: when an eligible window maps, the listener writes
-    ``RENDER_SESSION_READY_FILE`` and ends the settle early. The listener
+    monitor: when an eligible window maps (for the inactive-dialog pair,
+    when both titled windows are in their settled focus state), the
+    listener writes ``RENDER_SESSION_READY_FILE`` and ends the settle
+    early. The listener
     starts before the render client so a fast window cannot beat the signal
     subscription.
 

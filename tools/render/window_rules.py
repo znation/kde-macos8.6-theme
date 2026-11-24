@@ -144,11 +144,61 @@ def readiness_settle_text() -> str:
     )
 
 
-def write_readiness_settle_script(session: Session) -> Path:
-    """Write the readiness KWin script into *session*'s scratch root."""
-    return _write_session_script(
-        session, READINESS_SETTLE_SCRIPT, readiness_settle_text()
+def pair_readiness_text() -> str:
+    """Return the KWin script that reports once the two-window pair is settled.
+
+    The inactive-dialog render needs both windows, and the first mapped
+    window is not enough: the pair is ready when a window captioned
+    ``INACTIVE_TITLE`` is not active and a window captioned ``FOCUSED_TITLE``
+    is. ``check()`` tests that state for every window KWin lists, and runs
+    again on each ``windowAdded``, ``windowActivated`` and per-window
+    ``captionChanged``, since a caption can be set after the window is
+    added. It reports at most once, through the same ``ClientReady`` call
+    the single-window script makes.
+    """
+    return (
+        "let reported = false;\n"
+        "function check() {\n"
+        "    if (reported) {\n"
+        "        return;\n"
+        "    }\n"
+        "    let inactive = false;\n"
+        "    let focused = false;\n"
+        "    for (const window of workspace.windowList()) {\n"
+        f'        if (window.caption === "{INACTIVE_TITLE}" && !window.active) {{\n'
+        "            inactive = true;\n"
+        "        }\n"
+        f'        if (window.caption === "{FOCUSED_TITLE}" && window.active) {{\n'
+        "            focused = true;\n"
+        "        }\n"
+        "    }\n"
+        "    if (inactive && focused) {\n"
+        "        reported = true;\n"
+        f'        callDBus("{READINESS_SERVICE}", "{READINESS_PATH}", '
+        f'"{READINESS_INTERFACE}", "{READINESS_MEMBER}");\n'
+        "    }\n"
+        "}\n"
+        "function watch(window) {\n"
+        "    window.captionChanged.connect(check);\n"
+        "}\n"
+        "for (const window of workspace.windowList()) watch(window);\n"
+        "workspace.windowAdded.connect(function (window) {\n"
+        "    watch(window);\n"
+        "    check();\n"
+        "});\n"
+        "workspace.windowActivated.connect(check);\n"
+        "check();\n"
     )
+
+
+def write_readiness_settle_script(session: Session, pair: bool = False) -> Path:
+    """Write the readiness KWin script into *session*'s scratch root.
+
+    ``pair=True`` writes :func:`pair_readiness_text` (the two-window
+    inactive-dialog gate) instead of the single-window :func:`readiness_settle_text`.
+    """
+    text = pair_readiness_text() if pair else readiness_settle_text()
+    return _write_session_script(session, READINESS_SETTLE_SCRIPT, text)
 
 
 def _write_session_script(session: Session, name: str, text: str) -> Path:
