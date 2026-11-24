@@ -58,6 +58,8 @@ desktoptheme, kvantum and render tests).
 
 ### Platinum icon theme: draw gzip archives with an original `application-gzip` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
 
+**Needs review 2026-11-24 by feature: plan defect — the deliverable already exists on main: commit 85d3f5536 shipped the three `mimetypes/application-gzip.svg` files plus the inventory, pins, placeholder-register and doc changes this entry lists, and PLANS-DONE.md already carries this identical heading stamped "— done 2026-11-24 by the feature role"; this un-stamped Planned copy survived because merge 85d3f5536's diff touches only PLANS-DONE.md, not PLANS.md. Do not re-implement; the plan role should retire this copy.**
+
 **Goal.** KIO requests an `application/gzip` item's icon under the
 shared MIME database's type-spelled name `application-gzip`, and on
 this host that exact name draws Breeze's art even though the database's
