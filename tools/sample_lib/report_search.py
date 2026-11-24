@@ -73,30 +73,31 @@ def _search_match(args, image) -> dict:
         run_limit=args.max_match_column_runs,
         run_offset=getattr(args, "match_column_run_offset", None) or 0)
     alphas = iter(region_alpha(image, args.x, args.y, args.width, args.height)) if args.match_alpha is not None else None
+    offset = args.match_pixel_offset or 0
     for x, y, rgb in positioned_region_pixels(image, args.x, args.y, args.width, args.height):
         matches = _pixel_matches(alphas, rgb, target, tolerance, args.match_alpha)
         intervals.observe(x, y, matches)
-        if matches:
-            count += 1
-            if matching_rows is not None:
-                matching_rows[y - args.y] += 1
-            if matching_columns is not None:
-                matching_columns[x - args.x] += 1
-            if matching_row_bounds is not None:
-                _extend_match_bound(
-                    matching_row_bounds, y - args.y, x, "x", "width")
-            if matching_column_bounds is not None:
-                _extend_match_bound(
-                    matching_column_bounds, x - args.x, y, "y", "height")
-            if args.match_centroid:
-                sum_x += x
-                sum_y += y
-            offset = args.match_pixel_offset or 0
-            if (args.match_pixels is not None and count > offset
-                    and len(matched_pixels) < args.match_pixels):
-                matched_pixels.append({"x": x, "y": y})
-            min_x, min_y = min(min_x, x), min(min_y, y)
-            max_x, max_y = max(max_x, x), max(max_y, y)
+        if not matches:
+            continue
+        count += 1
+        if matching_rows is not None:
+            matching_rows[y - args.y] += 1
+        if matching_columns is not None:
+            matching_columns[x - args.x] += 1
+        if matching_row_bounds is not None:
+            _extend_match_bound(
+                matching_row_bounds, y - args.y, x, "x", "width")
+        if matching_column_bounds is not None:
+            _extend_match_bound(
+                matching_column_bounds, x - args.x, y, "y", "height")
+        if args.match_centroid:
+            sum_x += x
+            sum_y += y
+        if (args.match_pixels is not None and count > offset
+                and len(matched_pixels) < args.match_pixels):
+            matched_pixels.append({"x": x, "y": y})
+        min_x, min_y = min(min_x, x), min(min_y, y)
+        max_x, max_y = max(max_x, x), max(max_y, y)
     matched_runs, matched_column_runs = intervals.finish()
     if capped_columns:
         column_alphas = None
@@ -128,7 +129,8 @@ def _search_match(args, image) -> dict:
             matched_column_runs = [run for run in matched_column_runs
                                    if run["length"] <= args.max_match_column_run_length]
     bounds = None if count == 0 else {"x": min_x, "y": min_y,
-        "width": max_x - min_x + 1, "height": max_y - min_y + 1}
+                                      "width": max_x - min_x + 1,
+                                      "height": max_y - min_y + 1}
     return {"rgb": list(target), "hex": hex(target), "count": count,
             "bounds": bounds,
             **({"fraction": count / (args.width * args.height)} if args.match_fraction else {}),
