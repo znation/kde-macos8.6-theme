@@ -24,17 +24,16 @@ from __future__ import annotations
 import os
 import shlex
 import shutil
-import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
 try:
+    from tools.diagnostics import report_note
     from tools.render.session_script import session_script
-    from tools.terminal import escape_controls
 except ImportError:  # imported from a directly run tool
+    from diagnostics import report_note
     from render.session_script import session_script
-    from terminal import escape_controls
 
 SOCKET = "render-surface"
 COLOR_SCHEME = "MacOS8"
@@ -56,10 +55,10 @@ def _remove_scratch_root(root: Path) -> None:
     # has no ``onexc``.
     shutil.rmtree(root, onerror=lambda _func, _path, info: errors.append(info[1]))
     if errors and os.path.lexists(root):
-        print(
-            "render_surface: note: could not remove scratch session directory "
-            f"{escape_controls(str(root))}: {escape_controls(str(errors[0]))}",
-            file=sys.stderr,
+        report_note(
+            "render_surface",
+            f"could not remove scratch session directory {root}: {errors[0]}",
+            err=True,
         )
 
 

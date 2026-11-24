@@ -17,6 +17,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import tmp_dir
 from tools.render import session as render_session  # noqa: E402
 
 NOTE = "render_surface: note: could not remove scratch session directory"
@@ -69,6 +70,25 @@ class TestScratchRootRemoval(unittest.TestCase):
         self.assertEqual("setup broke", str(raised.exception))
         self.assertIn(NOTE, err.getvalue())
         self.assertIn(made[0], err.getvalue())
+
+    def test_a_root_blocked_by_a_file_keeps_the_setup_error(self):
+        # The runtime path is a file, so the real setup raises FileExistsError
+        # after mkdtemp has made the root; its removal then fails too.
+        prepared = tmp_dir.make_tmp_dir(self) / "render-surface-fixed"
+        prepared.mkdir()
+        (prepared / "rt").write_bytes(b"in the way")
+        err = io.StringIO()
+        with mock.patch.object(
+            render_session.tempfile, "mkdtemp", return_value=str(prepared)
+        ), mock.patch.object(
+            os, "rmdir", side_effect=OSError(errno.EBUSY, "Device busy")
+        ), contextlib.redirect_stderr(err):
+            with self.assertRaises(FileExistsError):
+                render_session.Session.create()
+        # One note, whose leftover path is the root itself.
+        self.assertEqual(1, len(err.getvalue().splitlines()))
+        self.assertTrue(err.getvalue().startswith(f"{NOTE} {prepared}: "))
+        self.assertIn("Device busy", err.getvalue())
 
     def test_one_undeletable_entry_leaves_the_rest_removed(self):
         session = render_session.Session.create()
