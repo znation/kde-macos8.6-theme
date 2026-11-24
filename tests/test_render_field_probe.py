@@ -202,7 +202,11 @@ class TestFieldProbeScript(unittest.TestCase):
                     self.assertEqual(run_probe(argv)[1], result.stderr)
             # An underscore coordinate exits 2 the same way, and the direct
             # script's shared plain-ASCII check reaches the bare-run path.
-            underscored = probe_argv(Path(root) / "absent.png", x="3_20")
+            # The capture exists and its (320, 398) pixel is painted, so a
+            # bare int() would exit 0 here and only the refusal can exit 2.
+            plain_ascii = Path(root) / "plain_ascii.png"
+            plain_ascii.write_bytes(field_png())
+            underscored = probe_argv(plain_ascii, x="3_20")
             result = subprocess.run(
                 [sys.executable, str(script), *underscored],
                 capture_output=True, text=True, timeout=30,
