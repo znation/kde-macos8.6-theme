@@ -290,6 +290,109 @@ before they are planned.
   test_placeholders test_invariants'` passes, and so does full `make check`
   after the final edit, apart from main's known-red tests.
 
+### Platinum icon theme: draw a VPN with an original `network-vpn` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A VPN connection is drawn with Breeze's art beside the Platinum
+placeholders. Ship one original placeholder icon, `network-vpn`, at
+16x16, 22x22 and 32x32, in the same devices series as the landed
+`computer`, `font-x-generic`, `text-x-generic-template` and the waiting
+mouse, keyboard, printer, phone and battery entries.
+Provenance: the installed desktop entry
+`/usr/share/applications/org.kde.vpnimport.desktop` line 42 carries
+`Icon=network-vpn` (checked at planning time), while the installed
+`libKF6Solid.so.6.13.0` carries no `network-vpn` literal (`strings -e
+l`), so this follows the printer's desktop-entry pattern. Breeze ships
+the name under `devices/16/22/24` and `status/22/24`; this theme
+declares devices directories at 16x16, 22x22 and 32x32 and no Status
+directory, so the three files go in `devices/` and the Status renditions
+stay out of scope, as do `video-display` and `network-wireless`. No
+reference screenshot shows a VPN icon: no reference pixels are used,
+and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `devices/network-vpn.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original network-vpn illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a Platinum network card carrying a
+  centred padlock: a raised #DDDDDD card with the 1px #000000 outline
+  and the #FFFFFF/#999999 bevel, two #000000 edge-connector tabs below
+  the card, a #999999 padlock shackle and a #DDDDDD lock face with a
+  #000000 keyhole. Each file holds these elements in order, written
+  `x,y width×height fill` for rects:
+  - 32x32: `3,10 26×17 #000000`; `4,11 24×15 #DDDDDD`; `4,11 24×1
+    #FFFFFF`; `4,11 1×15 #FFFFFF`; `27,11 1×15 #999999`; `4,25 24×1
+    #999999`; `13,13 6×2 #999999`; `13,15 2×2 #999999`; `17,15 2×2
+    #999999`; `11,17 10×8 #000000`; `12,18 8×6 #DDDDDD`; `15,20 2×3
+    #000000`; `9,27 4×2 #000000`; `19,27 4×2 #000000`.
+  - 22x22: `2,7 18×11 #000000`; `3,8 16×9 #DDDDDD`; `3,8 16×1
+    #FFFFFF`; `3,8 1×9 #FFFFFF`; `18,8 1×9 #999999`; `3,16 16×1
+    #999999`; `8,9 6×2 #999999`; `8,11 2×1 #999999`; `12,11 2×1
+    #999999`; `7,12 8×5 #000000`; `8,13 6×3 #DDDDDD`; `10,13 2×2
+    #000000`; `6,18 3×2 #000000`; `13,18 3×2 #000000`.
+  - 16x16: `1,5 14×9 #000000`; `2,6 12×7 #DDDDDD`; `2,6 12×1 #FFFFFF`;
+    `2,6 1×7 #FFFFFF`; `13,6 1×7 #999999`; `2,12 12×1 #999999`; `6,7
+    4×1 #999999`; `6,8 1×1 #999999`; `9,8 1×1 #999999`; `5,9 6×4
+    #000000`; `6,10 4×2 #DDDDDD`; `8,10 1×2 #000000`; `4,14 2×1
+    #000000`; `10,14 2×1 #000000`.
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px rects, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside that size's `printer`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `devices` paths, and name the
+  network-vpn icon in the comment above it.
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `network-vpn` in the last cell: no reference pixels
+  were used, the name is required by the installed KDE VPN import
+desktop entry (`org.kde.vpnimport.desktop`) while the installed
+`libKF6Solid.so.6.13.0` contains no `network-vpn` literal, and the
+network-card-with-padlock drawing is this theme's own choice.
+- `docs/installing.md`: add the network-vpn icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and has
+  a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing an element's position, size, fill or order, the padlock's
+  position or size, or a connector tab's position or size, in one file
+  makes `test_each_icon_draws_its_pinned_artwork` fail; dropping a file
+  while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `network-vpn` resolves to the theme's
+  32x32 file (at planning time, before this change, it resolved to
+  Breeze's `status/24` file), and `x-office-document` stays on the
+  theme's 32x32 file. Also record what `network-server` and
+  `network-wireless` resolve to, without pinning them.
+  Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
