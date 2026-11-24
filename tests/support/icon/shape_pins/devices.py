@@ -52,80 +52,77 @@ _PHONE_22 = (
     _shape("rect", x="10", y="16", width="2", height="2", fill="#000000"),
 )
 
+# The drive body: the case outline, face and bevel highlight every drive
+# icon draws in common, one tuple per size (the 16x16 drive-optical is two
+# pixels taller and keeps its own body). Each drive pin below is this body
+# spread in front of its own name-specific tail, so a body edit lands in
+# one place per size and all eight pins stay in step; the pins test in
+# ``test_icon_theme_geometry`` still compares each shipped file with its
+# pin element by element.
+_DRIVE_BODY_32 = (
+    _shape("rect", x="3", y="8", width="26", height="17", fill="#000000"),
+    _shape("rect", x="4", y="9", width="24", height="15", fill="#DDDDDD"),
+    _shape("rect", x="4", y="9", width="24", height="2", fill="#FFFFFF"),
+    _shape("rect", x="4", y="9", width="1", height="15", fill="#FFFFFF"),
+    _shape("rect", x="4", y="22", width="24", height="2", fill="#999999"),
+    _shape("rect", x="27", y="9", width="1", height="15", fill="#999999"),
+)
+_DRIVE_BODY_16 = (
+    _shape("rect", x="1", y="3", width="14", height="10", fill="#000000"),
+    _shape("rect", x="2", y="4", width="12", height="8", fill="#DDDDDD"),
+    _shape("rect", x="2", y="4", width="12", height="1", fill="#FFFFFF"),
+    _shape("rect", x="2", y="4", width="1", height="8", fill="#FFFFFF"),
+    _shape("rect", x="2", y="11", width="12", height="1", fill="#999999"),
+    _shape("rect", x="13", y="4", width="1", height="8", fill="#999999"),
+)
+_DRIVE_BODY_22 = (
+    _shape("rect", x="2", y="4", width="18", height="15", fill="#000000"),
+    _shape("rect", x="3", y="5", width="16", height="13", fill="#DDDDDD"),
+    _shape("rect", x="3", y="5", width="16", height="2", fill="#FFFFFF"),
+    _shape("rect", x="3", y="5", width="1", height="13", fill="#FFFFFF"),
+    _shape("rect", x="3", y="17", width="16", height="1", fill="#999999"),
+    _shape("rect", x="18", y="5", width="1", height="13", fill="#999999"),
+)
+
 PINS = {
     os.path.join("32x32", "devices", "drive-harddisk.svg"): (
-        _shape("rect", x="3", y="8", width="26", height="17", fill="#000000"),
-        _shape("rect", x="4", y="9", width="24", height="15", fill="#DDDDDD"),
-        _shape("rect", x="4", y="9", width="24", height="2", fill="#FFFFFF"),
-        _shape("rect", x="4", y="9", width="1", height="15", fill="#FFFFFF"),
-        _shape("rect", x="4", y="22", width="24", height="2", fill="#999999"),
-        _shape("rect", x="27", y="9", width="1", height="15", fill="#999999"),
+        *_DRIVE_BODY_32,
         _shape("rect", x="6", y="14", width="14", height="6", fill="#000000"),
         _shape("rect", x="7", y="15", width="12", height="4", fill="#FFFFFF"),
         _shape("circle", cx="24", cy="17", r="2", fill="#000000"),
     ),
     os.path.join("16x16", "devices", "drive-harddisk.svg"): (
-        _shape("rect", x="1", y="3", width="14", height="10", fill="#000000"),
-        _shape("rect", x="2", y="4", width="12", height="8", fill="#DDDDDD"),
-        _shape("rect", x="2", y="4", width="12", height="1", fill="#FFFFFF"),
-        _shape("rect", x="2", y="4", width="1", height="8", fill="#FFFFFF"),
-        _shape("rect", x="2", y="11", width="12", height="1", fill="#999999"),
-        _shape("rect", x="13", y="4", width="1", height="8", fill="#999999"),
+        *_DRIVE_BODY_16,
         _shape("rect", x="3", y="7", width="7", height="3", fill="#000000"),
         _shape("rect", x="4", y="8", width="5", height="1", fill="#FFFFFF"),
         _shape("circle", cx="12", cy="9", r="1", fill="#000000"),
     ),
     os.path.join("22x22", "devices", "drive-harddisk.svg"): (
-        _shape("rect", x="2", y="4", width="18", height="15", fill="#000000"),
-        _shape("rect", x="3", y="5", width="16", height="13", fill="#DDDDDD"),
-        _shape("rect", x="3", y="5", width="16", height="2", fill="#FFFFFF"),
-        _shape("rect", x="3", y="5", width="1", height="13", fill="#FFFFFF"),
-        _shape("rect", x="3", y="17", width="16", height="1", fill="#999999"),
-        _shape("rect", x="18", y="5", width="1", height="13", fill="#999999"),
+        *_DRIVE_BODY_22,
         _shape("rect", x="4", y="10", width="8", height="4", fill="#000000"),
         _shape("rect", x="5", y="11", width="6", height="2", fill="#FFFFFF"),
         _shape("circle", cx="15", cy="12", r="2", fill="#000000"),
     ),
     os.path.join("32x32", "devices", "drive-removable-media.svg"): (
-        _shape("rect", x="3", y="8", width="26", height="17", fill="#000000"),
-        _shape("rect", x="4", y="9", width="24", height="15", fill="#DDDDDD"),
-        _shape("rect", x="4", y="9", width="24", height="2", fill="#FFFFFF"),
-        _shape("rect", x="4", y="9", width="1", height="15", fill="#FFFFFF"),
-        _shape("rect", x="4", y="22", width="24", height="2", fill="#999999"),
-        _shape("rect", x="27", y="9", width="1", height="15", fill="#999999"),
+        *_DRIVE_BODY_32,
         _shape("rect", x="7", y="13", width="18", height="2", fill="#000000"),
         _shape("rect", x="7", y="15", width="18", height="1", fill="#FFFFFF"),
         _shape("rect", x="21", y="18", width="4", height="2", fill="#000000"),
     ),
     os.path.join("16x16", "devices", "drive-removable-media.svg"): (
-        _shape("rect", x="1", y="3", width="14", height="10", fill="#000000"),
-        _shape("rect", x="2", y="4", width="12", height="8", fill="#DDDDDD"),
-        _shape("rect", x="2", y="4", width="12", height="1", fill="#FFFFFF"),
-        _shape("rect", x="2", y="4", width="1", height="8", fill="#FFFFFF"),
-        _shape("rect", x="2", y="11", width="12", height="1", fill="#999999"),
-        _shape("rect", x="13", y="4", width="1", height="8", fill="#999999"),
+        *_DRIVE_BODY_16,
         _shape("rect", x="4", y="7", width="8", height="1", fill="#000000"),
         _shape("rect", x="4", y="8", width="8", height="1", fill="#FFFFFF"),
         _shape("rect", x="9", y="10", width="3", height="1", fill="#000000"),
     ),
     os.path.join("22x22", "devices", "drive-removable-media.svg"): (
-        _shape("rect", x="2", y="4", width="18", height="15", fill="#000000"),
-        _shape("rect", x="3", y="5", width="16", height="13", fill="#DDDDDD"),
-        _shape("rect", x="3", y="5", width="16", height="2", fill="#FFFFFF"),
-        _shape("rect", x="3", y="5", width="1", height="13", fill="#FFFFFF"),
-        _shape("rect", x="3", y="17", width="16", height="1", fill="#999999"),
-        _shape("rect", x="18", y="5", width="1", height="13", fill="#999999"),
+        *_DRIVE_BODY_22,
         _shape("rect", x="5", y="9", width="12", height="2", fill="#000000"),
         _shape("rect", x="5", y="11", width="12", height="1", fill="#FFFFFF"),
         _shape("rect", x="13", y="14", width="4", height="1", fill="#000000"),
     ),
     os.path.join("32x32", "devices", "drive-optical.svg"): (
-        _shape("rect", x="3", y="8", width="26", height="17", fill="#000000"),
-        _shape("rect", x="4", y="9", width="24", height="15", fill="#DDDDDD"),
-        _shape("rect", x="4", y="9", width="24", height="2", fill="#FFFFFF"),
-        _shape("rect", x="4", y="9", width="1", height="15", fill="#FFFFFF"),
-        _shape("rect", x="4", y="22", width="24", height="2", fill="#999999"),
-        _shape("rect", x="27", y="9", width="1", height="15", fill="#999999"),
+        *_DRIVE_BODY_32,
         _shape("circle", cx="16", cy="16", r="5", fill="#000000"),
         _shape("circle", cx="16", cy="16", r="4", fill="#FFFFFF"),
         _shape("circle", cx="16", cy="16", r="2", fill="#000000"),
@@ -142,12 +139,7 @@ PINS = {
         _shape("circle", cx="8", cy="8", r="1", fill="#000000"),
     ),
     os.path.join("22x22", "devices", "drive-optical.svg"): (
-        _shape("rect", x="2", y="4", width="18", height="15", fill="#000000"),
-        _shape("rect", x="3", y="5", width="16", height="13", fill="#DDDDDD"),
-        _shape("rect", x="3", y="5", width="16", height="2", fill="#FFFFFF"),
-        _shape("rect", x="3", y="5", width="1", height="13", fill="#FFFFFF"),
-        _shape("rect", x="3", y="17", width="16", height="1", fill="#999999"),
-        _shape("rect", x="18", y="5", width="1", height="13", fill="#999999"),
+        *_DRIVE_BODY_22,
         _shape("circle", cx="11", cy="12", r="4", fill="#000000"),
         _shape("circle", cx="11", cy="12", r="3", fill="#FFFFFF"),
         _shape("circle", cx="11", cy="12", r="2", fill="#000000"),
