@@ -149,6 +149,22 @@ class TestRenderValidation(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(len(first), 24 * 24 * 4)
 
+    def test_a_cached_render_still_refuses_a_malformed_equal_argument(self):
+        # The raster is cached by (art, size, samples): a render of an equal
+        # art at size 1 fills that cache entry, and ``True`` compares equal
+        # to ``1`` in a cache key, so a refusal that lived only behind the
+        # raster would be answered by the cached bytes instead. The check
+        # must run on every call, cached or not.
+        art = VectorCursor(face=HALF_SQUARE, outline_width=2)
+        self.assertEqual(
+            len(cursor_vector.render_vector_rgba(art, 1)), 1 * 1 * 4)
+        with self.assertRaisesRegex(ValueError, "size"):
+            cursor_vector.render_vector_rgba(art, True)
+        self.assertEqual(
+            len(cursor_vector.render_vector_rgba(art, 1, samples=1)), 1 * 1 * 4)
+        with self.assertRaisesRegex(ValueError, "samples"):
+            cursor_vector.render_vector_rgba(art, 1, samples=True)
+
 
 class TestVectorCursorFields(unittest.TestCase):
     def test_default_design_size_is_thirty_two(self):

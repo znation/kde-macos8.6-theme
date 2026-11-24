@@ -23,6 +23,7 @@ rule, and it reads the writer's limit ``MAX_IMAGE_SIZE`` from
 
 from __future__ import annotations
 
+import functools
 import math
 from dataclasses import dataclass
 
@@ -112,30 +113,6 @@ class VectorCursor:
         object.__setattr__(self, "face", tuple(checked))
 
 
-def _inside(x, y, edges):
-    """Return True when ``(x, y)`` is inside the polygon under even-odd."""
-    inside = False
-    for (x1, y1), (x2, y2) in edges:
-        if (y1 > y) != (y2 > y):
-            crossing = x1 + (y - y1) * (x2 - x1) / (y2 - y1)
-            if x < crossing:
-                inside = not inside
-    return inside
-
-
-def _segment_distance(x, y, x1, y1, x2, y2):
-    """Return the distance from ``(x, y)`` to the segment ``(x1, y1)-(x2, y2)``."""
-    dx = x2 - x1
-    dy = y2 - y1
-    length_sq = dx * dx + dy * dy
-    if length_sq == 0:
-        t = 0.0
-    else:
-        t = ((x - x1) * dx + (y - y1) * dy) / length_sq
-        t = min(1.0, max(0.0, t))
-    return math.hypot(x - (x1 + t * dx), y - (y1 + t * dy))
-
-
 def _edges(face):
     """Return the polygon's edges as pairs of vertices, closing the loop."""
     count = len(face)
@@ -143,29 +120,67 @@ def _edges(face):
 
 
 def _distance_to_edges(x, y, edges):
-    return min(
-        _segment_distance(x, y, x1, y1, x2, y2)
-        for (x1, y1), (x2, y2) in edges
-    )
+    """Return the distance from ``(x, y)`` to the nearest polygon edge.
+
+    This is the per-segment nearest-point distance looped into one pass: the
+    segment's own parameter is clamped to ``0..1`` with the same comparisons
+    ``min(1.0, max(0.0, t))`` applied, and the running minimum replaces the
+    ``min`` over a generator, so the result is the same float without a
+    function call and two builtin calls per segment. A degenerate segment
+    (zero length) measures straight to its single endpoint, as the
+    ``t = 0.0`` branch did.
+    """
+    best = math.inf
+    for (x1, y1), (x2, y2) in edges:
+        dx = x2 - x1
+        dy = y2 - y1
+        length_sq = dx * dx + dy * dy
+        if length_sq == 0:
+            distance = math.hypot(x - x1, y - y1)
+        else:
+            t = ((x - x1) * dx + (y - y1) * dy) / length_sq
+            if t < 0.0:
+                t = 0.0
+            elif t > 1.0:
+                t = 1.0
+            distance = math.hypot(x - (x1 + t * dx), y - (y1 + t * dy))
+        if distance < best:
+            best = distance
+    return best
 
 
-def _pixel_counts(edges, width, scale, samples, px, py):
+def _pixel_counts(edges, width, scale, offsets, px, py):
     """Count the black and white sub-samples of pixel (*px*, *py*).
 
     Each pixel takes ``samples * samples`` sub-samples at the centres
     ``(px + (i + 0.5) / samples, py + (j + 0.5) / samples)``, scaled into
     design units by *scale*. A centre inside the face polygon counts black;
     one within *width* of the outline counts white.
+
+    *offsets* carries the precomputed ``(j + 0.5) / samples`` fractions the
+    sub-sample centres share across every pixel, so the per-pixel work is
+    one add and one multiply per coordinate instead of recomputing each
+    fraction; the values are the same floats the inline expression produced.
+    The even-odd and nearest-edge tests run inline, so a sub-sample costs no
+    helper-function call.
     """
     black = 0
     white = 0
-    for j in range(samples):
-        sy = (py + (j + 0.5) / samples) * scale
-        for i in range(samples):
-            sx = (px + (i + 0.5) / samples) * scale
-            if _inside(sx, sy, edges):
+    for j, dy in enumerate(offsets):
+        sy = (py + dy) * scale
+        for i, dx in enumerate(offsets):
+            sx = (px + dx) * scale
+            inside = False
+            for (x1, y1), (x2, y2) in edges:
+                if (y1 > sy) != (y2 > sy):
+                    crossing = x1 + (sy - y1) * (x2 - x1) / (y2 - y1)
+                    if sx < crossing:
+                        inside = not inside
+            if inside:
                 black += 1
-            elif _distance_to_edges(sx, sy, edges) <= width:
+                continue
+            distance = _distance_to_edges(sx, sy, edges)
+            if distance <= width:
                 white += 1
     return black, white
 
@@ -180,21 +195,45 @@ def render_vector_rgba(art, size, samples=DEFAULT_SAMPLES):
     is ``(0, 0, 0, 0)``. Otherwise it is ``(g, g, g, a)`` with
     ``a = (510*K + N) // (2*N)`` and ``g = (510*W + K) // (2*K)``, both integer
     round-half-up.
+
+    The arguments are checked on every call -- including a cache hit -- and
+    only then delegated to the cached raster below: a render depends only on
+    the art, the size and the sample count, so the alias cursors that share
+    one art (each alias writes its own named Xcursor file) rasterize once,
+    not once per name.
     """
     if not isinstance(art, VectorCursor):
         raise ValueError(f"art must be a VectorCursor: {art!r}")
     size = checked_size(size)
     if not is_plain_int(samples) or samples < 1:
         raise ValueError(f"samples must be a positive integer: {samples!r}")
+    return _cached_vector_rgba(art, size, samples)
+
+
+# One raster per (art, size, samples): the pure renderer below is the render
+# docstring's recipe with nothing else in scope, so equal arguments always
+# produce equal bytes. The alias names sharing one art make the repeat calls
+# the common case in ``make_cursors``, and the manifest checks rebuild the
+# whole set several times per check; the bound keeps a caller generating many
+# variants from growing the cache without limit. Validation lives above the
+# cache, so a malformed argument is refused on every call rather than being
+# answered by an earlier entry whose key it merely compares equal to.
+_MAX_CACHED_RASTERS = 128
+
+
+@functools.lru_cache(maxsize=_MAX_CACHED_RASTERS)
+def _cached_vector_rgba(art, size, samples):
+    """Rasterize validated *art* at *size* on *samples* sub-samples per pixel."""
     total = samples * samples
     scale = art.design_size / size
     edges = _edges(art.face)
     width = art.outline_width
+    offsets = tuple((j + 0.5) / samples for j in range(samples))
     out = bytearray(size * size * 4)
     for py in range(size):
         for px in range(size):
             black, white = _pixel_counts(
-                edges, width, scale, samples, px, py)
+                edges, width, scale, offsets, px, py)
             covered = black + white
             if covered == 0:
                 continue
