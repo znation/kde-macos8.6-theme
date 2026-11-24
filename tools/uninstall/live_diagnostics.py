@@ -36,6 +36,52 @@ else:  # imported from a directly run tool
 FIXED_FONT_VALUE = "JetBrains Mono,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium"
 
 
+def _still_names(
+    path: str,
+    selection_id: str,
+    subject: str,
+    consequence: str,
+    reset: str,
+) -> str:
+    """The uninstall line when a live key still names *selection_id*.
+
+    Four call sites share this skeleton — the three single-key handlers
+    through :func:`_single_selection_messages` and the bare-theme arm of
+    :func:`kwinrc_messages`; the pair-arm warnings (``kdeglobals``'s
+    ``_still_selected``, ``kwinrc_messages``'s button layout and
+    library+theme arms, the GTK files' joined-path warning) keep their
+    own wording.
+    """
+    return (
+        f"uninstall: the {subject} selection still names {selection_id}"
+        f" after removal in {path}; {consequence}. {reset}"
+    )
+
+
+def _single_selection_messages(
+    path: str,
+    section: str,
+    key: str,
+    selection_id: str,
+    subject: str,
+    consequence: str,
+    reset: str,
+) -> list[str]:
+    """The warning when one config key still names the apply's selection.
+
+    The three single-key handlers share this shape — kvantum_messages
+    (``Kvantum/kvantum.kvconfig``), plasmarc_messages (``plasmarc``) and
+    kcminputrc_messages (``kcminputrc``); the multi-key surfaces
+    (``kdeglobals``, the GTK files, ``kwinrc``) keep their own shapes.
+    *path* is the joined ``config_home`` surface path each handler
+    derives on its own line.
+    """
+    values = read_selected_values_at(path, {section: (key,)})
+    if values.get((section, key)) == selection_id:
+        return [_still_names(path, selection_id, subject, consequence, reset)]
+    return []
+
+
 def _font_diagnostics(kde: dict[tuple[str, str], str], path: str) -> list[str]:
     """The six font warnings, one per selection the apply published."""
     diagnoses = (
@@ -219,44 +265,46 @@ def gtk_messages(config_home: str, gtk_id: str, css_marker: str) -> list[str]:
 def kvantum_messages(config_home: str, kvantum_id: str) -> list[str]:
     """The Kvantum theme named in the live kvconfig."""
     path = os.path.join(config_home, "Kvantum", "kvantum.kvconfig")
-    kvantum = read_selected_values_at(path, {"General": ("theme",)})
-    if kvantum.get(("General", "theme")) == kvantum_id:
-        return [
-            f"uninstall: the Kvantum selection still names {kvantum_id}"
-            f" after removal in {path}; Kvantum applications cannot"
-            " load the removed theme and keep their default style."
-            " Clear it with: make remove-kvantum"
-        ]
-    return []
+    return _single_selection_messages(
+        path,
+        "General",
+        "theme",
+        kvantum_id,
+        "Kvantum",
+        "Kvantum applications cannot load the removed theme and"
+        " keep their default style",
+        "Clear it with: make remove-kvantum",
+    )
 
 
 def plasmarc_messages(config_home: str, dtheme_id: str) -> list[str]:
     """The desktop theme named in the live plasmarc."""
     path = os.path.join(config_home, "plasmarc")
-    desktop = read_selected_values_at(path, {"Theme": ("name",)})
-    if desktop.get(("Theme", "name")) == dtheme_id:
-        return [
-            "uninstall: the desktop theme selection still names"
-            f" {dtheme_id} after removal in {path}; Plasma cannot"
-            " load the removed desktop theme and keeps the default"
-            " style. Reset it with: plasma-apply-desktoptheme breeze"
-        ]
-    return []
+    return _single_selection_messages(
+        path,
+        "Theme",
+        "name",
+        dtheme_id,
+        "desktop theme",
+        "Plasma cannot load the removed desktop theme and keeps the"
+        " default style",
+        "Reset it with: plasma-apply-desktoptheme breeze",
+    )
 
 
 def kcminputrc_messages(config_home: str, icon_theme_id: str) -> list[str]:
     """The pointer theme named in the live kcminputrc."""
     path = os.path.join(config_home, "kcminputrc")
-    mouse = read_selected_values_at(path, {"Mouse": ("cursorTheme",)})
-    if mouse.get(("Mouse", "cursorTheme")) == icon_theme_id:
-        return [
-            "uninstall: the pointer selection still names"
-            f" {icon_theme_id} after removal in {path}; Xcursor"
-            " applications cannot load the removed cursor theme and"
-            " keep the default pointer. Reset it with:"
-            " plasma-apply-cursortheme breeze_cursors"
-        ]
-    return []
+    return _single_selection_messages(
+        path,
+        "Mouse",
+        "cursorTheme",
+        icon_theme_id,
+        "pointer",
+        "Xcursor applications cannot load the removed cursor theme and"
+        " keep the default pointer",
+        "Reset it with: plasma-apply-cursortheme breeze_cursors",
+    )
 
 
 def kwinrc_messages(config_home: str, aurorae_id: str) -> list[str]:
@@ -297,13 +345,17 @@ def kwinrc_messages(config_home: str, aurorae_id: str) -> list[str]:
         )
     if theme == aurorae_id:
         messages.append(
-            "uninstall: the window-decoration selection still names"
-            f" {aurorae_id} after removal in {path};"
-            " KWin cannot load the removed"
-            f" kwin/decorations/{aurorae_id} decoration package and"
-            " keeps the default style. Reset it with: kwriteconfig6"
-            " --file kwinrc --group org.kde.kdecoration2 --key theme"
-            " --delete && kwriteconfig6 --file kwinrc --group"
-            " org.kde.kdecoration2 --key library --delete"
+            _still_names(
+                path,
+                aurorae_id,
+                "window-decoration",
+                "KWin cannot load the removed"
+                f" kwin/decorations/{aurorae_id} decoration package and"
+                " keeps the default style",
+                "Reset it with: kwriteconfig6 --file kwinrc --group"
+                " org.kde.kdecoration2 --key theme --delete &&"
+                " kwriteconfig6 --file kwinrc --group"
+                " org.kde.kdecoration2 --key library --delete",
+            )
         )
     return messages
