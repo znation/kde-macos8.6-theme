@@ -345,6 +345,149 @@ are used and the drawing is this theme's own choice.
   `make check` after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw RPM spec files with an original `text-x-rpm-spec` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** An RPM spec file (`*.spec`, as the file manager identifies
+it) draws this theme's own mark beside the Platinum documents and
+folders instead of falling through to the generic document art. Ship
+one original placeholder icon, `text-x-rpm-spec`, at 16x16, 22x22 and
+32x32, in the page-backed text-item series the `text-x-script` icon
+belongs to. Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`text/x-rpm-spec` ("RPM spec file") with no `<icon>` element and no
+`<generic-icon>` element, sub-class-of `text/plain`, the single
+`<glob pattern="*.spec"/>` at the default weight, no aliases, no
+tree-magic, and one `<magic>` block of priority 50 matching the
+strings `Summary: ` and `%define ` at offset 0. With no
+`generic-icon` the type asks its literal dash-form name first: a
+`kiconfinder6` probe run at planning time (2026-11-24, theme copied
+into a scratch `XDG_DATA_HOME`/`XDG_CONFIG_HOME`,
+`[Icons] Theme=org.macos8.desktop`) resolved `text-x-rpm-spec` to the
+theme's own `32x32/mimetypes/text-x-generic.svg` — the
+generic-document fallback — the same file a `text-x-generic` probe
+resolved to, so the theme's generic-document art answers the name
+today and shipping it wins the in-theme exact-name match. Breeze
+ships `text-x-rpm-spec.svg` under both
+`/usr/share/icons/breeze/mimetypes` and
+`/usr/share/icons/breeze-dark/mimetypes` at 16, 22 and 32. No
+reference screenshot shows a `.spec` item icon, so no reference
+pixels are used and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/text-x-rpm-spec.svg` under `16x16`, `22x22` and
+  `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme` already
+  declares the three MimeTypes directories. Give each file the XML
+  declaration, the comment `<!-- PLACEHOLDER: original RPM spec
+  illustration pending user-approved artwork. -->`, a short comment
+  saying it is our own drawing in the Platinum palette, not traced
+  from anyone's artwork, and a root with matching `width`, `height`
+  and `viewBox`. The art shares the generic document's page (the
+  `_PAGE_16`, `_PAGE_22` and `_PAGE_32` tuples the
+  `tests/support/icon/shape_pins/_shared.py` registry keeps) and adds
+  one black check mark — a single filled `polygon` (no stroke, no
+  `fill="none"`), the tick a checked-off specification makes: a short
+  arm descending to a low vertex, then a long arm rising to the
+  page's right. One angular connected tick is distinct from the
+  `#999999` text lines `text-x-generic.svg` draws, the stepped angle
+  brackets `text-x-script.svg` draws, the framed grey stencil plate
+  `text-x-generic-template.svg` draws and every other mark in the
+  text series (the queued source-RPM plan's capital S sits on a
+  sealed package box, not a page):
+  - 32x32: the three `_PAGE_32` elements, then
+    `<polygon points="9,16 12,19 20,11 20,8 12,16 9,13"
+    fill="#000000"/>` (upper edge of the tick band left to right —
+    down the short arm, up the long arm to the tip — then the lower
+    edge right to left, tip to foot).
+  - 22x22: the three `_PAGE_22` elements, then
+    `<polygon points="6,10 8,12 14,6 14,4 8,10 6,8"
+    fill="#000000"/>` (same tick, same construction).
+  - 16x16: the three `_PAGE_16` elements, then
+    `<polygon points="5,8 7,10 11,6 11,4 7,8 5,6"
+    fill="#000000"/>` (same tick, same construction).
+
+  A script run at planning time rasterized each polygon (even-odd
+  fill on whole-pixel cells) and checked every filled cell sits
+  strictly inside that size's white page polygon and clear of the
+  folded flap, whose diagonal is `y = x - 15` at 32, `y = x - 11` at
+  22 and `y = x - 7` at 16. Validate by XML only, never by
+  rasterizing in the suite: `convert`'s MSVG reader bleeds 1px
+  shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the `text-x-script`
+  rows, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the `text-x-script` paths in `SHIPPED_ICONS`.
+- `tests/support/icon/shape_pins/mimetypes/documents.py` (the module
+  that holds the `text-x-generic` pins once the queued mimetypes
+  registry split lands; `tests/support/icon/shape_pins/mimetypes.py`
+  before it): pin the three drawings beside the `text-x-script` pins
+  (the `_PAGE_*` elements spread as the prefix, then the polygon
+  exactly as listed).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `text-x-rpm-spec` in the last cell, as the
+  `media-optical` sentence there does.
+- `docs/installing.md`: add the RPM spec icon to the sentence listing
+  the icon theme's placeholder illustrations and their sizes (the one
+  naming the `text-x-script` files).
+- The queued mimetype-icon entries ahead of this one (the in-flight
+  mimetypes shape-pin registry split, the in-flight
+  `application-x-rpm` and `audio-flac` icon plans and the queued
+  `audio-vnd.wave` and `application-x-source-rpm` plans) edit the
+  same inventory block, pins registry, invariants row and
+  installing.md sentence; this entry sits at the back of the queue,
+  so rebase on whatever they have landed when picking it up, keeping
+  one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes/documents.py` (or
+`tests/support/icon/shape_pins/mimetypes.py` before the queued
+registry split), `docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the three `_PAGE_*`
+  elements matching the `text-x-generic` pins, then the check-mark
+  polygon), carries a placeholder marker and has a
+  `PLACEHOLDERS.md` row; the existing inventory, palette, geometry
+  and placeholder-register tests cover all three.
+- Changing the polygon's points or fill, or the element order, in one
+  file makes the geometry test fail; deleting a file while its paths
+  remain in `SHIPPED_ICONS` makes the inventory test fail.
+- The polygon's `#000000` fill (over the page's `#000000`, `#FFFFFF`
+  and `#DDDDDD`) stays inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- The check mark shares no drawing element with the `text-x-generic`
+  text lines, the `text-x-script` angle brackets, the
+  `text-x-generic-template` stencil plate or the queued
+  `application-x-source-rpm` sealed box (one connected angular tick,
+  no grey lines, no brackets, no frame), so the text marks stay
+  visually distinct.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into
+  a scratch `XDG_DATA_HOME` (the `make install
+  INSTALL_PACKAGES=icon-theme DESTDIR=<root>` route installs it at
+  `<root>$XDG_DATA_HOME/icons`; add that installed path to
+  `XDG_DATA_DIRS`), use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`),
+  `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY` and
+  `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `text-x-rpm-spec` resolves to the theme's 32x32
+  `mimetypes/text-x-rpm-spec.svg` (at planning time the name falls
+  through to the theme's own `text-x-generic`), and
+  `text-x-generic` still resolves to the theme's own file. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ## Done
 
 ### Platinum icon theme: draw detached OpenPGP signatures with an original `application-pgp-signature` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
