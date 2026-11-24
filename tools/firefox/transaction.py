@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Sequence
+from functools import partial
 from pathlib import Path
 from typing import NoReturn
 
@@ -96,7 +97,7 @@ def _restore_published(
 ) -> list[str]:
     """Restore every published path; return one message per failed restore."""
     actions = (
-        lambda path=path, previous=previous: _restore_file(path, previous)
+        partial(_restore_file, path, previous)
         for path, _data, previous in sheets
     )
     actions = (*actions, lambda: _restore_user_js(

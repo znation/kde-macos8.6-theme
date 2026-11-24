@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import partial
 from pathlib import Path
 
 if __package__ == "tools.firefox":
@@ -122,7 +123,7 @@ def _restore_removed_files(
             yield lambda: write_profile_text(js_path, existing_js)
         for sheet_path, previous in owned:
             if not sheet_path.exists():
-                yield lambda path=sheet_path, text=previous: write_profile_text(path, text)
+                yield partial(write_profile_text, sheet_path, previous)
 
     return collect_rollback_errors(actions())
 
