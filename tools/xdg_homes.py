@@ -3,12 +3,13 @@
 An absolute ``$XDG_DATA_HOME``, ``$XDG_CONFIG_HOME`` or ``$XDG_CACHE_HOME`` is
 used as given; an empty or relative value is invalid under the XDG Base
 Directory spec and falls back to its default (``.local/share`` or ``.config``
-below an absolute ``$HOME``, or ``~/.cache`` for the best-effort caches). Each
-resolver returns ``None`` when no absolute path can be resolved, so the caller
-refuses instead of guessing where to read or write; :func:`require_home` raises
-that refusal with the shared diagnostic naming the received values, which the
-GTK and Kvantum selection tools raise through their own
-:class:`~tools.gtk.user_files.ConfigError`.
+below an absolute ``$HOME``, or ``~/.cache`` for the best-effort caches).
+The data and config resolvers return ``None`` when no absolute path can be
+resolved, so the caller refuses instead of guessing where to read or write;
+:func:`cache_home` is best-effort and never returns ``None``. When a resolver
+does refuse, :func:`require_home` raises that refusal with the shared
+diagnostic naming the received values, which the GTK and Kvantum selection
+tools raise through their own :class:`~tools.gtk.user_files.ConfigError`.
 """
 
 from __future__ import annotations
