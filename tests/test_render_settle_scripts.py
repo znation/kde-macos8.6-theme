@@ -6,8 +6,10 @@ reports the session's mapped windows over the scratch D-Bus (a
 single-window report, or the pair report for the two-window
 inactive-dialog render), and the focus-settle script that re-activates
 the focused-title window whenever KWin does not already treat it as
-active. Both are pinned byte for byte here; the window rules the pair
-matches on are pinned in ``tests/test_render_window_rules.py``.
+active. The capture-time window-report script the session runs once
+after the settle is pinned here too. All are pinned byte for byte here;
+the window rules the pair matches on are pinned in
+``tests/test_render_window_rules.py``.
 """
 
 from __future__ import annotations
@@ -23,11 +25,14 @@ from tools.render.settle_scripts import (
     READINESS_SERVICE,
     READINESS_SETTLE_SCRIPT,
     READINESS_MEMBER,
+    WINDOW_REPORT_SCRIPT,
     focus_settle_text,
     pair_readiness_text,
     readiness_settle_text,
+    window_report_text,
     write_focus_settle_script,
     write_readiness_settle_script,
+    write_window_report_script,
 )
 
 
@@ -161,6 +166,57 @@ class TestSettleScripts(unittest.TestCase):
             self.assertEqual(Path(root) / FOCUS_SETTLE_SCRIPT, path)
             self.assertEqual(
                 focus_settle_text().encode("utf-8"), path.read_bytes()
+            )
+
+    def test_the_window_report_script_names_each_window_caption_active_state_and_kind(
+        self,
+    ):
+        # Byte-for-byte: the one-shot report must print one capture-time
+        # line per listed window carrying its caption, active state and the
+        # kind tag the readiness scripts filter on -- a report that dropped
+        # the caption or a kind would leave a recurrence's mapping state
+        # unreadable, the exact evidence the parked pixel-flake entries ask
+        # for.
+        self.assertEqual(
+            "for (const window of workspace.windowList()) {\n"
+            '    let kind = "other";\n'
+            "    if (window.normalWindow) {\n"
+            '        kind = "normalWindow";\n'
+            "    } else if (window.dialog) {\n"
+            '        kind = "dialog";\n'
+            "    } else if (window.splash) {\n"
+            '        kind = "splash";\n'
+            "    } else if (window.desktopWindow) {\n"
+            '        kind = "desktopWindow";\n'
+            "    }\n"
+            '    print("render-session: window at capture: caption=" + window.caption '
+            '+ " active=" + window.active + " kind=" + kind);\n'
+            "}\n",
+            window_report_text(),
+        )
+
+    def test_the_window_report_script_is_one_shot(self):
+        # The report runs once at capture time: no signal handler may fire
+        # it again and no callDBus may replace the print, or the capture-
+        # time snapshot would become a second settle participant.
+        script = window_report_text()
+        self.assertNotIn("callDBus", script)
+        self.assertNotIn(".connect(", script)
+
+    def test_write_window_report_script_writes_the_script_into_the_scratch_root(
+        self,
+    ):
+        # The session script loads the file by its scratch path, so the
+        # writer must put exactly the pinned script bytes there, under the
+        # name the mode pins carry.
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as root:
+            session = _FakeSession(Path(root) / "cfg", Path(root))
+            path = write_window_report_script(session)
+            self.assertEqual(Path(root) / WINDOW_REPORT_SCRIPT, path)
+            self.assertEqual(
+                window_report_text().encode("utf-8"), path.read_bytes()
             )
 
 

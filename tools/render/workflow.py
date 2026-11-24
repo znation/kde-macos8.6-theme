@@ -19,6 +19,7 @@ if __package__.startswith("tools"):
     from tools.render.settle_scripts import (
         write_focus_settle_script,
         write_readiness_settle_script,
+        write_window_report_script,
     )
     from tools.render.setup import (
         CONFIG_FILES,
@@ -44,6 +45,7 @@ else:  # run directly from render_surface.py
     from render.settle_scripts import (
         write_focus_settle_script,
         write_readiness_settle_script,
+        write_window_report_script,
     )
     from render.setup import (
         CONFIG_FILES,
@@ -183,9 +185,14 @@ def render(args: argparse.Namespace) -> int:
             if args.splash or args.desktop
             else str(write_readiness_settle_script(session, pair=pair))
         )
+        # Every mode carries the one-shot capture-time window report: when a
+        # pixel pin fails, the log names every window KWin had at capture
+        # time, so a recurrence shows whether the client's window had mapped
+        # instead of leaving only the settle path and stage timestamps.
+        window_report_script = str(write_window_report_script(session))
         command = session_command(
             session, client, args.settle, args.width, args.height, args.timeout,
-            focus_script, readiness_script,
+            focus_script, readiness_script, window_report_script,
         )
         try:
             status = run_logged(command.argv, session.environment, command.log, command.timeout, ROOT)

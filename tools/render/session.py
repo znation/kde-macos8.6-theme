@@ -172,16 +172,17 @@ def session_command(
     timeout: float,
     focus_script: str | None = None,
     readiness_script: str | None = None,
+    window_report_script: str | None = None,
 ) -> SessionCommand:
     """Build the KWin session command for *session* and its supervision timeout.
 
-    The settle script paths ride to :func:`session_script`.
+    The settle and window-report script paths ride to :func:`session_script`.
     """
     script = shlex.join(
         [
             "sh",
             "-c",
-            session_script(focus_script, readiness_script),
+            session_script(focus_script, readiness_script, window_report_script),
             "sh",
             str(settle),
             str(session.surface),

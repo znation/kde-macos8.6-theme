@@ -5,6 +5,91 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render sessions log a capture-time KWin window report (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** When a render gate's pixel pin fails, the session log names every
+window KWin had at capture time — one line per `workspace.windowList()`
+entry with its caption, whether it is active and its kind — so a recurrence
+of the quarantined `'#CCCCCC' != '#000000'` pixel flakes (BUGS.md, the
+`TestInactiveDialogRender` and `TestDesktopRender` entries parked pending a
+recurrence) shows whether the client's window had actually mapped before the
+settle ceiling ended the wait, instead of leaving only the settle path and
+stage timestamps. The bugfix reviews of those entries name exactly this
+capture-time mapping report as the missing evidence.
+
+**Approach.** Reuse the session script's existing script-loading shapes; no
+new process, D-Bus service or capture command.
+
+1. `tools/render/settle_scripts.py`: add `WINDOW_REPORT_SCRIPT =
+   "render-window-report.js"` and `window_report_text()` beside
+   `readiness_settle_text()`: a one-shot KWin script with no signal handlers
+   and no `callDBus`, whose `run` prints one
+   `render-session: window at capture:` line per listed window carrying
+   `window.caption`, `window.active` and the kind tag the existing scripts
+   already filter on (`normalWindow`, `dialog`, `splash`, `desktopWindow`).
+   KWin script `print` output already reaches the session log, as the
+   focus-settle script's settled-activation line does. Add
+   `write_window_report_script(session)` beside
+   `write_readiness_settle_script`, writing through
+   `_write_session_script`.
+2. `tools/render/session_script.py`: a new stage between `_settle_wait()`
+   and the capture stage loads the report script with the session's
+   `qdbus6`/`qdbus` fallback and runs it once — the same loadScript/run
+   shape `_focus_settle` uses, after the settle so the snapshot is the
+   capture-time state. A missing `qdbus` or a failed load logs the omission
+   ("no qdbus for the window report" / "the window report script did not
+   load") and the capture proceeds unchanged. Thread the path as a third
+   script argument beside focus/readiness in `session_script`'s signature
+   and `_prologue`, inert like the other two guards when it is empty, so a
+   caller that passes no report script gets byte-identical script text.
+3. `tools/render/session.py::session_command`: accept
+   `window_report_script: str | None = None` and pass it to
+   `session_script`.
+4. `tools/render/workflow.py::render`: write the report script for every
+   mode — including splash and `--desktop`, which keep no readiness script —
+   and pass its path to `session_command`.
+5. Docs, same change: docs/fidelity.md's "Troubleshooting a render" black-
+   capture row gains the window report as evidence a recurrence carries, and
+   docs/invariants.md's tooling section gains a row pinning the capture-time
+   report to its tests (the readiness row's provenance cell already covers
+   KWin script `print` reaching the session log).
+
+**Files touched.** `tools/render/settle_scripts.py`,
+`tools/render/session_script.py`, `tools/render/session.py`,
+`tools/render/workflow.py`, their pinning tests, docs/fidelity.md and
+docs/invariants.md.
+
+**Acceptance criteria.**
+
+- `tests/test_render_settle_scripts.py` pins the new text: the report
+  script names every `workspace.windowList()` entry's caption, active state
+  and the four kind tags, and `write_window_report_script` writes the script
+  into the session scratch root under `render-window-report.js`.
+- `session_script` with a report path runs the load/run stage after the
+  settle ends and before the capture starts, and a missing `qdbus` starts no
+  load and still captures — pinned in `tests/test_render_session_focus_settle.py`
+  in the shape of its existing focus-settle pins. Because the stage is inert
+  when the path is empty, the four existing fixture digests in
+  `test_session_script_matches_the_four_pre_split_script_fixtures` keep
+  their lengths and digests; that test gains a fifth combination for the
+  focus/readiness/report script set the CLI now builds.
+- `tests/test_render_session_modes.py` pins that a mode render's session
+  command argv names the report script (extend the existing inactive-dialog
+  and desktop mode pins rather than adding a session).
+- A gate failure's appended render output can show the report: on a painted
+  capture, `report_render_log`'s tail includes the `window at capture:`
+  lines, so `render_output_note` carries them into the next pixel mismatch
+  without any gate change (pinned only as the existing
+  `render_output_note` behaviour allows — no new gate test).
+- The existing splash, desktop and single-dialog session shapes keep their
+  settle ceilings and readiness behaviour unchanged: no test that pins a
+  settle path, stage order or fixture digest changes its expectation except
+  where the criteria above name it.
+- `make check CHECK_TESTS='test_render_settle_scripts
+  test_render_session_focus_settle test_render_session_modes
+  test_render_session_command test_render_readiness'` passes, and so does
+  full `make check` after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw videos with an original `video-x-generic` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A video file without Breeze art of its own type name — Flash

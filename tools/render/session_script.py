@@ -13,12 +13,13 @@ COLOR_SCHEME = "MacOS8"
 CLIENT_EXITED_DURING_CAPTURE = "render-session: client exited during the capture"
 
 
-def _prologue(focus: str, readiness: str) -> str:
+def _prologue(focus: str, readiness: str, report: str | None = None) -> str:
+    report_part = f"report={report}; " if report else ""
     return (
         "export QT_QPA_PLATFORM=wayland; "
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
         'settle="$1"; capture="$2"; shift 2; '
-        f"focus={focus}; readiness={readiness}; "
+        f"focus={focus}; readiness={readiness}; {report_part}"
     )
 
 
@@ -94,6 +95,20 @@ def _settle_wait() -> str:
     )
 
 
+def _window_report(report: str = "report") -> str:
+    return (
+        'qdbus="$(command -v qdbus6 || command -v qdbus)"; '
+        'if [ -n "$qdbus" ]; then '
+        'id=$("$qdbus" org.kde.KWin /Scripting '
+        'org.kde.kwin.Scripting.loadScript "$report" 2>/dev/null); '
+        'case "$id" in ""|*[!0-9]*) '
+        'echo "render-session: the window report script did not load" >&2;; '
+        '*) "$qdbus" org.kde.KWin "/Scripting/Script$id" run >/dev/null 2>&1;; '
+        'esac; '
+        'else echo "render-session: no qdbus for the window report" >&2; fi; '
+    )
+
+
 def _capture_and_terminate(focus: str = "focus") -> str:
     return (
         'if kill -STOP "$client" 2>/dev/null; then '
@@ -126,7 +141,9 @@ def _capture_and_terminate(focus: str = "focus") -> str:
 
 
 def session_script(
-    focus_script: str | None = None, readiness_script: str | None = None
+    focus_script: str | None = None,
+    readiness_script: str | None = None,
+    window_report_script: str | None = None,
 ) -> str:
     """Return the ``sh -c`` script that opens the client, settles and captures.
 
@@ -159,6 +176,16 @@ def session_script(
     starts before the render client so a fast window cannot beat the signal
     subscription.
 
+    *window_report_script* is a one-shot KWin script path: after the settle
+    ends and before the capture starts, the session loads it into KWin and
+    runs it once, so its ``print`` lines in the session log are the
+    capture-time window report -- one line per listed window with its
+    caption, active state and kind (see
+    ``tools/render/settle_scripts.py::window_report_text``). A host without
+    ``qdbus`` only logs the omission and the capture proceeds unchanged.
+    With no path given the stage is not joined at all, so the earlier
+    callers' session text is byte-identical.
+
     Missing tools or a client that never maps retain the settle ceiling.
     D-Bus readiness includes up to one second of paint grace before capture,
     bounded by the settle ceiling.
@@ -187,11 +214,20 @@ def session_script(
     never appears."""
     focus = shlex.quote(focus_script) if focus_script is not None else '""'
     readiness = shlex.quote(readiness_script) if readiness_script is not None else '""'
+    report = (
+        shlex.quote(window_report_script)
+        if window_report_script is not None else None
+    )
     return "".join((
-        _prologue(focus, readiness),
+        _prologue(focus, readiness, report),
         _readiness_listener("readiness"),
         _client_start(),
         _focus_settle("focus"),
         _settle_wait(),
+        # Unlike the focus and readiness stages, whose inert guards are part
+        # of the pre-split fixture bytes, the report stage is joined only
+        # when a caller passes a script: the four fixture combinations must
+        # keep their byte-identical text.
+        *(() if report is None else (_window_report("report"),)),
         _capture_and_terminate("focus"),
     ))

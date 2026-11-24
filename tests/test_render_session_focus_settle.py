@@ -18,14 +18,19 @@ from tools.render import session as render_session, workflow as render_workflow 
 class TestSessionFocusSettle(unittest.TestCase):
     def test_session_script_matches_the_four_pre_split_script_fixtures(self):
         fixtures = (
-            (None, None, 4208, "70ffdaef27a3dbb0fa10fa234e495c67c44de7d08dff10e309dffc8f5276c048"),
-            ("/fixture/focus.js", None, 4223, "fa140f1cd26195d60a747a30548db004b8a0ff7116b8c3263f7817779dab86fa"),
-            (None, "/fixture/readiness.js", 4227, "49d16d7da0db8166de114b52fc8eaadfae5afe6417a30fb15d49947c2dccc961"),
-            ("/fixture/focus.js", "/fixture/readiness.js", 4242, "aac335ab3920029e81edddba15425917842a3dc6ea0216e73f3d31e238086687"),
+            (None, None, None, 4208, "70ffdaef27a3dbb0fa10fa234e495c67c44de7d08dff10e309dffc8f5276c048"),
+            ("/fixture/focus.js", None, None, 4223, "fa140f1cd26195d60a747a30548db004b8a0ff7116b8c3263f7817779dab86fa"),
+            (None, "/fixture/readiness.js", None, 4227, "49d16d7da0db8166de114b52fc8eaadfae5afe6417a30fb15d49947c2dccc961"),
+            ("/fixture/focus.js", "/fixture/readiness.js", None, 4242, "aac335ab3920029e81edddba15425917842a3dc6ea0216e73f3d31e238086687"),
+            # The fifth combination is the focus/readiness/report set the
+            # CLI now builds: the report stage joins only when a report
+            # script is passed, so the four pre-split fixtures above keep
+            # their lengths and digests.
+            ("/fixture/focus.js", "/fixture/readiness.js", "/fixture/render-window-report.js", 4692, "810cdd6dc577af260de3f1544372a2ace6b62f4d378508a98cd59e84c1e2ba18"),
         )
-        for focus, readiness, expected_length, expected_digest in fixtures:
-            with self.subTest(focus=focus, readiness=readiness):
-                script = render_session.session_script(focus, readiness)
+        for focus, readiness, report, expected_length, expected_digest in fixtures:
+            with self.subTest(focus=focus, readiness=readiness, report=report):
+                script = render_session.session_script(focus, readiness, report)
                 self.assertEqual(expected_length, len(script))
                 self.assertEqual(expected_digest, hashlib.sha256(script.encode()).hexdigest())
 
@@ -45,6 +50,31 @@ class TestSessionFocusSettle(unittest.TestCase):
         # inactive mode's session runs minus the settle loop.
         script = render_session.session_script()
         self.assertIn('focus=""; ', script)
+
+    def test_keeps_the_session_without_a_report_script_free_of_the_report_stage(self):
+        # The report stage joins only when a caller passes a report script
+        # path, so a caller that passes none (and the four pre-split
+        # fixture combinations) sees none of its text at all -- not even an
+        # inert guard.
+        script = render_session.session_script()
+        self.assertNotIn("window report", script)
+        self.assertNotIn('report="', script)
+
+    def test_the_window_report_stage_runs_after_the_settle_and_before_the_capture(
+        self,
+    ):
+        # The report must snapshot the capture-time state: its load and run
+        # sit between the settle's done marker and the capture stage's first
+        # command, so the lines it prints say which windows KWin had when
+        # the frame was taken, not which it had at the settle's start.
+        script = render_session.session_script(
+            window_report_script="/scratch/render-window-report.js"
+        )
+        self.assertIn("report=/scratch/render-window-report.js; ", script)
+        load = 'Scripting.loadScript "$report"'
+        self.assertGreater(script.index(load), script.index("settle done at"))
+        self.assertLess(script.index(load), script.index('kill -STOP "$client"'))
+        self.assertLess(script.index(load), script.index("spectacle -b"))
 
     def test_loads_the_focus_settle_before_the_settle_sleep_and_stops_it_after_the_capture(
         self,
@@ -243,6 +273,78 @@ class TestSessionFocusSettle(unittest.TestCase):
         self.assertIn("capture status 0", log)
         self.assertIn("settle ceiling reached before a client ready file", log)
         self.assertFalse(runs.exists(), "the settle script was run with a non-numeric id")
+
+    def _run_report_session(self, root, path, report_script):
+        # A stubbed one-window session like _run_focus_session, but the
+        # session carries only a window-report script: the spectacle stub
+        # returns at once, the client only waits to be stopped, and PATH
+        # holds just the tools the script needs plus whatever qdbus stub
+        # the test adds.
+        apply = root / "plasma-apply-colorscheme"
+        write_executable(apply, "#!/bin/sh\nexit 0\n")
+        client = root / "client.py"
+        client.write_text("import signal; signal.pause()\n", encoding="utf-8")
+        return render_workflow.run_logged(
+            [
+                "/bin/sh", "-c",
+                "spectacle() { return 0; }; "
+                + render_session.session_script(window_report_script=report_script),
+                "sh", "1", str(root / "capture.png"), sys.executable,
+                str(client),
+            ],
+            {**os.environ, "PATH": f"{root}:{path}"},
+            root / "session.log", 10, root,
+        )
+
+    def test_a_missing_qdbus_names_the_tool_and_still_captures(self):
+        # With no qdbus on PATH the window report cannot load its script,
+        # so the session must name the missing tool and still finish the
+        # capture: the report is evidence, never a gate.
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        for name in ("sleep", "date", "rm", "touch"):
+            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        status = self._run_report_session(
+            root, str(bindir), "/scratch/render-window-report.js"
+        )
+        log = (root / "session.log").read_text(encoding="utf-8")
+        self.assertEqual(0, status, log)
+        self.assertIn("render-session: no qdbus for the window report", log)
+        self.assertIn("capture status 0", log)
+
+    def test_the_window_report_loads_and_runs_once_before_the_capture(self):
+        # The report is a capture-time snapshot: the qdbus6 stub records
+        # every invocation, tagged with whether the capture was already in
+        # flight, so the loaded script's single run must be recorded before
+        # any capture marker and never during it.
+        root = tmp_dir.make_tmp_dir(self)
+        bindir = root / "bin"
+        bindir.mkdir()
+        for name in ("sleep", "date", "rm", "touch"):
+            (bindir / name).symlink_to(f"/usr/bin/{name}")
+        calls = root / "qdbus-calls"
+        capturing = root / "capturing"
+        write_executable(
+            bindir / "qdbus6",
+            "#!/bin/sh\n"
+            f'log="{calls}"\n'
+            'case "$*" in\n'
+            "  *loadScript*) echo 0; printf 'loadScript\\n' >> \"$log\";;\n"
+            "  *Script0*)\n"
+            f'    if [ -e "{capturing}" ]; then phase=run-during-the-capture; '
+            'else phase=run-before-the-capture; fi\n'
+            '    printf "%s\\n" "$phase" >> "$log";;\n'
+            "esac\n",
+        )
+        status = self._run_report_session(
+            root, str(bindir), "/scratch/render-window-report.js"
+        )
+        self.assertEqual(0, status, (root / "session.log").read_text(encoding="utf-8"))
+        recorded = calls.read_text(encoding="utf-8").splitlines()
+        self.assertIn("loadScript", recorded)
+        self.assertEqual(1, recorded.count("run-before-the-capture"))
+        self.assertNotIn("run-during-the-capture", recorded)
 
 
 if __name__ == "__main__":

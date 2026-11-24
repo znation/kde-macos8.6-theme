@@ -105,6 +105,8 @@ class TestSessionModes(StubTools, unittest.TestCase):
         self.assertIn(render_settle_scripts.FOCUS_SETTLE_SCRIPT, prologue)
         self.assertNotIn('readiness=""', prologue)
         self.assertIn(render_settle_scripts.READINESS_SETTLE_SCRIPT, prologue)
+        # The capture-time window report rides every mode's session.
+        self.assertIn(render_settle_scripts.WINDOW_REPORT_SCRIPT, prologue)
         self.assertIn("kdialog", argv[-1])
         self.assertIn(render_window_rules.INACTIVE_TITLE, argv[-1])
         self.assertIn(render_window_rules.FOCUSED_TITLE, argv[-1])
@@ -136,6 +138,10 @@ class TestSessionModes(StubTools, unittest.TestCase):
         argv = run.call_args.args[0]
         self.assertIn("plasmashell", argv[-1])
         self.assertIn('readiness=""', shlex.split(argv[-1])[2])
+        # The desktop keeps no readiness script, but it still carries the
+        # capture-time window report: every mode's failed gate needs the
+        # capture-time mapping evidence.
+        self.assertIn(render_settle_scripts.WINDOW_REPORT_SCRIPT, shlex.split(argv[-1])[2])
         self.assertNotIn("org.kde.plasma.calculator", argv[-1])
         self.assertNotIn("plasmawindowed", argv[-1])
         self.assertNotIn("kdialog", argv[-1])

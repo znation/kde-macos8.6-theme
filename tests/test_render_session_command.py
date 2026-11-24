@@ -135,6 +135,26 @@ class TestSessionCommand(unittest.TestCase):
             shlex.split(script)[4:],
         )
 
+    def test_embeds_the_window_report_script_path_without_reaching_the_client(
+        self,
+    ):
+        # Every mode hands its scratch report script to the session: the
+        # in-session script must load exactly that file after the settle,
+        # and the client positionals must stay free of it -- a path leaked
+        # into the client argv would become a client argument, not a script.
+        with render_session.Session.create() as session:
+            command = render_session.session_command(
+                session, ["kdialog", "--msgbox"], 2.5, 480, 360, 9.5,
+                window_report_script="/scratch/render-window-report.js",
+            )
+        script = command.argv[-1]
+        self.assertIn('Scripting.loadScript "$report"', script)
+        self.assertIn(shlex.quote("/scratch/render-window-report.js"), script)
+        self.assertEqual(
+            ["2.5", str(session.surface), "kdialog", "--msgbox"],
+            shlex.split(script)[4:],
+        )
+
     def test_carries_the_inactive_dialog_wrapper_words(self):
         # The two-window client is one sh -c wrapper the session script
         # backgrounds as a single client PID: it opens the to-be-inactive

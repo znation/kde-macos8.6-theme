@@ -1,6 +1,6 @@
 """The KWin settle scripts the render session loads and re-runs.
 
-Two KWin scripts serve the session's settle. The readiness script reports
+Three KWin scripts serve the session's settle. The readiness script reports
 the session's mapped windows over the scratch D-Bus so the settle ends
 when the client's surface exists: a single-window report for the applet,
 dialog, splash and desktop renders, and a pair report for the two-window
@@ -13,7 +13,12 @@ relies on is a race under the parallel check's load. The session loads
 each script through KWin's scripting D-Bus (``loadScript`` on
 ``org.kde.KWin /Scripting``, repeated ``run`` on ``/Scripting/Script<id>``);
 the fixed titles both scripts match on are written and matched by
-``tools.render.window_rules``.
+``tools.render.window_rules``. The window-report script is a one-shot
+capture-time report the session runs once after the settle ends and
+before the capture starts: one ``print`` line per
+``workspace.windowList()`` entry, so a failed gate's log shows whether
+the client's window had actually mapped, not only when the settle path
+and the capture ran.
 """
 
 from __future__ import annotations
@@ -36,6 +41,7 @@ except ImportError:  # imported from a directly run tool
 
 FOCUS_SETTLE_SCRIPT = "inactive-dialog-focus-settle.js"
 READINESS_SETTLE_SCRIPT = "render-readiness-settle.js"
+WINDOW_REPORT_SCRIPT = "render-window-report.js"
 READINESS_SERVICE = "org.platinumtheme.RenderSession"
 READINESS_PATH = "/"
 READINESS_INTERFACE = "org.platinumtheme.RenderSession"
@@ -165,6 +171,42 @@ def write_readiness_settle_script(session: Session, pair: bool = False) -> Path:
     """
     text = pair_readiness_text() if pair else readiness_settle_text()
     return _write_session_script(session, READINESS_SETTLE_SCRIPT, text)
+
+
+def window_report_text() -> str:
+    """Return the one-shot KWin script that reports the capture-time windows.
+
+    A failed pixel gate names the settle path and the stage timestamps, but
+    not whether the client's window had mapped by then: this script prints
+    one ``render-session: window at capture:`` line per listed window with
+    its caption, whether KWin treats it as active and the kind tag the
+    readiness scripts filter on, so a recurrence shows the capture-time
+    mapping state. It has no signal handlers and no ``callDBus``: the
+    session runs it exactly once, and KWin script ``print`` output already
+    reaches the session log, as the focus-settle script's
+    settled-activation line does.
+    """
+    return (
+        "for (const window of workspace.windowList()) {\n"
+        '    let kind = "other";\n'
+        "    if (window.normalWindow) {\n"
+        '        kind = "normalWindow";\n'
+        "    } else if (window.dialog) {\n"
+        '        kind = "dialog";\n'
+        "    } else if (window.splash) {\n"
+        '        kind = "splash";\n'
+        "    } else if (window.desktopWindow) {\n"
+        '        kind = "desktopWindow";\n'
+        "    }\n"
+        '    print("render-session: window at capture: caption=" + window.caption '
+        '+ " active=" + window.active + " kind=" + kind);\n'
+        "}\n"
+    )
+
+
+def write_window_report_script(session: Session) -> Path:
+    """Write the window-report KWin script into *session*'s scratch root."""
+    return _write_session_script(session, WINDOW_REPORT_SCRIPT, window_report_text())
 
 
 def _write_session_script(session: Session, name: str, text: str) -> Path:
