@@ -37,9 +37,8 @@ _BLANK_DOCUMENT_32 = (
 # one tuple per size. Each Trash pin below is its own head (the empty one's
 # lid-top rects, the full one's waste-bag paths) followed by this body, so a
 # body edit lands in one place per size and both pins stay in step; the
-# pins test in ``test_icon_theme_geometry`` still compares each pin with its
-# shipped file element by
-# element.
+# pins test in ``test_icon_theme_geometry`` still compares each pin with
+# its shipped file element by element.
 _TRASH_BODY_32 = (
     _shape("rect", x="6", y="8", width="20", height="5", fill="#000000"),
     _shape("rect", x="7", y="9", width="18", height="4", fill="#DDDDDD"),

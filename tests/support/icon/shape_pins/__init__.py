@@ -1,13 +1,12 @@
 """The drawing-element pins for every shipped icon, in document order.
 
 ``test_icon_theme_geometry`` imports this package and holds the tests that
-compare each shipped SVG with its pinned tuple; the pins live here so the
-test module stays readable in one sitting and the icon family's case data
-lives beside ``theme_inventory``. One entry per shipped file: a tuple of
-``_shape`` elements, the tag and attributes of each drawing element in
-document order.
-
-Every drawing element of every shipped icon, in document order. The icon art
+compare each shipped SVG with its pinned tuple; the pins live in one module
+per icon family -- with the shared drawing-element helpers in ``_shared`` --
+so the test module stays readable in one sitting and an icon plan's edit
+lands beside its own family's case data. One entry per shipped file: a
+tuple of ``_shape`` elements, the tag and attributes of each drawing
+element in document order. The icon art
 is our own, so nothing else re-derives it; the size, palette and structural
 tests in test_icon_theme would all pass if a path's `d`, a rect's geometry,
 an element's order or an element's fill changed -- an icon could silently
@@ -19,7 +18,7 @@ draws one folder for a directory); the alias test in
 
 The registry is one dict per icon family, mirroring the shipped tree's
 family directories; ``SHAPE_PIN_FAMILIES`` names them so the guard tests
-can visit every family module. The registry merges them into one
+can visit every family module. This package merges them into one
 ``ICON_SHAPES`` dict beside the inventory it pins.
 """
 
