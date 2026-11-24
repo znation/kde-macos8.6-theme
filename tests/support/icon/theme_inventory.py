@@ -64,8 +64,9 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # installed KDE print desktop entries `org.kde.PrintQueue.desktop`,
 # `org.kde.ConfigurePrinter.desktop` and `org.kde.kde-add-printer.desktop`), the
 # `battery` battery icon at all three sizes (our own drawing of an upright cell
-# with a terminal cap, a bevelled body, a glint and a charge bar; the name is a
-# KDE-required value read from `libKF6Solid.so.6`), the image
+# with a terminal cap, a bevelled body, a glint at 22x22 and 32x32 and a
+# charge bar; the name is a KDE-required value read from `libKF6Solid.so.6`),
+# the image
 # `image-x-generic` icon at all three sizes (our own drawing of a framed
 # photograph; the name captures the raster image icon names by
 # type-spelling fallback and is the `generic-icon` of the graphics and
