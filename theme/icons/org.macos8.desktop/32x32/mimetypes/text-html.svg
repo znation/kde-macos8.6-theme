@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original web-document illustration pending user-approved artwork. -->
+<!-- Platinum web-document icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: a small window with a
+     #000000 outline, a #DDDDDD title bar with a #FFFFFF highlight and one
+     #999999 stripe, a #FFFFFF body and a black globe (a ring with a black
+     equator and meridian). Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Window outline. -->
+  <rect x="3" y="5" width="26" height="22" fill="#000000"/>
+  <!-- Title bar face. -->
+  <rect x="4" y="6" width="24" height="4" fill="#DDDDDD"/>
+  <!-- Title bar highlight. -->
+  <rect x="4" y="6" width="24" height="1" fill="#FFFFFF"/>
+  <!-- Title bar stripe. -->
+  <rect x="6" y="8" width="20" height="1" fill="#999999"/>
+  <!-- White body. -->
+  <rect x="4" y="11" width="24" height="15" fill="#FFFFFF"/>
+  <!-- Globe ring, outer and inner. -->
+  <circle cx="16" cy="19" r="6" fill="#000000"/>
+  <circle cx="16" cy="19" r="5" fill="#FFFFFF"/>
+  <!-- Globe equator. -->
+  <rect x="11" y="19" width="11" height="1" fill="#000000"/>
+  <!-- Globe meridian. -->
+  <rect x="16" y="14" width="1" height="11" fill="#000000"/>
+</svg>
