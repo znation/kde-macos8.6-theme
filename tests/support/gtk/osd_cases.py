@@ -2,6 +2,8 @@
 
 
 class OsdSelectorAssertions:
+    """Selector-count assertions for the GTK 3 sheet's OSD rule families."""
+
     def assert_osd_selector_count(self, expected, count):
         """Check the flattened selector inventory for an OSD rule family."""
         enumerated = {
