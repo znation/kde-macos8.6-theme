@@ -94,7 +94,12 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `application-vnd.rar` icon at all three sizes (the sealed
 # package box holding a stepped diamond; the name is the type-spelled
 # icon name of the `application/vnd.rar` MIME type in the
-# installed shared MIME database), the flash-media `media-flash`
+# installed shared MIME database), the bzip2-compressed-tar-archive
+# `application-x-bzip2-compressed-tar` icon at all three sizes (the
+# sealed package box holding a lowercase letter b; the name is the
+# type-spelled icon name of the `application/x-bzip2-compressed-tar`
+# MIME type in the installed shared MIME database), the flash-media
+# `media-flash`
 # icon at all three sizes (our own drawing of an upright card standing on
 # its contact pins; the name is a KDE-required value read from
 # `libKF6Solid.so.6`, which also loads it with the reduced subnames
@@ -276,8 +281,9 @@ SHIPPED_ICONS = (
     # type in the installed shared MIME database (`application/zip`,
     # `application/x-tar`, `application/x-7z-compressed`,
     # `application/gzip`, `application/vnd.debian.binary-package`,
-    # `application/x-compressed-tar`, `application/vnd.rar` and
-    # `application/x-xz-compressed-tar`), which gives the types the
+    # `application/x-compressed-tar`, `application/vnd.rar`,
+    # `application/x-xz-compressed-tar` and
+    # `application/x-bzip2-compressed-tar`), which gives the types the
     # `package-x-generic` generic icon and no icon of their own; at the
     # exact names Breeze's own files beat the theme's generic-icon
     # fallback.
@@ -305,6 +311,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-xz-compressed-tar.svg"),
     os.path.join("16x16", "mimetypes", "application-x-xz-compressed-tar.svg"),
     os.path.join("22x22", "mimetypes", "application-x-xz-compressed-tar.svg"),
+    os.path.join("32x32", "mimetypes", "application-x-bzip2-compressed-tar.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-bzip2-compressed-tar.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-bzip2-compressed-tar.svg"),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"),
     os.path.join("16x16", "mimetypes", "x-office-document.svg"),
     os.path.join("22x22", "mimetypes", "x-office-document.svg"),

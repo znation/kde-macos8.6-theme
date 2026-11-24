@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original bzip2-compressed-tar illustration pending user-approved artwork. -->
+<!-- Platinum bzip2-compressed-tar icon, 22x22 rendition.
+
+     Our own 22x22 redraw in the Platinum palette: the sealed box with a
+     black outline, a #DDDDDD lid band with a white top row, a white body
+     and a grey tape stripe down the middle, holding a solid lowercase
+     letter b on the white face left of the tape. Drawn for this theme,
+     not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <rect x="2" y="4" width="18" height="16" fill="#000000"/>
+  <rect x="3" y="5" width="16" height="2" fill="#DDDDDD"/>
+  <rect x="3" y="5" width="16" height="1" fill="#FFFFFF"/>
+  <rect x="3" y="7" width="16" height="12" fill="#FFFFFF"/>
+  <rect x="10" y="7" width="2" height="12" fill="#999999"/>
+  <rect x="3" y="9" width="2" height="8" fill="#000000"/>
+  <rect x="5" y="12" width="4" height="5" fill="#000000"/>
+</svg>

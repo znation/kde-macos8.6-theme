@@ -784,6 +784,42 @@ PINS = {
         _shape("rect", x="7", y="9", width="2", height="2", fill="#000000"),
         _shape("rect", x="3", y="13", width="2", height="2", fill="#000000"),
     ),
+    # The bzip2-compressed-tar item icon KDE draws for
+    # `application/x-bzip2-compressed-tar` items (the type-spelled icon
+    # name of the installed shared MIME database's
+    # `application/x-bzip2-compressed-tar` type, whose `generic-icon`
+    # is the shipped `package-x-generic`); one file covers exactly its
+    # own name (the type's alias `application/x-bzip-compressed-tar`
+    # spells its own name), and the drawing shares the sealed package
+    # box and holds a lowercase letter b on the white body left of the
+    # grey tape stripe.
+    os.path.join("32x32", "mimetypes", "application-x-bzip2-compressed-tar.svg"): (
+        _shape("rect", x="3", y="6", width="26", height="22", fill="#000000"),
+        _shape("rect", x="4", y="7", width="24", height="3", fill="#DDDDDD"),
+        _shape("rect", x="4", y="7", width="24", height="1", fill="#FFFFFF"),
+        _shape("rect", x="4", y="10", width="24", height="17", fill="#FFFFFF"),
+        _shape("rect", x="15", y="10", width="2", height="17", fill="#999999"),
+        _shape("rect", x="5", y="13", width="3", height="11", fill="#000000"),
+        _shape("rect", x="8", y="17", width="5", height="7", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-x-bzip2-compressed-tar.svg"): (
+        _shape("rect", x="1", y="3", width="14", height="11", fill="#000000"),
+        _shape("rect", x="2", y="4", width="12", height="2", fill="#DDDDDD"),
+        _shape("rect", x="2", y="4", width="12", height="1", fill="#FFFFFF"),
+        _shape("rect", x="2", y="6", width="12", height="7", fill="#FFFFFF"),
+        _shape("rect", x="7", y="6", width="2", height="7", fill="#999999"),
+        _shape("rect", x="2", y="7", width="1", height="5", fill="#000000"),
+        _shape("rect", x="3", y="9", width="3", height="3", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-x-bzip2-compressed-tar.svg"): (
+        _shape("rect", x="2", y="4", width="18", height="16", fill="#000000"),
+        _shape("rect", x="3", y="5", width="16", height="2", fill="#DDDDDD"),
+        _shape("rect", x="3", y="5", width="16", height="1", fill="#FFFFFF"),
+        _shape("rect", x="3", y="7", width="16", height="12", fill="#FFFFFF"),
+        _shape("rect", x="10", y="7", width="2", height="12", fill="#999999"),
+        _shape("rect", x="3", y="9", width="2", height="8", fill="#000000"),
+        _shape("rect", x="5", y="12", width="4", height="5", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"): (
         _shape("rect", x="3", y="3", width="26", height="26", fill="#000000"),
         _shape("rect", x="4", y="4", width="24", height="24", fill="#DDDDDD"),
