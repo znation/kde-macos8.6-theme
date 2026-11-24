@@ -79,6 +79,39 @@ ICON_SHAPES = {
         _shape("rect", x="5", y="11", width="6", height="2", fill="#FFFFFF"),
         _shape("circle", cx="15", cy="12", r="2", fill="#000000"),
     ),
+    os.path.join("32x32", "devices", "drive-removable-media.svg"): (
+        _shape("rect", x="3", y="8", width="26", height="17", fill="#000000"),
+        _shape("rect", x="4", y="9", width="24", height="15", fill="#DDDDDD"),
+        _shape("rect", x="4", y="9", width="24", height="2", fill="#FFFFFF"),
+        _shape("rect", x="4", y="9", width="1", height="15", fill="#FFFFFF"),
+        _shape("rect", x="4", y="22", width="24", height="2", fill="#999999"),
+        _shape("rect", x="27", y="9", width="1", height="15", fill="#999999"),
+        _shape("rect", x="7", y="13", width="18", height="2", fill="#000000"),
+        _shape("rect", x="7", y="15", width="18", height="1", fill="#FFFFFF"),
+        _shape("rect", x="21", y="18", width="4", height="2", fill="#000000"),
+    ),
+    os.path.join("16x16", "devices", "drive-removable-media.svg"): (
+        _shape("rect", x="1", y="3", width="14", height="10", fill="#000000"),
+        _shape("rect", x="2", y="4", width="12", height="8", fill="#DDDDDD"),
+        _shape("rect", x="2", y="4", width="12", height="1", fill="#FFFFFF"),
+        _shape("rect", x="2", y="4", width="1", height="8", fill="#FFFFFF"),
+        _shape("rect", x="2", y="11", width="12", height="1", fill="#999999"),
+        _shape("rect", x="13", y="4", width="1", height="8", fill="#999999"),
+        _shape("rect", x="4", y="7", width="8", height="1", fill="#000000"),
+        _shape("rect", x="4", y="8", width="8", height="1", fill="#FFFFFF"),
+        _shape("rect", x="9", y="10", width="3", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "devices", "drive-removable-media.svg"): (
+        _shape("rect", x="2", y="4", width="18", height="15", fill="#000000"),
+        _shape("rect", x="3", y="5", width="16", height="13", fill="#DDDDDD"),
+        _shape("rect", x="3", y="5", width="16", height="2", fill="#FFFFFF"),
+        _shape("rect", x="3", y="5", width="1", height="13", fill="#FFFFFF"),
+        _shape("rect", x="3", y="17", width="16", height="1", fill="#999999"),
+        _shape("rect", x="18", y="5", width="1", height="13", fill="#999999"),
+        _shape("rect", x="5", y="9", width="12", height="2", fill="#000000"),
+        _shape("rect", x="5", y="11", width="12", height="1", fill="#FFFFFF"),
+        _shape("rect", x="13", y="14", width="4", height="1", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"): (
         _shape("path", d="M6 3 h14 l6 6 v20 H6 Z", fill="#000000"),
         _shape("path", d="M7 4 h12 l6 6 v18 H7 Z", fill="#FFFFFF"),
@@ -261,6 +294,23 @@ class TestIconGeometry(unittest.TestCase):
             with self.subTest(icon=icon):
                 tree = parse_svg(os.path.join(PACKAGE, icon))
                 self.assertEqual(_drawing_elements(tree), expected)
+
+    def test_removable_drive_shares_the_hard_disk_body_and_bevel(self):
+        # The removable drive is the hard disk with a slot in place of the
+        # label plate, so its first six drawing elements (the outline, face
+        # and bevel) must be the hard disk's at every size. Compare the
+        # shipped files, not the pinned tuples, so a drift in either file
+        # fails here as well as in the pins above.
+        for size in ("32x32", "22x22", "16x16"):
+            disk = parse_svg(os.path.join(PACKAGE, size, "devices", "drive-harddisk.svg"))
+            removable = parse_svg(
+                os.path.join(PACKAGE, size, "devices", "drive-removable-media.svg")
+            )
+            self.assertEqual(
+                _drawing_elements(removable)[:6],
+                _drawing_elements(disk)[:6],
+                size,
+            )
 
     def test_standard_places_file_names_are_shipped(self):
         # The shared inventory must cover the names the standard places data

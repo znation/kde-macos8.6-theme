@@ -17,6 +17,8 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # directory to plus the `user-home` and `user-desktop` places, all drawing
 # the folder art, 16x16 and 22x22 renditions of the folder, aliases, Trash
 # and full Trash, 16x16 and 22x22 renditions of the hard disk and document,
+# the removable-drive `drive-removable-media` icon at all three sizes (our own
+# drawing of a USB stick, sharing the hard disk's body and bevel),
 # the kicker logo the menu bar's top-left button shows at the two panel sizes,
 # and the `go-next-symbolic` submenu arrow the reference's open Apple menu
 # draws.
@@ -24,6 +26,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "drive-harddisk.svg"),
     os.path.join("16x16", "devices", "drive-harddisk.svg"),
     os.path.join("22x22", "devices", "drive-harddisk.svg"),
+    os.path.join("32x32", "devices", "drive-removable-media.svg"),
+    os.path.join("16x16", "devices", "drive-removable-media.svg"),
+    os.path.join("22x22", "devices", "drive-removable-media.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "text-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "text-x-generic.svg"),

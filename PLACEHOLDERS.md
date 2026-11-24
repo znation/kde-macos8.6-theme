@@ -19,6 +19,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/places/folder.svg` | original generic folder illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/actions/go-next-symbolic.svg` | original submenu-arrow illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/devices/drive-harddisk.svg` | original hard-disk illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/devices/drive-removable-media.svg` | original removable-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/mimetypes/text-x-generic.svg` | original document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/places/folder-documents.svg` | original Documents place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/places/folder-download.svg` | original Downloads place illustration pending user-approved artwork. |
@@ -37,6 +38,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/places/user-trash.svg` | original Trash illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/actions/go-next-symbolic.svg` | original submenu-arrow illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/devices/drive-harddisk.svg` | original hard-disk illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/devices/drive-removable-media.svg` | original removable-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/mimetypes/text-x-generic.svg` | original document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/places/folder-documents.svg` | original Documents place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/places/folder-download.svg` | original Downloads place illustration pending user-approved artwork. |
@@ -55,6 +57,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/22x22/places/user-trash-full.svg` | original full Trash illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/places/user-trash.svg` | original Trash illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/devices/drive-harddisk.svg` | original hard-disk illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/devices/drive-removable-media.svg` | original removable-drive illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/mimetypes/text-x-generic.svg` | original document illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/places/folder-documents.svg` | original Documents place illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/32x32/places/folder-download.svg` | original Downloads place illustration pending user-approved artwork. |
