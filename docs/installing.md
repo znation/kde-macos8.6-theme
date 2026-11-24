@@ -164,7 +164,9 @@ name at the same three sizes), a flash-media card icon for memory cards
 floppy-disk icon for raw floppy-disk images (the `media-floppy`
 name at the same three sizes), a modem icon for modem devices (the
 `modem` name at the same three sizes), a tablet icon for graphics
-tablets (the `input-tablet` name at the same three sizes), an
+tablets (the `input-tablet` name at the same three sizes), a
+headset icon for Bluetooth headset devices (the `audio-headset`
+name at the same three sizes), an
 image icon for picture and graphics files (the `image-x-generic`
 name at the same three sizes), a video icon for movie files without
 their own art (the `video-x-generic`

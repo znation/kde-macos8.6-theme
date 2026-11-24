@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original headset illustration pending user-approved artwork. -->
+<!-- Platinum headset icon, 16x16.
+
+     Our own 16x16 drawing in the Platinum palette: a headset seen from
+     the front, with a straight headband across the top (black outline,
+     #DDDDDD fill, white top row and left column, #999999 bottom row and
+     right column), two ear cups hanging below the band's ends, and a
+     mic boom running under the left cup to a mic tip at its right end.
+     Drawn for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <rect x="1" y="2" width="14" height="5" fill="#000000"/>
+  <rect x="2" y="3" width="12" height="3" fill="#DDDDDD"/>
+  <rect x="2" y="3" width="12" height="1" fill="#FFFFFF"/>
+  <rect x="2" y="3" width="1" height="3" fill="#FFFFFF"/>
+  <rect x="2" y="5" width="12" height="1" fill="#999999"/>
+  <rect x="13" y="3" width="1" height="3" fill="#999999"/>
+  <rect x="2" y="7" width="4" height="7" fill="#000000"/>
+  <rect x="3" y="8" width="2" height="5" fill="#DDDDDD"/>
+  <rect x="3" y="8" width="2" height="1" fill="#FFFFFF"/>
+  <rect x="3" y="8" width="1" height="5" fill="#FFFFFF"/>
+  <rect x="3" y="12" width="2" height="1" fill="#999999"/>
+  <rect x="4" y="8" width="1" height="5" fill="#999999"/>
+  <rect x="10" y="7" width="4" height="7" fill="#000000"/>
+  <rect x="11" y="8" width="2" height="5" fill="#DDDDDD"/>
+  <rect x="11" y="8" width="2" height="1" fill="#FFFFFF"/>
+  <rect x="11" y="8" width="1" height="5" fill="#FFFFFF"/>
+  <rect x="11" y="12" width="2" height="1" fill="#999999"/>
+  <rect x="12" y="8" width="1" height="5" fill="#999999"/>
+  <rect x="4" y="14" width="6" height="1" fill="#000000"/>
+  <rect x="9" y="13" width="1" height="2" fill="#000000"/>
+</svg>

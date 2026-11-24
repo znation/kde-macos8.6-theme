@@ -121,7 +121,13 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # with a white drawing surface on the left and an upright pen on the right;
 # the name is a KDE-required value read from `libkwin.so.6`, which carries the
 # bare `input-tablet` literal, and the shared MIME database gives the name no
-# `generic-icon` binding, so one file covers exactly its own name), the phone
+# `generic-icon` binding, so one file covers exactly its own name), the headset
+# `audio-headset` icon at all three sizes (our own drawing of a headset with
+# a headband, two ear cups and a mic boom; the name is a KDE-required value
+# read from `libKF6BluezQt.so.6`, the installed
+# `libKF6BluezQt.so.6.13.0` carries the bare `audio-headset` literal, and the
+# shared MIME database gives the name no `generic-icon` binding, so one file
+# covers exactly its own name), the phone
 # `phone` icon at all three sizes (our own drawing of an upright smartphone
 # with a screen, a speaker slot above it and a home button below; the name
 # is the device name KDE's device views draw for phones and the dash
@@ -169,6 +175,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "input-tablet.svg"),
     os.path.join("16x16", "devices", "input-tablet.svg"),
     os.path.join("22x22", "devices", "input-tablet.svg"),
+    os.path.join("32x32", "devices", "audio-headset.svg"),
+    os.path.join("16x16", "devices", "audio-headset.svg"),
+    os.path.join("22x22", "devices", "audio-headset.svg"),
     os.path.join("32x32", "devices", "phone.svg"),
     os.path.join("16x16", "devices", "phone.svg"),
     os.path.join("22x22", "devices", "phone.svg"),

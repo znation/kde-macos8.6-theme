@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original headset illustration pending user-approved artwork. -->
+<!-- Platinum headset icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: a headset seen from
+     the front, with a straight headband across the top (black outline,
+     #DDDDDD fill, white top row and left column, #999999 bottom row and
+     right column), two ear cups hanging below the band's ends with an
+     inner pad in each, and a mic boom running under the left cup to a
+     mic tip at its right end with a white highlight.
+     Drawn for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <rect x="3" y="4" width="26" height="6" fill="#000000"/>
+  <rect x="4" y="5" width="24" height="4" fill="#DDDDDD"/>
+  <rect x="4" y="5" width="24" height="1" fill="#FFFFFF"/>
+  <rect x="4" y="5" width="1" height="4" fill="#FFFFFF"/>
+  <rect x="4" y="8" width="24" height="1" fill="#999999"/>
+  <rect x="27" y="5" width="1" height="4" fill="#999999"/>
+  <rect x="4" y="10" width="8" height="14" fill="#000000"/>
+  <rect x="5" y="11" width="6" height="12" fill="#DDDDDD"/>
+  <rect x="5" y="11" width="6" height="1" fill="#FFFFFF"/>
+  <rect x="5" y="11" width="1" height="12" fill="#FFFFFF"/>
+  <rect x="5" y="22" width="6" height="1" fill="#999999"/>
+  <rect x="10" y="11" width="1" height="12" fill="#999999"/>
+  <rect x="7" y="14" width="2" height="6" fill="#000000"/>
+  <rect x="21" y="10" width="8" height="14" fill="#000000"/>
+  <rect x="22" y="11" width="6" height="12" fill="#DDDDDD"/>
+  <rect x="22" y="11" width="6" height="1" fill="#FFFFFF"/>
+  <rect x="22" y="11" width="1" height="12" fill="#FFFFFF"/>
+  <rect x="22" y="22" width="6" height="1" fill="#999999"/>
+  <rect x="27" y="11" width="1" height="12" fill="#999999"/>
+  <rect x="23" y="14" width="2" height="6" fill="#000000"/>
+  <rect x="6" y="24" width="12" height="2" fill="#000000"/>
+  <rect x="17" y="22" width="3" height="4" fill="#000000"/>
+  <rect x="18" y="23" width="1" height="2" fill="#FFFFFF"/>
+</svg>
