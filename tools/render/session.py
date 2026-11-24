@@ -50,12 +50,15 @@ def _remove_scratch_root(root: Path) -> None:
     (a failure it reports, or the exception it is unwinding) must stay the one
     the operator sees.
     """
-    try:
-        shutil.rmtree(root)
-    except OSError as exc:
+    errors: list[OSError] = []
+    # A handler that returns lets rmtree go on to the remaining entries, so
+    # one undeletable or vanished entry leaves only itself behind. Python 3.10
+    # has no ``onexc``.
+    shutil.rmtree(root, onerror=lambda _func, _path, info: errors.append(info[1]))
+    if errors and os.path.lexists(root):
         print(
             "render_surface: note: could not remove scratch session directory "
-            f"{escape_controls(str(root))}: {escape_controls(str(exc))}",
+            f"{escape_controls(str(root))}: {escape_controls(str(errors[0]))}",
             file=sys.stderr,
         )
 

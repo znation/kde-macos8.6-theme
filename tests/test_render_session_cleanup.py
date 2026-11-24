@@ -8,7 +8,9 @@ stderr, and the render's exception or result is what the caller sees.
 from __future__ import annotations
 
 import contextlib
+import errno
 import io
+import os
 import shutil
 import tempfile
 import unittest
@@ -27,7 +29,7 @@ class TestScratchRootRemoval(unittest.TestCase):
         err = io.StringIO()
         try:
             with mock.patch.object(
-                render_session.shutil, "rmtree", side_effect=OSError("Device busy")
+                os, "rmdir", side_effect=OSError(errno.EBUSY, "Device busy")
             ):
                 with contextlib.redirect_stderr(err):
                     with self.assertRaises(RuntimeError) as raised:
@@ -57,7 +59,7 @@ class TestScratchRootRemoval(unittest.TestCase):
                 render_session, "_session_directories",
                 side_effect=RuntimeError("setup broke"),
             ), mock.patch.object(
-                render_session.shutil, "rmtree", side_effect=OSError("Device busy")
+                os, "rmdir", side_effect=OSError(errno.EBUSY, "Device busy")
             ), contextlib.redirect_stderr(err):
                 with self.assertRaises(RuntimeError) as raised:
                     render_session.Session.create()
@@ -67,6 +69,40 @@ class TestScratchRootRemoval(unittest.TestCase):
         self.assertEqual("setup broke", str(raised.exception))
         self.assertIn(NOTE, err.getvalue())
         self.assertIn(made[0], err.getvalue())
+
+    def test_one_undeletable_entry_leaves_the_rest_removed(self):
+        session = render_session.Session.create()
+        entries = [session.root / f"entry-{index}" for index in range(3)]
+        for entry in entries:
+            entry.write_text("x")
+        real_unlink = os.unlink
+        kept = []
+
+        def refuse_the_first(path, *args, **kwargs):
+            # Refuse whichever entry comes first, so others remain after it.
+            if not kept:
+                kept.append(os.path.basename(path))
+                raise OSError(errno.EBUSY, "Device busy")
+            return real_unlink(path, *args, **kwargs)
+
+        err = io.StringIO()
+        try:
+            with mock.patch.object(os, "unlink", side_effect=refuse_the_first):
+                with contextlib.redirect_stderr(err):
+                    session.cleanup()
+            remaining = [path.name for path in entries if path.exists()]
+        finally:
+            shutil.rmtree(session.root)
+        self.assertEqual(kept, remaining)
+        self.assertIn("Device busy", err.getvalue())
+
+    def test_an_already_absent_root_prints_nothing(self):
+        session = render_session.Session.create()
+        shutil.rmtree(session.root)
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            session.cleanup()
+        self.assertEqual("", err.getvalue())
 
     def test_a_successful_removal_prints_nothing(self):
         session = render_session.Session.create()
