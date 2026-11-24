@@ -413,6 +413,129 @@ class TestPrintResults(unittest.TestCase):
         )
 
 
+class TestPrintResultsOrder(unittest.TestCase):
+    """Unsuccessful modules print last, with check lines above the summary."""
+
+    def _run_report(self, modules, statuses, log_paths, timeout=30):
+        output = StringIO()
+        with redirect_stdout(output):
+            status = print_results(modules, statuses, log_paths, timeout)
+        return status, output.getvalue()
+
+    def test_unsuccessful_sections_print_last_with_check_lines_above_summary(self):
+        directory = make_tmp_dir(self)
+        texts = {
+            "a_bad": "alpha-failure-text\n",
+            "b_ok": "bravo-pass-text\n",
+            "c_empty": "Ran 0 tests in 0.000s\n\nNO TESTS RAN\n",
+            "d_hung": "delta-hung-text\n",
+            "f_ok": "foxtrot-pass-text\n",
+        }
+        log_paths = {}
+        for module, text in texts.items():
+            path = directory / f"{module}.log"
+            path.write_text(text, encoding="utf-8")
+            log_paths[module] = str(path)
+        modules = ["a_bad", "b_ok", "c_empty", "d_hung", "e_lost", "f_ok"]
+        statuses = {
+            "a_bad": 1,
+            "b_ok": 0,
+            "c_empty": 5,
+            "d_hung": None,
+            "f_ok": 0,
+        }
+
+        status, out = self._run_report(modules, statuses, log_paths)
+
+        self.assertEqual(1, status)
+        headers = [line for line in out.splitlines() if line.startswith("=====")]
+        self.assertEqual(
+            [
+                "===== b_ok: exit 0 =====",
+                "===== c_empty: ran no tests (unittest's NO TESTS RAN, exit 5) =====",
+                "===== f_ok: exit 0 =====",
+                "===== a_bad: exit 1 =====",
+                "===== d_hung: timed out after 30s (process group killed) =====",
+                "===== e_lost: did not finish =====",
+            ],
+            headers,
+        )
+        for text in texts.values():
+            self.assertEqual(1, out.count(text.rstrip("\n")), text)
+        self.assertEqual(
+            [
+                "check: a_bad: exit 1",
+                "check: d_hung: timed out after 30s (process group killed)",
+                "check: e_lost: did not finish",
+                "check: 6 modules, 1 module failed, 1 module timed out, "
+                "1 module not finished, 1 module ran no tests",
+            ],
+            out.splitlines()[-4:],
+        )
+
+    def test_zero_status_unreadable_log_prints_in_the_unsuccessful_group(self):
+        unreadable = make_tmp_dir(self)
+        status, out = self._run_report(
+            ["a_ok", "b_bad", "c_ok"],
+            {"a_ok": 0, "b_bad": 0, "c_ok": 0},
+            {"b_bad": str(unreadable)},
+        )
+
+        self.assertEqual(1, status)
+        headers = [line for line in out.splitlines() if line.startswith("=====")]
+        self.assertEqual(
+            [
+                "===== a_ok: exit 0 =====",
+                "===== c_ok: exit 0 =====",
+                "===== b_bad: worker log could not be read =====",
+            ],
+            headers,
+        )
+        self.assertEqual(
+            [
+                "check: b_bad: worker log could not be read",
+                "check: 3 modules, 1 module failed",
+            ],
+            out.splitlines()[-2:],
+        )
+
+    def test_passing_and_no_tests_runs_print_sections_only(self):
+        directory = make_tmp_dir(self)
+        empty_log = directory / "b_empty.log"
+        empty_log.write_text("Ran 0 tests in 0.000s\n\nNO TESTS RAN\n", encoding="utf-8")
+        status, out = self._run_report(
+            ["a_ok", "b_empty", "c_ok"],
+            {"a_ok": 0, "b_empty": 5, "c_ok": 0},
+            {"b_empty": str(empty_log)},
+        )
+
+        self.assertEqual(0, status)
+        headers = [line for line in out.splitlines() if line.startswith("=====")]
+        self.assertEqual(
+            [
+                "===== a_ok: exit 0 =====",
+                "===== b_empty: ran no tests (unittest's NO TESTS RAN, exit 5) =====",
+                "===== c_ok: exit 0 =====",
+            ],
+            headers,
+        )
+        self.assertNotIn("check:", out)
+
+    def test_failed_module_check_line_escapes_its_name_onto_one_line(self):
+        name = "bad\x1b[31m\nname"
+        status, out = self._run_report([name], {name: 1}, {})
+
+        self.assertEqual(1, status)
+        self.assertNotIn("\x1b", out)
+        lines = out.splitlines()
+        self.assertFalse(any(line.startswith("name") for line in lines), out)
+        check_lines = [
+            line for line in lines
+            if line.startswith("check: bad") and line.endswith(": exit 1")
+        ]
+        self.assertEqual(1, len(check_lines), out)
+
+
 class TestCountNoun(unittest.TestCase):
     """``count_noun`` renders the ``<count> <noun>`` summary phrase.
 

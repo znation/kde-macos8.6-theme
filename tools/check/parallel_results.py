@@ -170,10 +170,32 @@ def _module_verdict(module: str, statuses: dict[str, int | None],
             "unittest's NO TESTS RAN summary", "failed", log_text)
 
 
+def _print_section(module: str, verdict: str, log_text: str) -> None:
+    """Print one module's header line and its replayed worker log text."""
+    # The module name is contributor-supplied text: discovery's filename
+    # validator covers only a module's final file name, not the directory
+    # names of the package path, so a checked-in test directory may carry
+    # an ESC byte or a newline into the module name. Escaped here, it
+    # cannot drive the operator's terminal or forge a verdict line the
+    # way the raw name would.
+    print(f"===== {escape_controls(module)}: {verdict} =====")
+    sys.stdout.write(log_text)
+    if log_text and not log_text.endswith("\n"):
+        sys.stdout.write("\n")
+
+
 def print_results(modules: list[str], statuses: dict[str, int | None],
                    log_paths: dict[str, str], timeout: float) -> int:
-    """Print each module's section in discovery order and return its status."""
+    """Print each module's section and return the run's status.
+
+    Sections of modules that passed or ran no tests print first, each in
+    discovery order. Sections of failed, timed-out and unfinished modules
+    follow, also in discovery order, and then one ``check: <module>: <verdict>``
+    line per such module sits directly above the summary line, so a failure's
+    cause is the last thing printed before the summary.
+    """
     failed = timed_out = not_finished = no_tests = 0
+    unsuccessful: list[tuple[str, str, str]] = []
     for module in modules:
         verdict, category, log_text = _module_verdict(
             module, statuses, log_paths, timeout
@@ -182,16 +204,14 @@ def print_results(modules: list[str], statuses: dict[str, int | None],
         timed_out += category == "timed_out"
         not_finished += category == "not_finished"
         no_tests += category == "no_tests"
-        # The module name is contributor-supplied text: discovery's filename
-        # validator covers only a module's final file name, not the directory
-        # names of the package path, so a checked-in test directory may carry
-        # an ESC byte or a newline into the module name. Escaped here, it
-        # cannot drive the operator's terminal or forge a verdict line the
-        # way the raw name would.
-        print(f"===== {escape_controls(module)}: {verdict} =====")
-        sys.stdout.write(log_text)
-        if log_text and not log_text.endswith("\n"):
-            sys.stdout.write("\n")
+        if category in ("ok", "no_tests"):
+            _print_section(module, verdict, log_text)
+        else:
+            unsuccessful.append((module, verdict, log_text))
+    for module, verdict, log_text in unsuccessful:
+        _print_section(module, verdict, log_text)
+    for module, verdict, _log_text in unsuccessful:
+        print(f"check: {escape_controls(module)}: {verdict}")
     if failed or timed_out or not_finished:
         summary = [count_noun(len(modules), "module")]
         if failed:

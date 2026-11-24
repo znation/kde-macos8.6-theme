@@ -1,5 +1,7 @@
 """Run test modules concurrently and print their results in discovery order.
 
+Unsuccessful modules print last, each with a ``check:`` line above the summary.
+
 Each module runs as ``python -m unittest -v <module>`` in its own process
 group. Workers have a bounded concurrency and timeout; ``CHECK_PARALLEL=0``
 in Makefile retains serial unittest discovery.

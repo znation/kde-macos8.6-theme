@@ -3,7 +3,9 @@
 `make check` runs this tool by default: each pattern-matched module becomes
 one worker process (`python -m unittest -v <module>` from the tests
 directory), a bounded number run concurrently, and the coordinator prints
-every module's captured output in discovery order so the run stays diffable.
+every passing module's captured output in discovery order so the run stays
+diffable; failed, timed-out and unfinished modules print after those, with
+one ``check:`` line each above the summary.
 These tests drive the coordinator against a scratch suite of tiny fixture
 modules, so the guarantees -- ordered output, honest exit statuses, a
 per-module timeout that kills the worker's whole process group, and
@@ -332,6 +334,9 @@ class TestCoordinator(CoordinatorTestCase):
                     "        os._exit(1)\n"
                 ),
                 "test_ok.py": OK_MODULE,
+                # Sorts after test_boom, so its header follows the
+                # unterminated boom log in the failed group.
+                "test_zz_bad.py": FAILING_MODULE,
             }
         )
         result = self._run("--tests-dir", tests_dir, "--workers", "2")
@@ -340,8 +345,8 @@ class TestCoordinator(CoordinatorTestCase):
         self.assertIn("===== test_ok: exit 0 =====", result.stdout)
         # The later section's header starts a line of its own: the
         # unterminated boom log never runs into it.
-        self.assertIn("\n===== test_ok: exit 0 =====", result.stdout)
-        self.assertIn("1 module failed", result.stdout)
+        self.assertIn("\n===== test_zz_bad: exit 1 =====", result.stdout)
+        self.assertIn("2 modules failed", result.stdout)
 
     def test_a_failing_module_fails_the_run_with_its_output(self):
         tests_dir = self._project(

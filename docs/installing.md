@@ -402,7 +402,9 @@ would otherwise reach the terminal raw. The wider shell punctuation — a semico
 a pipe and the like — stays inert inside the guards' double quotes and is still refused at run
 time by the guards' own alphabet tests, which name the value back. By
 default the discovered modules run in parallel through `tools/check_parallel.py`, which runs
-each module as one worker process and prints the modules' outputs in module order;
+each module as one worker process and prints the outputs of modules that passed or ran
+no tests in module order, then those of failed, timed-out and unfinished modules, followed
+by one `check: <module>: <verdict>` line per such module just above the summary;
 `make check CHECK_PARALLEL=0` restores the serial `unittest discover` run, and
 `make check CHECK_PARALLEL=n` bounds the worker count (default: one per core). Every
 target that runs a Python tool requires Python 3.10 or newer (the fidelity tool uses
