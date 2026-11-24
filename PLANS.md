@@ -59,6 +59,8 @@ desktoptheme, kvantum and render tests).
 
 ### Platinum icon theme: draw programs with an original `application-x-executable` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
 
+**Needs review 2026-11-24 by feature: plan defect — nothing to build: the deliverable already exists on main (be8af3fc5, "Add an original application-x-executable program icon at three sizes") and this entry's done-stamped copy sits in PLANS-DONE.md ("Platinum icon theme: draw programs with an original `application-x-executable` icon … — done 2026-11-24 by the feature role").**
+
 **Goal.** A program file in the file manager is drawn with Breeze's art
 beside the Platinum document and folders. Ship one original placeholder icon,
 `application-x-executable`, at 16x16, 22x22 and 32x32. The name is the
