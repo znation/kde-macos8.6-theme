@@ -412,7 +412,7 @@ class TestRenderBudgets(unittest.TestCase):
         # every run pays.
         flags = dict((kind, flags) for kind, flags, _ in Renders.KINDS)["inactive"]
         self.assertIn("--settle", flags)
-        self.assertLessEqual(float(flags[flags.index("--settle") + 1]), 45)
+        self.assertEqual(flags[flags.index("--settle") + 1], "45")
 
     def test_the_combobox_gate_settles_for_twenty_seconds(self):
         # The combobox dialog is a single kdialog window, but it is spawned
