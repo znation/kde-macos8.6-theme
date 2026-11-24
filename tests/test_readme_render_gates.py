@@ -82,17 +82,21 @@ class TestReadmeDialogGateProse(unittest.TestCase):
         # was missing must not return, and the dialog-render summary paragraph
         # must keep naming the menu gate beside the two older ones.
         text = corpus()
-        self.assertNotIn("no gate compares", text)
-        self.assertNotIn("BUGS.md tracks adding that pin", text)
+        # Whitespace-collapsed views: the prose is soft-wrapped, so a phrase
+        # may span a line break; only word presence is pinned, not wrapping.
+        flat = " ".join(text.split())
+        self.assertNotIn("no gate compares", flat)
+        self.assertNotIn("BUGS.md tracks adding that pin", flat)
+        blocks = [" ".join(block.split()) for block in text.split("\n\n")]
         summary = next(
             block
-            for block in text.split("\n\n")
+            for block in blocks
             if "TestCheckboxDialogRender" in block and "suite runs" in block
         )
         self.assertIn("TestMenuDialogRender", summary)
         bullet = next(
             block
-            for block in text.split("\n\n")
+            for block in blocks
             if "GenericFrame" in block and "--menu-dialog" in block
         )
         self.assertIn("TestMenuDialogRender", bullet)

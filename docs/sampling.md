@@ -4,16 +4,19 @@ Back to [README](../README.md).
 
 ## Choosing a sampling mode
 
-Choose a command based on the measurement you need. These commands use a beta reference
-screenshot to demonstrate the sampler; it is not retail palette evidence. Choose coordinates
-and region sizes for the surface you are measuring. Coordinates are absolute image pixels;
-`--width` and `--height` set the sampled region starting at that coordinate, and both default
-to 1. The reference PNGs are stored with Git LFS; materialize them as described in
-[Validating the reference set](../README.md#validating-the-reference-set). Run `python3 tools/sample.py --help`
-for the complete option list. JPEG reference screenshots are readable directly: the sampler
-decodes a JPEG input once with ImageMagick's `convert` into a private temporary PNG and
-samples it like any PNG, while `--alpha` and `--match-alpha` need a PNG input because JPEG
-carries no alpha channel. For common refusals, see [Troubleshooting a sample](#troubleshooting-a-sample).
+Choose a command based on the measurement you need. These commands use a beta
+reference screenshot to demonstrate the sampler; it is not retail palette
+evidence. Choose coordinates and region sizes for the surface you are
+measuring. Coordinates are absolute image pixels; `--width` and `--height` set
+the sampled region starting at that coordinate, and both default to 1. The
+reference PNGs are stored with Git LFS; materialize them as described in
+[Validating the reference set](../README.md#validating-the-reference-set). Run
+`python3 tools/sample.py --help` for the complete option list. JPEG reference
+screenshots are readable directly: the sampler decodes a JPEG input once with
+ImageMagick's `convert` into a private temporary PNG and samples it like any
+PNG, while `--alpha` and `--match-alpha` need a PNG input because JPEG carries
+no alpha channel. For common refusals, see
+[Troubleshooting a sample](#troubleshooting-a-sample).
 
 | Task | Command | Result |
 | --- | --- | --- |
@@ -36,8 +39,9 @@ Offsets count eligible ranked colors, not pixel coordinates, and a later page
 can be empty. Omitted pixels include skipped and trailing colors; paging limits
 the displayed palette while counting still covers the full region.
 
-The longest-run summary covers the complete scan before list caps, paging or run filters;
-the longest segment need not appear in the displayed list. Ties retain the first run in scan order.
+The longest-run summary covers the complete scan before list caps, paging or
+run filters; the longest segment need not appear in the displayed list. Ties
+retain the first run in scan order.
 
 The coordinate list may be empty. Bounds can enclose nonmatching pixels, and a centroid is an
 arithmetic mean that need not be a pixel of that color. The match-pixel cap limits displayed
@@ -49,23 +53,28 @@ full interval list unless `--match-runs` is requested separately. This target-co
 distinct from the scanline color-run commands above, which summarize equal-color runs without
 searching for a chosen color.
 
-The longest vertical color match is the column-wise counterpart of the horizontal search
-above. It searches the complete rectangle for the chosen color, reports one segment with
-absolute start and length, and ties keep the lowest column, then the lowest row. It omits the
-full vertical interval list unless `--match-column-runs` is requested separately. It is not the
-scanline color-run command, which summarizes equal-color runs without searching for a chosen color.
+The longest vertical color match is the column-wise counterpart of the
+horizontal search above. It searches the complete rectangle for the chosen
+color, reports one segment with absolute start and length, and ties keep the
+lowest column, then the lowest row. It omits the full vertical interval list
+unless `--match-column-runs` is requested separately. It is not the scanline
+color-run command, which summarizes equal-color runs without searching for a
+chosen color.
 
-Use the exact-color row for lossless PNG measurement. For a near color, the tolerance row
-treats the tolerance as a per-channel maximum, not a combined distance: a pixel matches when
-each of its red, green and blue values differs from the target by at most N. Alpha is ignored
-unless `--match-alpha` is also given. The tolerance applies to every match report the search
-produces, including coordinates, intervals and longest-match summaries. Beta reference evidence
-is still not retail palette evidence, so treat the count as a demonstration rather than a claim.
+Use the exact-color row for lossless PNG measurement. For a near color, the
+tolerance row treats the tolerance as a per-channel maximum, not a combined
+distance: a pixel matches when each of its red, green and blue values differs
+from the target by at most N. Alpha is ignored unless `--match-alpha` is also
+given. The tolerance applies to every match report the search produces,
+including coordinates, intervals and longest-match summaries. Beta reference
+evidence is still not retail palette evidence, so treat the count as a
+demonstration rather than a claim.
 
-The coverage and centroid reports use the same match predicate as the count. The fraction divides
-by the full requested region area, including nonmatching pixels. The centroid uses pixel indices
-with no half-pixel offset and need not land on a matching pixel. Both honor `--color-tolerance`
-and `--match-alpha`, and `--match-pixels` truncates neither.
+The coverage and centroid reports use the same match predicate as the count.
+The fraction divides by the full requested region area, including nonmatching
+pixels. The centroid uses pixel indices with no half-pixel offset and need not
+land on a matching pixel. Both honor `--color-tolerance` and `--match-alpha`,
+and `--match-pixels` truncates neither.
 
 ## Sampling options
 
@@ -100,10 +109,10 @@ region (5, 5) 1x2:
 (5, 6): 99,99,156  #63639C
 ```
 
-Pass `--json` to emit one structured JSON object instead. `image` retains the original image
-argument, `image_width` and `image_height` describe the full image, `region` records the requested
-rectangle, and `pixels` lists absolute coordinates in row-major order; a single pixel has the
-same schema:
+Pass `--json` to emit one structured JSON object instead. `image` retains the
+original image argument, `image_width` and `image_height` describe the full
+image, `region` records the requested rectangle, and `pixels` lists absolute
+coordinates in row-major order; a single pixel has the same schema:
 
 ```sh
 $ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --json
@@ -175,13 +184,13 @@ denominator, while spatial diagnostics describe only emitted colors. A cutoff
 larger than the region area returns an empty palette and marks the full region
 omitted.
 
-Add `--max-color-count N` with `--histogram` to omit colors occurring more
-than N times. The inclusive cutoff combines with minimum count, minimum
-fraction and named-color exclusions before `--top-colors`; contradictory
-minimum and maximum counts are refused when the minimum exceeds the maximum. Explicit use reports the
-original `total_colors` and `omitted_pixels`, even when every color remains.
-Fractions still use the full region area, and spatial diagnostics describe
-only emitted colors.
+Add `--max-color-count N` with `--histogram` to omit colors occurring more than
+N times. The inclusive cutoff combines with minimum count, minimum fraction and
+named-color exclusions before `--top-colors`; contradictory minimum and maximum
+counts are refused when the minimum exceeds the maximum. Explicit use reports
+the original `total_colors` and `omitted_pixels`, even when every color
+remains. Fractions still use the full region area, and spatial diagnostics
+describe only emitted colors.
 
 Add `--min-color-fraction F` with `--histogram` to omit colors whose share of
 the requested region is below F (0 through 1 inclusive). Filtering runs before
@@ -606,4 +615,8 @@ list. An offset beyond the end returns an empty page. The option requires
 | An alpha option was requested for JPEG | Omit `--alpha` or `--match-alpha`, or use a PNG that actually has alpha. JPEG conversion cannot recover transparency that JPEG does not store. |
 | An option dependency or min/max window is refused | Add the required mode or cap described in the [option families](#sampling-options), or correct the bounds so the minimum does not exceed the maximum. |
 
-Reports and `--help` return status 0. A valid sample with no matching or retained values is still a successful empty report; an out-of-image pixel or region is refused instead. Handled usage, read and decode refusals return status 2. These are sampler statuses; fidelity comparison failures have their own status.
+Reports and `--help` return status 0. A valid sample with no matching or
+retained values is still a successful empty report; an out-of-image pixel or
+region is refused instead. Handled usage, read and decode refusals return
+status 2. These are sampler statuses; fidelity comparison failures have their
+own status.

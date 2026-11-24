@@ -136,7 +136,9 @@ class TestDesktopThemeLegacy(unittest.TestCase):
             "the invariant row names a different stem set or order",
         )
 
-        corpus = read_user_docs()
+        # Whitespace-collapsed: the prose is soft-wrapped, so a phrase may
+        # span a line break; only its word order is pinned, not its wrapping.
+        corpus = " ".join(read_user_docs().split())
         start = corpus.find(README_ANCHOR)
         self.assertGreater(
             start,
