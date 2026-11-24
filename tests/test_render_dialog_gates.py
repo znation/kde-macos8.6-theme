@@ -236,15 +236,9 @@ class TestCheckboxDialogRender(DialogGate, unittest.TestCase):
                 "active-center"
             ]
         )
-        x0, y0, width, height = CHECKBOX_CLOSE_BOX_CROP
-        actual = {
-            (x, y): hex_colour(
-                pixel_at(self.candidate_image(), x0 + x, y0 + y)
-            )
-            for x in range(width)
-            for y in range(height)
-        }
-        self.assertEqual(expected, actual)
+        self.assertEqual(
+            expected, self.candidate_colour_map(CHECKBOX_CLOSE_BOX_CROP)
+        )
 
     def test_draws_the_check_box_cell_1_to_1(self):
         # The candidate cell bytes come straight from the render (see
@@ -601,6 +595,36 @@ class TestInactiveDialogRender(DialogGate, unittest.TestCase):
             ),
             "the right window's title bar carries no ink",
         )
+
+
+class TestCandidateColourMapKeysTheRectFromItsTopLeft(
+    PixelPins, unittest.TestCase
+):
+    """The shared colour map is rect-relative and offset by the rect.
+
+    The byte-compare gates re-derive their expected arrangement as a map
+    keyed from the rect's top-left, so the actual side must use the same
+    keys and read the capture at (x0 + x, y0 + y). The reading is stubbed
+    here, so no render runs; each pixel reports its own capture
+    coordinates, so an absolute-keyed map or a one-pixel offset fails.
+    """
+
+    def candidate_image(self):
+        return None
+
+    def test_the_map_is_rect_relative_and_reads_the_rect_offset(self):
+        with mock.patch(
+            "support.render.gates.pixel_at", side_effect=lambda _i, x, y: (x, y, 7)
+        ):
+            self.assertEqual(
+                {
+                    (0, 0): "#030507",
+                    (1, 0): "#040507",
+                    (0, 1): "#030607",
+                    (1, 1): "#040607",
+                },
+                self.candidate_colour_map((3, 5, 2, 2)),
+            )
 
 
 class TestPixelMismatchNamesThePixel(PixelPins, unittest.TestCase):

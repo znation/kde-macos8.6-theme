@@ -169,12 +169,9 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         )["active-center"]
         width = max(x for x, _ in expected) + 1
         height = max(y for _, y in expected) + 1
-        actual = {
-            (x, y): hex_colour(pixel_at(self.candidate_image(), x0 + x, y0 + y))
-            for x in range(width)
-            for y in range(height)
-        }
-        self.assertEqual(expected, actual)
+        self.assertEqual(
+            expected, self.candidate_colour_map((x0, y0, width, height))
+        )
 
     def test_the_frame_and_title_bar_bands_pin_the_platinum_chrome(self):
         # Rows 0..3 the Aurorae decoration's 4px top border; row 4 the white

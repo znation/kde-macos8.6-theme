@@ -127,8 +127,7 @@ class TestGtkDialogRender(DialogGate, unittest.TestCase):
         # recoloured bevel arm, a foreign face colour or a glyph row (text
         # antialiasing, the one painter outside the recipe's constants)
         # fails this byte-compare.
-        image = self.candidate_image()
-        x0, y0, width, height = OK_BUTTON_CROP
+        _x0, _y0, width, height = OK_BUTTON_CROP
         expected = {
             (x, y): (
                 BLACK
@@ -142,12 +141,7 @@ class TestGtkDialogRender(DialogGate, unittest.TestCase):
             for x in range(width)
             for y in range(height)
         }
-        actual = {
-            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
-            for x in range(width)
-            for y in range(height)
-        }
-        self.assertEqual(expected, actual)
+        self.assertEqual(expected, self.candidate_colour_map(OK_BUTTON_CROP))
 
     def test_draws_the_cancel_button_cell_1_to_1(self):
         # Byte-compare the Cancel push button's left-hand cell with the
@@ -165,8 +159,7 @@ class TestGtkDialogRender(DialogGate, unittest.TestCase):
         # an inverted or recoloured bevel arm, a foreign face colour or a
         # glyph row (text antialiasing, the one painter outside the
         # recipe's constants) fails this byte-compare.
-        image = self.candidate_image()
-        x0, y0, width, height = CANCEL_BUTTON_CROP
+        _x0, _y0, width, height = CANCEL_BUTTON_CROP
         expected = {
             (x, y): (
                 BLACK
@@ -180,12 +173,7 @@ class TestGtkDialogRender(DialogGate, unittest.TestCase):
             for x in range(width)
             for y in range(height)
         }
-        actual = {
-            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
-            for x in range(width)
-            for y in range(height)
-        }
-        self.assertEqual(expected, actual)
+        self.assertEqual(expected, self.candidate_colour_map(CANCEL_BUTTON_CROP))
 
     def test_draws_the_window_shell_edge_cell_1_to_1(self):
         # Byte-compare the window's top shell edge strip with the
@@ -204,19 +192,15 @@ class TestGtkDialogRender(DialogGate, unittest.TestCase):
         # starting on the face row), a recoloured or transplanted ring
         # (stock's translucent ring, the #555555 window.csd:backdrop tone)
         # or a foreign face colour fails this byte-compare.
-        image = self.candidate_image()
-        x0, y0, width, height = WINDOW_SHELL_EDGE_CROP
+        _x0, _y0, width, height = WINDOW_SHELL_EDGE_CROP
         expected = {
             (x, y): BLACK if y == 0 else FACE
             for x in range(width)
             for y in range(height)
         }
-        actual = {
-            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
-            for x in range(width)
-            for y in range(height)
-        }
-        self.assertEqual(expected, actual)
+        self.assertEqual(
+            expected, self.candidate_colour_map(WINDOW_SHELL_EDGE_CROP)
+        )
 
     def test_draws_the_entry_field_cell_1_to_1(self):
         # Byte-compare the entry's painted cell with the arrangement the
@@ -235,8 +219,7 @@ class TestGtkDialogRender(DialogGate, unittest.TestCase):
         # so the strip renders but sits under the black halo in the
         # published chain, and the pinned cell is exactly this edge plus the
         # flat #FFFFFF ENTRY_FIELD face.
-        image = self.candidate_image()
-        x0, y0, width, height = ENTRY_FIELD_CROP
+        _x0, _y0, width, height = ENTRY_FIELD_CROP
         expected = {
             (x, y): (
                 BLACK
@@ -246,12 +229,7 @@ class TestGtkDialogRender(DialogGate, unittest.TestCase):
             for x in range(width)
             for y in range(height)
         }
-        actual = {
-            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
-            for x in range(width)
-            for y in range(height)
-        }
-        self.assertEqual(expected, actual)
+        self.assertEqual(expected, self.candidate_colour_map(ENTRY_FIELD_CROP))
 
     KIND = "gtk"
 

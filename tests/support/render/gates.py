@@ -177,6 +177,24 @@ class PixelPins:
                     context,
                 )
 
+    def candidate_colour_map(self, rect):
+        """Return *rect*'s candidate pixels as a rect-relative colour map.
+
+        The byte-compare gates re-derive an expected ``{(x, y): "#RRGGBB"}``
+        map keyed from the rect's top-left and compare it with the capture;
+        the seven call sites (the GTK window gate's four cell pins, the
+        file-dialog gate's ``assert_box_matches_svg``, the checkbox gate's
+        close-box pin and :meth:`DialogGate.assert_cell_matches`) build the
+        actual side here so their key schemes cannot drift apart.
+        """
+        image = self.candidate_image()
+        x0, y0, width, height = rect
+        return {
+            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
+            for x in range(width)
+            for y in range(height)
+        }
+
     def assert_flat_window_face(self, rect):
         """Pin every cell of *rect* at the flat #DDDDDD window face.
 
@@ -434,15 +452,7 @@ class DialogGate(RenderOutputMessages, PixelPins):
         foreign element.
         """
         expected = dict(render_slices(parse_svg(SVG))[slice_name])
-        x0, y0, width, height = cell
-        actual = {
-            (x, y): hex_colour(
-                pixel_at(self.candidate_image(), x0 + x, y0 + y)
-            )
-            for x in range(width)
-            for y in range(height)
-        }
-        self.assertEqual(expected, actual)
+        self.assertEqual(expected, self.candidate_colour_map(cell))
 
     def assert_push_button_recipe(self, rect, cell, flat_rows):
         """Pin the raised push-button recipe over its full-height cell.
