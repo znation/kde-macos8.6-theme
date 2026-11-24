@@ -259,18 +259,7 @@ def _apply_fallback(
     writes.append(
         (config_home / KONSOLERC, PROFILE_GROUP, PROFILE_KEY, FALLBACK_PROFILE)
     )
-    for file, group, key, value in writes:
-        status = run_required(
-            TOOL,
-            ["kwriteconfig6", "--file", str(file), "--group", group, "--key", key, value],
-            env,
-            scratch / f"kwriteconfig6-{key}.log",
-            timeout,
-            ROOT,
-        )
-        if status is not None:
-            return status
-    return None
+    return _write_keys(scratch, env, writes, timeout)
 
 
 def _appearance_writes(data_home: Path, font: str) -> list[tuple[str, str, str]]:
@@ -298,22 +287,31 @@ def _write_font(
 
     ``kwriteconfig6`` edits only the named key in place, so the profile's
     other keys -- and the shell, colors, shortcuts and keyboard mappings
-    they hold -- are left byte-identical. The writes stop at the first
-    failing one, which is returned as the status.
+    they hold -- are left byte-identical.
     """
-    for group, key, value in _appearance_writes(data_home, font):
+    writes = [
+        (profile, group, key, value)
+        for group, key, value in _appearance_writes(data_home, font)
+    ]
+    return _write_keys(scratch, env, writes, timeout)
+
+
+def _write_keys(
+    scratch: Path,
+    env: dict[str, str],
+    writes: list[tuple[Path, str, str, str]],
+    timeout: float,
+) -> int | None:
+    """Run the ``(file, group, key, value)`` kwriteconfig6 writes in order.
+
+    Each write goes through the required-command conventions, its output
+    logged under the written key's name so a failure names the key; the
+    writes stop at the first failing one, which is returned as the status.
+    """
+    for file, group, key, value in writes:
         status = run_required(
             TOOL,
-            [
-                "kwriteconfig6",
-                "--file",
-                str(profile),
-                "--group",
-                group,
-                "--key",
-                key,
-                value,
-            ],
+            ["kwriteconfig6", "--file", str(file), "--group", group, "--key", key, value],
             env,
             scratch / f"kwriteconfig6-{key}.log",
             timeout,
