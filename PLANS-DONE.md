@@ -5,6 +5,60 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Suite-discovery extraction: move the shadowed-definition guard into its own module (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup, terminal palette and parallel-check plans) — done 2026-11-24 by the feature role
+
+**Goal.** `tests/test_suite_discovery.py` mixes two responsibilities: the
+import-based discovery guards (empty, misnamed, non-package and
+test-bearing-package modules) and a static AST guard against a `def` name
+defined twice in one scope. Moving the static guard into its own module
+leaves each file focused on one check family.
+
+**Approach.** Create `tests/test_suite_shadowed_defs.py` holding
+`TestShadowedDefinitions(unittest.TestCase)` (above the `__main__` block)
+and move these into it from `tests/test_suite_discovery.py` with unchanged
+bodies:
+- the module helpers `python_files`, `shadowed_definitions` and
+  `shadowed_def_files` (used only by the moved tests, so they move with them
+  rather than into `tests/support/`);
+- `TestSuiteDiscovery.test_no_test_module_defines_a_name_twice_in_the_same_scope`,
+  `test_a_shadowed_test_method_is_reported`,
+  `test_a_shadowed_async_test_method_is_reported`,
+  `test_a_shadowed_module_level_helper_is_reported` and
+  `test_the_same_method_name_in_two_classes_is_not_reported`.
+
+The new module defines its own `TESTS_DIR` the same way the source does and
+imports `make_tmp_dir` from `support.tmp_dir`. In the moved real-tree test,
+the non-vacuity `assertIn` names the new module's own filename
+(`test_suite_shadowed_defs.py`) instead of `test_suite_discovery.py`.
+Move the source docstring's "fifth mistake" paragraph to the new module's
+docstring and leave a one-sentence pointer to the new module in its place.
+Drop the `ast` import from the source if nothing there uses it any more
+(`tests/test_no_unused_imports.py` enforces this).
+Repoint the five anchors in the `docs/invariants.md` shadowed-`def` row from
+`tests/test_suite_discovery.py::TestSuiteDiscovery::…` to
+`tests/test_suite_shadowed_defs.py::TestShadowedDefinitions::…`, guarantee
+text unchanged. Grep `docs/`, `README.md`, `tests/support/` (including
+`validation_gaps/`) and `tests/test_ci_workflow.py` for the moved test and
+helper names; at planning time only the invariants row names them (the
+`validation_gaps/no_fake.py` reproduction names a test that stays).
+
+**Files touched.** `tests/test_suite_discovery.py`,
+`tests/test_suite_shadowed_defs.py` (new), `docs/invariants.md`.
+
+**Acceptance criteria.**
+- Test discovery lists the five moved test names under
+  `test_suite_shadowed_defs.TestShadowedDefinitions` and no longer under
+  `test_suite_discovery.TestSuiteDiscovery`; every other
+  `TestSuiteDiscovery` and `TestMakefileReadContainment` test id is unchanged.
+- `tests/test_suite_discovery.py` no longer defines `python_files`,
+  `shadowed_definitions` or `shadowed_def_files`, and no test module imports
+  from another test module.
+- Adding a second `def test_ok` to one class in any `tests/**/*.py` file
+  still fails the moved real-tree test, naming the file and both line numbers.
+- `make check CHECK_TESTS='test_suite_discovery test_suite_shadowed_defs
+  test_invariants test_no_unused_imports'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red tests.
+
 ### Terminal palette: move the classic 16-colour table out of the Ghostty test into support (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup, desktop wallpaper, GTK rule cases and Makefile refusal parts) — done 2026-11-21 by the feature role
 
 **Goal.** `tests/test_konsole_theme.py` imports `PALETTE` from another test
