@@ -44,5 +44,40 @@ class TestProfileTextCap(unittest.TestCase):
         self.assertIn("larger than", message)
 
 
+class TestProfileTextRefusals(unittest.TestCase):
+    """A non-UTF-8 or non-regular profile file is refused by name.
+
+    ``read_profile_text``'s docstring promises that a directory, a
+    non-regular file and invalid UTF-8 are each reported as a
+    :class:`ConfigError` naming the path, rather than escaping as a
+    traceback; these pins hold it to that contract at the unit level.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.path = Path(self._tmp.name) / "userChrome.css"
+
+    def test_an_invalid_utf8_profile_file_is_refused_by_name(self):
+        # The decode refusal is the read_failure wrap: without it the raw
+        # UnicodeDecodeError escapes the installer, which reports only
+        # ConfigError, so the raised type is the contract under test.
+        self.path.write_bytes(b"\xff\xfe not utf-8")
+        with self.assertRaises(ConfigError) as caught:
+            read_profile_text(self.path)
+        message = str(caught.exception)
+        self.assertIn(str(self.path), message)
+        self.assertIn("cannot read", message)
+
+    def test_a_directory_at_the_path_is_refused_by_name(self):
+        # A directory passes open() and is rejected on the opened
+        # descriptor's fstat; the refusal must be the ConfigError naming
+        # the path, not an escaping IsADirectoryError.
+        self.path.mkdir()
+        with self.assertRaises(ConfigError) as caught:
+            read_profile_text(self.path)
+        self.assertIn(str(self.path), str(caught.exception))
+
+
 if __name__ == "__main__":
     unittest.main()
