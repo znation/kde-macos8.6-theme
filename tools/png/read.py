@@ -45,6 +45,7 @@ except ImportError:  # imported as the top-level package `png` by a directly run
     from image_format import PNG_MAGIC, other_image_format
 
 from .expand import (
+    grey_alpha_rgba,
     greyscale_rgba,
     palette_rgba,
     sample_trns_key,
@@ -231,13 +232,7 @@ def decode_rgba(
     if color_type == 6:
         rgba = samples
     elif color_type == 4:
-        grey = samples[0::2]
-        out = bytearray(len(grey) * 4)
-        out[0::4] = grey
-        out[1::4] = grey
-        out[2::4] = grey
-        out[3::4] = samples[1::2]
-        rgba = bytes(out)
+        rgba = grey_alpha_rgba(samples[0::2], samples[1::2])
     elif color_type == 2:
         rgba = truecolor_rgba(samples, sample_trns_key(trns, color_type))
     elif color_type == 0:

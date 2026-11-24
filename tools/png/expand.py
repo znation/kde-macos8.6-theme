@@ -137,23 +137,27 @@ def _interleave_alpha(rgb: bytes, alpha: bytes) -> bytes:
     return bytes(out)
 
 
+def grey_alpha_rgba(grey: bytes, alpha: bytes) -> bytes:
+    """Expand one greyscale plane and one alpha plane to packed RGBA.
+
+    The grey sample becomes R, G and B; *alpha* is one byte per pixel and
+    already in its final form, unlike the ``tRNS`` keys
+    :func:`greyscale_rgba` matches against.
+    """
+    return _interleave_alpha(_repeat_grey(grey), alpha)
+
+
 def greyscale_rgba(grey: bytes, key: int | None) -> bytes:
     """Expand greyscale *grey* to RGBA, transparent where it equals *key*."""
-    pixels = len(grey)
     if key is None:
-        alpha = b"\xff" * pixels
+        alpha = b"\xff" * len(grey)
     else:
         # A tRNS grey sample names a 16-bit value; for an 8-bit image only
         # 0-255 can match a pixel, and the table leaves the rest opaque.
         alpha = grey.translate(
             bytes(0 if value == key else 255 for value in range(256))
         )
-    out = bytearray(pixels * 4)
-    out[0::4] = grey
-    out[1::4] = grey
-    out[2::4] = grey
-    out[3::4] = alpha
-    return bytes(out)
+    return grey_alpha_rgba(grey, alpha)
 
 
 # Alpha for a whole-pixel tRNS key match: index 0 is an opaque pixel, index 1
