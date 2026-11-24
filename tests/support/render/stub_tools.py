@@ -66,8 +66,8 @@ class StubTools(unittest.TestCase):
     def assert_failed_run(self, status, stderr, output, expected_status, *diagnostics):
         """Assert a failed render's status, diagnostics, output and cleanup.
 
-        Shared by the 22 failure-path tails: 11 in
-        :mod:`tests.test_render_failure_paths`, 6 in
+        Shared by the 24 failure-path tails: 12 in
+        :mod:`tests.test_render_failure_paths`, 7 in
         :mod:`tests.test_render_live_capture` and 5 in
         :mod:`tests.test_render_session_modes`.
         """
