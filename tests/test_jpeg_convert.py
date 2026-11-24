@@ -33,14 +33,11 @@ def _stubbed_convert(run_logged_split):
     temporary decoded-PNG path the conversion targets; the diagnostic
     convert_jpeg returns is each test's own assertion.
     """
-    if callable(run_logged_split) or isinstance(run_logged_split, BaseException):
-        runner = mock.patch.object(
-            jpeg_convert, "run_logged_split", side_effect=run_logged_split
-        )
-    else:
-        runner = mock.patch.object(
-            jpeg_convert, "run_logged_split", return_value=run_logged_split
-        )
+    stub: dict[str, object] = (
+        {"side_effect": run_logged_split}
+        if callable(run_logged_split) or isinstance(run_logged_split, BaseException)
+        else {"return_value": run_logged_split}
+    )
     with tempfile.TemporaryDirectory() as directory:
         temp_png = Path(directory) / "decoded.png"
         with (
@@ -49,7 +46,7 @@ def _stubbed_convert(run_logged_split):
                 "which",
                 return_value="/usr/bin/convert",
             ),
-            runner,
+            mock.patch.object(jpeg_convert, "run_logged_split", **stub),
         ):
             yield temp_png
 
