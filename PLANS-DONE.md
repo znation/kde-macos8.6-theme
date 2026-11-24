@@ -123,10 +123,12 @@ Planning-time probe with `kiconfinder6` under scratch `XDG_DATA_HOME`,
 `XDG_CACHE_HOME`, `XDG_CONFIG_HOME`, `XDG_RUNTIME_DIR` and `HOME`,
 `DISPLAY` and `WAYLAND_DISPLAY` unset, `QT_QPA_PLATFORM=offscreen`:
 `camera-photo` resolved to `:/icons/breeze/devices/64/camera-photo.svg`.
-Provenance of the name: the installed `libKF6Solid.so.6.13.0` contains
-no `camera-photo` literal (`strings -e l` gives only the unrelated
-`camera-unmount` action name), so the surface that names the icon is
-the installed `kcm_kamera.desktop` entry above; no reference screenshot
+Provenance of the name: the installed `libKF6Solid.so.6.13.0` carries
+a bare 8-bit `camera-photo` literal beside the device names `computer`
+and `multimedia-player` (only 8-bit `strings` sees ASCII literals; a
+`strings -e l` probe gives the unrelated `camera-unmount` action
+name), and the installed `kcm_kamera.desktop` entry above also names
+the icon; no reference screenshot
 in `macos8.6-screenshots/` shows a camera, so the drawing is this
 theme's own choice. Out of scope: ship no alias files and nothing but
 `camera-photo`; this plan shares no drawing with the other device
