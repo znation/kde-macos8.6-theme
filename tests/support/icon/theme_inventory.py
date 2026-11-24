@@ -435,6 +435,16 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-gettext-translation.svg"),
     os.path.join("16x16", "mimetypes", "application-x-gettext-translation.svg"),
     os.path.join("22x22", "mimetypes", "application-x-gettext-translation.svg"),
+    # The electronic-book `application-epub+zip` icon at all three sizes
+    # (our own drawing of the generic document's page with a black
+    # lowercase e; the name is the type-spelled icon name of the
+    # `application/epub+zip` MIME type in the installed shared MIME
+    # database, whose `generic-icon` is the shipped `x-office-document`,
+    # and at the exact name Breeze's own file beats the theme's
+    # generic-icon fallback).
+    os.path.join("32x32", "mimetypes", "application-epub+zip.svg"),
+    os.path.join("16x16", "mimetypes", "application-epub+zip.svg"),
+    os.path.join("22x22", "mimetypes", "application-epub+zip.svg"),
     # The desktop-launcher `application-x-desktop` icon at all three sizes
     # (our own drawing of the generic document's page with a small window;
     # the name is the type-spelled icon name of the `application/x-desktop`

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original electronic book illustration pending user-approved artwork. -->
+<!-- Platinum electronic-book icon, 22x22.
+
+     Our own 22x22 drawing in the Platinum palette: the generic document's
+     page (black outline, white page and folded corner) holding a black
+     lowercase e — an open reader's letter on the blank page. Drawn for
+     this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M4 1 h10 l4 4 v15 H4 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M5 2 h8 l4 4 v13 H5 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M13 2 L17 2 L17 6 Z" fill="#DDDDDD"/>
+  <!-- Lowercase e: top bar. -->
+  <rect x="7" y="9" width="6" height="1" fill="#000000"/>
+  <!-- Upper-right notch. -->
+  <rect x="11" y="10" width="2" height="1" fill="#000000"/>
+  <!-- Middle bar. -->
+  <rect x="7" y="11" width="6" height="1" fill="#000000"/>
+  <!-- Lower-left notch. -->
+  <rect x="7" y="12" width="2" height="1" fill="#000000"/>
+  <!-- Bottom bar. -->
+  <rect x="7" y="13" width="6" height="1" fill="#000000"/>
+</svg>

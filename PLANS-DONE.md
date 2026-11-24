@@ -5,6 +5,136 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw electronic books with an original `application-epub+zip` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** An electronic book file (`*.epub`) draws Breeze's art beside
+the Platinum documents and folders. Ship one original placeholder
+icon, `application-epub+zip`, at 16x16, 22x22 and 32x32, in the same
+mimetype-item series as the landed `application-json` and
+`application-x-mimearchive` files and the waiting
+`application-x-openzim` entry. Provenance: the installed shared MIME
+database (`/usr/share/mime/packages/freedesktop.org.xml`) declares the
+type `application/epub+zip` ("Electronic book document") with no
+`<icon>` element, no `<alias>` element, one `<generic-icon
+g name="x-office-document"/>` element, one `<sub-class-of
+type="application/zip"/>` element, the single glob
+`<glob pattern="*.epub">` at the default weight 50 (owned by no other
+MIME type) and one `<magic>` matcher (priority 70: the string
+`PK\003\004` at offset 0, requiring the string `mimetype` at offset 30
+and the string `application/epub+zip` at offset 38 or 43); the string
+`application-epub+zip` occurs 0 times in the database (`str.count` is
+0 — `grep -c` counts lines, not matches), so one file covers exactly
+its own name. The theme ships `x-office-document.svg` at all three
+sizes, but `index.theme` declares `Inherits=breeze`, and
+`/usr/share/icons/breeze/mimetypes/` ships the exact-name
+`application-epub+zip.svg` at 16, 22, 24, 32 and 64 — Breeze's
+exact-name file beats the theme's generic-icon fallback, so a `.epub`
+item draws Breeze's art unless the theme ships the name. No reference
+screenshot shows an e-book item icon, so no reference pixels are used
+and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/application-epub+zip.svg` under the icon theme's
+  `16x16`, `22x22` and `32x32` MimeTypes directories (beside each
+  size's shipped `x-office-document.svg`). `index.theme`
+  already declares the three MimeTypes directories. Give each file the
+  XML declaration, the comment `<!-- PLACEHOLDER: original electronic
+  book illustration pending user-approved artwork. -->`, a short
+  comment saying it is our own drawing in the Platinum palette, not
+  traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art shares the generic document's page
+  (every drawing element of that size's `x-office-document.svg`
+  except the heading band, body lines and signature line — the
+  `*_PAGE_*` tuples) and holds a black lowercase e — an open reader's
+  letter on the blank page, distinct from JSON's curly braces, the
+  shell script's `>_` prompt, the bzip2-compressed-tar's lowercase b,
+  deb's hollow capital D, tar's T, the ISO disc's capital I, cpio's
+  capital C, xz's stair-stepped X, the QCOW disc's white Q and the
+  crash core's square ring with centre dot (no existing mark is a
+  lowercase e, and the e's two notches and three bars separate it
+  from all of them at every size):
+  - 32x32: the `*_PAGE_32` page paths, then all `#000000`: top bar
+    `10,12 8×2` (rows 12..13), upper-right notch `16,14 2×1` (row
+    14), middle bar `10,15 8×2` (rows 15..16), lower-left notch
+    `10,17 2×1` (row 17) and bottom bar `10,18 8×2` (rows 18..19);
+    every cell sits on the white page inside the black outline and
+    clear of the folded corner.
+  - 22x22: the `*_PAGE_22` page paths, then all `#000000`: top bar
+    `7,9 6×1` (row 9), upper-right notch `11,10 2×1` (row 10),
+    middle bar `7,11 6×1` (row 11), lower-left notch `7,12 2×1`
+    (row 12) and bottom bar `7,13 6×1` (row 13).
+  - 16x16: the `*_PAGE_16` page paths, then all `#000000`: top bar
+    `5,7 5×1` (row 7), upper-right notch `8,8 2×1` (row 8), middle
+    bar `5,9 5×1` (row 9), lower-left notch `5,10 2×1` (row 10) and
+    bottom bar `5,11 5×1` (row 11).
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the mimetype rows,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three
+  drawings in `PINS` from the lists above (the `*_PAGE_*` page tuple,
+  then the five e bars and notches).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-epub+zip` in the last cell, as the
+  `application-pgp-keys` sentence there does.
+- `docs/installing.md`: add the e-book icon to the sentence listing
+  the icon theme's placeholder illustrations and their sizes.
+- The waiting openzim entry (and the gettext-translation and
+  pkix-crl entries while they still wait) edits the same inventory
+  block, `PINS` registry, invariants row and installing.md sentence;
+  this entry sits behind them in the queue, so rebase on whatever
+  they have landed when picking this up, keeping one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the page elements
+  matching the `x-office-document.svg` pin's page tuple, in the same
+  order, then the five e bars and notches), carries a placeholder
+  marker and has a `PLACEHOLDERS.md` row; the existing inventory,
+  palette, geometry and placeholder-register tests cover all three.
+- Changing one bar's or notch's position, size or fill, or the
+  element order, in one file makes the geometry test fail; dropping a
+  file while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The `#000000`, `#FFFFFF` and `#DDDDDD` fills stay inside
+  `PLATINUM_FILLS`, so `test_each_icon_uses_only_the_platinum_palette`
+  passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present and can be steered to
+  the installed scratch theme (the scratch-homes recipe the landed
+  `application-pkix-cert` entry records): install the theme into a
+  scratch data root, use scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`),
+  `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY` and
+  `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`;
+  `application-epub+zip` resolves to the theme's 32x32
+  `mimetypes/application-epub+zip.svg`, while the same probe with the
+  theme removed from the data root falls through `Inherits=breeze` to
+  Breeze's `:/icons/breeze/mimetypes/32/application-epub+zip.svg` and
+  still exits 0 (measured 2026-11-24: the theme-less lookup inherits
+  Breeze, which is installed system-wide, so the probe does not print
+  nothing and exit 1 — the fall-through the goal describes is what the
+  theme-less probe shows). Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ### Platinum icon theme: draw Snap packages with an original `application-vnd.snap` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A Snap package file (`*.snap`, as the file manager
