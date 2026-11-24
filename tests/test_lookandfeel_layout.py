@@ -95,7 +95,7 @@ def clock_config(text):
     if name is None:
         return {}
     calls = re.findall(
-        r'^%s\.writeConfig\("([^"]+)",\s*(\w+)\s*\)\s*;' % re.escape(name),
+        rf'^{re.escape(name)}\.writeConfig\("([^"]+)",\s*(\w+)\s*\)\s*;',
         text,
         re.M,
     )
@@ -146,7 +146,7 @@ class TestLayout(unittest.TestCase):
         name = clock_variable(self.text)
         self.assertIsNotNone(name, "clock widget handle is not kept in a variable")
         group = re.search(
-            r'^%s\.currentConfigGroup\s*=\s*\["Appearance"\]\s*;' % re.escape(name),
+            rf'^{re.escape(name)}\.currentConfigGroup\s*=\s*\["Appearance"\]\s*;',
             self.text,
             re.M,
         )

@@ -173,17 +173,17 @@ print("text view has no widget child")
 # from the shared constant.
 SELECTED_FACE_CHILD = (
     GTK4_PROBE_PROLOGUE
-    + '''
+    + f'''
 
 def pending():
     while GLib.MainContext.default().pending():
         GLib.MainContext.default().iteration(False)
 
-SELECTION_RGB = %r
+SELECTION_RGB = {_selection_rgb()!r}
 
 SELECTION = SELECTION_RGB
 WIDTH, HEIGHT = 220, 60
-''' % (_selection_rgb(),)
+'''
     + '''
 text_view = Gtk.TextView()
 text_view.get_buffer().set_text("Hello World", -1)
