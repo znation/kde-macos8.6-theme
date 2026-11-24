@@ -35,7 +35,6 @@ def _drawing_elements(tree):
     )
 
 
-
 class TestIconGeometry(unittest.TestCase):
     """Pin every shipped icon's drawing elements, in document order."""
 
