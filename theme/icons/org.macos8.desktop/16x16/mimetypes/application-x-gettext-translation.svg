@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original compiled-gettext-catalog illustration pending user-approved artwork. -->
+<!-- Platinum compiled-gettext-catalog icon, 16x16 rendition.
+
+     Our own 16x16 redraw in the Platinum palette: the document drawing
+     (a #FFFFFF page with a 1px #000000 outline and a #DDDDDD folded
+     top-right corner) with the text lines replaced by a black speech
+     bubble with a square tail, its interior holding one white top bar
+     longer than the white bottom bar — the catalog's translated lines
+     being spoken. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M3 1 h7 l3 3 v10 H3 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M4 2 h5 l3 3 v8 H4 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M9 2 L12 2 L12 5 Z" fill="#DDDDDD"/>
+  <!-- Speech bubble, whole-pixel cells. -->
+  <rect x="5" y="5" width="6" height="4" fill="#000000"/>
+  <!-- Square tail. -->
+  <rect x="6" y="9" width="1" height="1" fill="#000000"/>
+  <!-- Translated-line bars. -->
+  <rect x="6" y="6" width="4" height="1" fill="#FFFFFF"/>
+  <rect x="6" y="7" width="2" height="1" fill="#FFFFFF"/>
+</svg>

@@ -186,6 +186,8 @@ backup-file icon for backup files (the
 usenet-index icon for NZB files (the `application-x-nzb` name at the
 same three sizes), an MHTML web-archive icon for MHTML web-archive
 files (the `application-x-mimearchive` name at the same three sizes), a
+compiled-gettext-catalog icon for compiled gettext message catalogs (the
+`application-x-gettext-translation` name at the same three sizes), a
 QCOW disk-image icon for QCOW disk images (the
 `application-x-qemu-disk` name at the same three sizes), a PGP-key icon for
 PGP key files (the `application-pgp-keys` name at the same three sizes), a detached

@@ -425,6 +425,16 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-mimearchive.svg"),
     os.path.join("16x16", "mimetypes", "application-x-mimearchive.svg"),
     os.path.join("22x22", "mimetypes", "application-x-mimearchive.svg"),
+    # The compiled-gettext-catalog `application-x-gettext-translation`
+    # icon at all three sizes (our own drawing of the generic document's
+    # page with a black speech bubble; the name is the type-spelled icon
+    # name of the `application/x-gettext-translation` MIME type, whose
+    # MIME-database entry has no `generic-icon`, no aliases and no
+    # per-type fallback, so one file covers the exact name, where
+    # Breeze's own file otherwise beats the theme's missing fallback).
+    os.path.join("32x32", "mimetypes", "application-x-gettext-translation.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-gettext-translation.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-gettext-translation.svg"),
     # The desktop-launcher `application-x-desktop` icon at all three sizes
     # (our own drawing of the generic document's page with a small window;
     # the name is the type-spelled icon name of the `application/x-desktop`
