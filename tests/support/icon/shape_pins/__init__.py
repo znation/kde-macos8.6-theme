@@ -17,7 +17,9 @@ draws one folder for a directory); the alias test in
 ``test_icon_theme_geometry`` cross-checks the files themselves.
 
 The registry is one dict per icon family, mirroring the shipped tree's
-family directories; ``SHAPE_PIN_FAMILIES`` names them so the guard tests
+family directories; a family that outgrows one module becomes a package of
+per-series group modules merged by its own ``__init__`` (the mimetypes
+family does). ``SHAPE_PIN_FAMILIES`` names them so the guard tests
 can visit every family module. This package merges them into one
 ``ICON_SHAPES`` dict beside the inventory it pins.
 """

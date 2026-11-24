@@ -98,36 +98,47 @@ class TestIconGeometry(unittest.TestCase):
         registries.append(("__init__", "ICON_SHAPES", None))
         seen = []
         for family, registry_name, expected_family in registries:
-            module = parsed_module(
-                os.path.join(
-                    ROOT, "tests", "support", "icon", "shape_pins", family + ".py"
-                ),
-                ROOT,
+            # A family is one module or a package of group modules: the
+            # mimetypes family outgrew its single module and now holds one
+            # module per icon series, merged by its ``__init__`` the way
+            # this package merges the families, so visit every module in it.
+            family_dir = os.path.join(
+                ROOT, "tests", "support", "icon", "shape_pins", family
             )
-            (literal,) = (
-                node.value
-                for node in module.body
-                if isinstance(node, ast.Assign)
-                and any(
-                    isinstance(target, ast.Name) and target.id == registry_name
-                    for target in node.targets
+            if os.path.isdir(family_dir):
+                module_paths = [
+                    os.path.join(family_dir, name)
+                    for name in sorted(os.listdir(family_dir))
+                    if name.endswith(".py")
+                ]
+            else:
+                module_paths = [family_dir + ".py"]
+            for module_path in module_paths:
+                module = parsed_module(module_path, ROOT)
+                (literal,) = (
+                    node.value
+                    for node in module.body
+                    if isinstance(node, ast.Assign)
+                    and any(
+                        isinstance(target, ast.Name) and target.id == registry_name
+                        for target in node.targets
+                    )
                 )
-            )
-            self.assertIsInstance(literal, ast.Dict)
-            # A None key is a ``**family`` merge, not a pinned file.
-            paths = [
-                eval(compile(ast.Expression(key), "<pin-key>", "eval"), {"os": os})
-                for key in literal.keys
-                if key is not None
-            ]
-            self.assertEqual(len(paths), len(set(paths)), family)
-            for path in paths:
-                named_family = os.path.normpath(path).split(os.sep)[1]
-                if expected_family is None:
-                    self.assertIn(named_family, SHAPE_PIN_FAMILIES, path)
-                else:
-                    self.assertEqual(named_family, expected_family, path)
-            seen.extend(paths)
+                self.assertIsInstance(literal, ast.Dict)
+                # A None key is a ``**family`` merge, not a pinned file.
+                paths = [
+                    eval(compile(ast.Expression(key), "<pin-key>", "eval"), {"os": os})
+                    for key in literal.keys
+                    if key is not None
+                ]
+                self.assertEqual(len(paths), len(set(paths)), family)
+                for path in paths:
+                    named_family = os.path.normpath(path).split(os.sep)[1]
+                    if expected_family is None:
+                        self.assertIn(named_family, SHAPE_PIN_FAMILIES, path)
+                    else:
+                        self.assertEqual(named_family, expected_family, path)
+                seen.extend(paths)
         self.assertEqual(len(seen), len(set(seen)))
 
     def test_each_icon_draws_its_pinned_artwork(self):

@@ -5,6 +5,102 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Split the mimetypes shape-pin registry into per-group modules mirroring the icon series (planned 2026-11-24 by the organize role; queued after the two Flatpak icon entries, which edit the same file) — done 2026-11-24 by the feature role
+
+**Recorded 2026-11-24 by the feature role, on landing.** The plan's
+counts and lists predate the entries queued ahead of it: the registry it
+splits held 189 pins across 63 mimetype icons, not 188 across 61, because
+the two Flatpak entries and the Ogg entry landed after the lists were
+drafted — `application-vnd.flatpak.ref`, `application-vnd.flatpak.repo`
+and `application-ogg` went to `archives.py` and `media.py`, and
+`text-x-script` and `x-office-address-book` (page-backed documents the
+lists do not name) went to `documents.py`. The "geometry tests stay
+untouched" anchor did not hold either: `test_each_family_registry_names_its_files_once_in_its_family`
+parses `shape_pins/<family>.py` as a file for every family in
+`SHAPE_PIN_FAMILIES`, so the guard now visits every `.py` in a family
+package directory when the family is one (its dedupe and family-naming
+checks unchanged); that test is added to the files-touched list.
+Everything else moved verbatim. The "largest module at most about 600
+lines" criterion reads as no new outlier beside the two the entry itself
+exempts (`devices.py` 600 and the watched, unsplit `theme_inventory.py`,
+now 768): the split's largest new module is `archives.py` at 523.
+
+
+
+**Goal.** `tests/support/icon/shape_pins/mimetypes.py` holds 1,792
+lines — about twelve times the project's ~146-line median module —
+while its sibling family modules (`actions.py` 36, `places.py` 138,
+`devices.py` 600) each stay readable in one sitting. The file is one
+`PINS` dict literal pinning 188 shipped files across 61 mimetype
+icons, and every icon feature appends its three sizes to it: the six
+icon commits landed on 2026-11-24 alone each touched it, and the two
+queued Flatpak entries will too. An append now lands inside one
+correct but unreadable dict, and a merge to the file conflicts with
+whichever icon entry is in flight — this is the registry-side twin of
+the accreted invariants row the organize role split on 2026-11-24
+(lesson L12). This entry must not start before both Flatpak icon
+entries above have landed: they edit the exact lines this split moves.
+
+**Approach.** Turn `shape_pins/mimetypes.py` into a `mimetypes/`
+subpackage of per-group pin modules, the same way the family modules
+mirror the shipped tree's family directories. Move each icon's three
+size entries verbatim into the group module for its series; the
+groups follow the series the icon plans and the invariants register
+already name:
+
+- `documents.py` — the page-backed documents (`text-x-generic`,
+  `text-x-generic-template`, `x-office-*`, `font-x-generic`,
+  `text-html`, `application-pdf`, `application-json`,
+  `application-x-mimearchive`, `application-epub+zip`,
+  `application-x-gettext-translation`, `application-x-desktop`),
+- `executables.py` — scripts, executables and zero-data files
+  (`application-x-shellscript`, `application-x-perl`,
+  `application-x-python-bytecode`, `application-x-executable`,
+  `application-octet-stream`, `application-x-core`,
+  `application-x-zerosize`, `application-x-trash`, `unknown`),
+- `archives.py` — archives and packages (`application-zip`,
+  `application-gzip`, `application-x-{tar,cpio,ms-wim}` and the
+  compressed-tar family, `application-x-7z-compressed`,
+  `application-x-arj`, `application-vnd.{rar,squashfs,appimage,snap,`
+  `debian.binary-package,android.package-archive}`, `package-x-generic`,
+  `application-x-{bittorrent,nzb,openzim}`),
+- `media.py` — `audio-*`, `image-x-generic`, `video-x-generic`,
+  `internet-mail`,
+- `certificates.py` — `application-pgp-keys`,
+  `application-pgp-signature`, `application-pkcs12`,
+  `application-pkix-{cert,crl}`, `application-vnd.iccprofile`,
+- `disks.py` — `application-vnd.efi.iso`, `application-x-qemu-disk`,
+  `application-vnd.sqlite3`, `application-x-sharedlib`.
+
+Each group module exports its own `PINS` dict;
+`mimetypes/__init__.py` merges them into the family `PINS` exactly as
+`shape_pins/__init__.py` merges the families, so
+`from support.icon.shape_pins.mimetypes import PINS` and the merged
+`ICON_SHAPES` keep working unchanged. No pin tuple, no key and no
+import of `_shared` changes. Files touched:
+`tests/support/icon/shape_pins/mimetypes.py` (replaced by the
+subpackage), `tests/support/icon/shape_pins/__init__.py` (docstring
+only if it names the layout). No production file changes; the
+geometry tests in `test_icon_theme_geometry` are the acceptance
+harness and stay untouched. `tests/support/icon/theme_inventory.py`
+(752 lines, about five times the median) is watched, not split: it is
+the same single-registry shape but its per-icon entries are short, and
+this entry keeps to the one clear outlier.
+
+**Acceptance criteria.**
+
+- Every pin moves verbatim: a script check shows all 188 pinned paths
+  and their tuples present in the new package, and
+  `python3 -c "from support.icon.shape_pins import ICON_SHAPES"`
+  yields the same dict content as before the split (compare against a
+  pre-split dump saved in the run's scratch).
+- The two Flatpak icon entries have landed before this entry starts.
+- No test file edits; `make check CHECK_TESTS='test_icon_theme
+  test_icon_theme_geometry'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+- The largest module under `tests/support/icon/` is at most about 600
+  lines (`devices.py`, whose own split this entry does not decide).
+
 ### Platinum icon theme: draw FLAC audio with an original `audio-flac` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — retired 2026-11-24 by the plan role
 
 **Retired 2026-11-24 by plan: duplicate of the same-titled `audio-flac` entry that waits in `## Planned`.** This copy was misfiled into `## Done` by an end-of-file append instead of the end of `## Planned`; the live entry in `## Planned` carries the work.
