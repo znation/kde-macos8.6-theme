@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import os
-import shutil
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from support import reference_image  # noqa: E402
+from support.decode_cache_fixtures import IsolatedDecodeCacheHome
 from support.symlink_fixtures import symlinked_repo
 from tools.png.write import encode_png, encode_rgba_png  # noqa: E402
 
@@ -44,25 +44,7 @@ def _spy_on_read_png():
     )
 
 
-class _IsolatedDecodeCache:
-    """Point the cross-process decode cache at a fresh temp dir per test.
-
-    ``read_reference`` stores decodes under the XDG cache home; a test must
-    neither leave entries in the user's cache nor see an entry a previous
-    test (or run) wrote for the same content and shape, which would skip the
-    decode a test counts.
-    """
-
-    def setUp(self):
-        cache_home = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, cache_home, True)
-        patcher = mock.patch.dict(os.environ, {"XDG_CACHE_HOME": cache_home})
-        patcher.start()
-        self.addCleanup(patcher.stop)
-        super().setUp()
-
-
-class TestReadReferenceCache(_IsolatedDecodeCache, unittest.TestCase):
+class TestReadReferenceCache(IsolatedDecodeCacheHome, unittest.TestCase):
     def test_a_second_read_reuses_the_first_decode(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = _write_reference(tmp)
@@ -280,7 +262,8 @@ class TestReadReferenceCache(_IsolatedDecodeCache, unittest.TestCase):
         self.assertIsInstance(first_error, reference_image.png.PngError)
 
 
-class TestReadReferenceContainment(_IsolatedDecodeCache, unittest.TestCase):
+class TestReadReferenceContainment(
+        IsolatedDecodeCacheHome, unittest.TestCase):
     """``read_reference`` refuses a screenshot symlink that escapes the repository.
 
     A reference screenshot path is contributor-supplied, and a checked-in
@@ -322,7 +305,8 @@ class TestReadReferenceContainment(_IsolatedDecodeCache, unittest.TestCase):
         self.assertIn("resolves outside", str(caught.exception))
 
 
-class TestReferenceScreenshotMixin(_IsolatedDecodeCache, unittest.TestCase):
+class TestReferenceScreenshotMixin(
+        IsolatedDecodeCacheHome, unittest.TestCase):
     """The mixin forwards its ``MAX_ROWS`` and ``MAX_COLS`` to the decode.
 
     ``MAX_ROWS`` and ``MAX_COLS`` bound the decode of a large Git LFS

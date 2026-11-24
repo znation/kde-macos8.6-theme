@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import os
-import shutil
 import tempfile
 import unittest
 from unittest import mock
 
 from support import reference_decode_cache
+from support.decode_cache_fixtures import IsolatedDecodeCacheHome
 from tools import png
 from tools.png.write import encode_png, encode_rgba_png  # noqa: E402
 
@@ -67,19 +67,7 @@ def _age_past_max_age(path):
     os.utime(path, (old, old))
 
 
-class _FreshCacheHome:
-    """Point the decode cache at a fresh, empty XDG cache home per test."""
-
-    def setUp(self):
-        cache_home = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, cache_home, True)
-        patcher = mock.patch.dict(os.environ, {"XDG_CACHE_HOME": cache_home})
-        patcher.start()
-        self.addCleanup(patcher.stop)
-        super().setUp()
-
-
-class TestLoad(_FreshCacheHome, unittest.TestCase):
+class TestLoad(IsolatedDecodeCacheHome, unittest.TestCase):
     """``load`` returns exactly what a fresh decode of the shape produces."""
 
     def test_a_second_load_serves_the_planes_without_decoding(self):
@@ -133,7 +121,7 @@ class TestLoad(_FreshCacheHome, unittest.TestCase):
         self.assertEqual(one.rgb, three.rgb)
 
 
-class TestKey(_FreshCacheHome, unittest.TestCase):
+class TestKey(IsolatedDecodeCacheHome, unittest.TestCase):
     """The entry key is the PNG's content, not its path."""
 
     def test_changed_content_redecodes_the_same_path(self):
@@ -165,7 +153,7 @@ class TestKey(_FreshCacheHome, unittest.TestCase):
         self.assertEqual((2, 2), (served.width, served.height))
 
 
-class TestBadStates(_FreshCacheHome, unittest.TestCase):
+class TestBadStates(IsolatedDecodeCacheHome, unittest.TestCase):
     """A broken cache can only cost a decode, never change the answer."""
 
     def test_a_corrupt_entry_falls_back_to_a_fresh_decode(self):
