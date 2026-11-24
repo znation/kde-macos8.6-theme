@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original template illustration pending user-approved artwork. -->
+<!-- Mac OS 8.6 "Platinum" template document icon.
+
+     Our own 32x32 drawing in the Platinum palette: the generic document's
+     page holding a stencil plate — a #000000 frame around a #DDDDDD field
+     with a #FFFFFF cut notch centred on each of the frame's four edges.
+     Drawn for this theme, not traced from Apple's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M6 3 h14 l6 6 v20 H6 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M7 4 h12 l6 6 v18 H7 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M19 4 L25 4 L25 10 Z" fill="#DDDDDD"/>
+  <!-- Stencil plate: black frame. -->
+  <rect x="9" y="13" width="14" height="11" fill="#000000"/>
+  <!-- Stencil plate: grey field. -->
+  <rect x="10" y="14" width="12" height="9" fill="#DDDDDD"/>
+  <!-- Cut notches, one centred on each frame edge. -->
+  <rect x="15" y="13" width="3" height="1" fill="#FFFFFF"/>
+  <rect x="15" y="23" width="3" height="1" fill="#FFFFFF"/>
+  <rect x="9" y="17" width="1" height="3" fill="#FFFFFF"/>
+  <rect x="22" y="17" width="1" height="3" fill="#FFFFFF"/>
+</svg>

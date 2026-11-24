@@ -46,6 +46,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `x-office-presentation` icon at all three sizes (our own drawing of the
 # generic document's page holding a slide; the name is the `generic-icon`
 # of the presentation MIME types in the installed shared MIME database),
+# the template
+# `text-x-generic-template` icon at all three sizes (our own drawing of
+# the generic document's page holding a stencil plate; the name is the
+# `generic-icon` of the template MIME types in the installed shared MIME
+# database),
 # the web-document
 # `text-html` icon at all three sizes (our own drawing of a window
 # holding a globe), the flash-media `media-flash`
@@ -87,6 +92,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "text-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "text-x-generic.svg"),
+    os.path.join("32x32", "mimetypes", "text-x-generic-template.svg"),
+    os.path.join("16x16", "mimetypes", "text-x-generic-template.svg"),
+    os.path.join("22x22", "mimetypes", "text-x-generic-template.svg"),
     os.path.join("32x32", "mimetypes", "application-x-executable.svg"),
     os.path.join("16x16", "mimetypes", "application-x-executable.svg"),
     os.path.join("22x22", "mimetypes", "application-x-executable.svg"),

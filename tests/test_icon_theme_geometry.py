@@ -147,6 +147,29 @@ class TestIconGeometry(unittest.TestCase):
             )
             self.assertEqual(spreadsheet[:3], generic, size)
 
+    def test_the_template_document_shares_the_generic_page(self):
+        # The template document is the generic document's page (its first
+        # three drawing elements: the black outline, the white page and the
+        # folded corner) holding a stencil plate in place of the generic's
+        # text lines, so at each size the shipped
+        # `text-x-generic-template.svg`'s first three drawing elements must
+        # be the shipped `text-x-generic.svg`'s. Compare the files, so a
+        # drift in either file fails both.
+        for size in ("16x16", "22x22", "32x32"):
+            generic = _drawing_elements(
+                parse_svg(
+                    os.path.join(PACKAGE, size, "mimetypes", "text-x-generic.svg")
+                )
+            )[:3]
+            template = _drawing_elements(
+                parse_svg(
+                    os.path.join(
+                        PACKAGE, size, "mimetypes", "text-x-generic-template.svg"
+                    )
+                )
+            )
+            self.assertEqual(template[:3], generic, size)
+
     def test_the_script_document_shares_the_generic_page(self):
         # The script document is the generic document's page (its first
         # three drawing elements: the black outline, the white page and the
