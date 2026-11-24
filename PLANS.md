@@ -133,17 +133,19 @@ and the drawing is this theme's own choice.
 - `tests/support/icon/shape_pins/mimetypes.py`: pin the three
   drawings in `PINS` from the lists above (the `*_PAGE_*` page tuple,
   then the five e bars and notches).
-- `docs/invariants.md`: in the row anchored to
-  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
-  provenance of `application-epub+zip` in the last cell, as the
-  `application-pgp-keys` sentence there does.
+- `docs/invariants.md`: a new `## icons` row after the
+  `application-x-openzim` row, its guarantee pinning
+  `tests/test_icon_theme_geometry.py::TestIconGeometry` and its last
+  cell recording the provenance of `application-epub+zip` as the
+  `application-pgp-keys` row does.
 - `docs/installing.md`: add the e-book icon to the sentence listing
   the icon theme's placeholder illustrations and their sizes.
 - The waiting openzim entry (and the gettext-translation and
   pkix-crl entries while they still wait) edits the same inventory
-  block, `PINS` registry, invariants row and installing.md sentence;
-  this entry sits behind them in the queue, so rebase on whatever
-  they have landed when picking this up, keeping one row per icon.
+  block, `PINS` registry, invariants table and installing.md
+  sentence; this entry sits behind them in the queue, so rebase on
+  whatever they have landed when picking this up, keeping one row
+  per icon.
 
 **Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
 `tests/support/icon/theme_inventory.py`,
@@ -286,10 +288,11 @@ choice.
   drawings in `PINS` from the lists above (the three shared page
   elements in document order, then the shackle top bar, shackle
   legs, body frame, body face and keyhole).
-- `docs/invariants.md`: in the row anchored to
-  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
-  provenance of `application-pkcs12` in the last cell, as the
-  `application-vnd.squashfs` sentence there does.
+- `docs/invariants.md`: a new `## icons` row after the
+  `application-x-openzim` row, its guarantee pinning
+  `tests/test_icon_theme_geometry.py::TestIconGeometry` and its last
+  cell recording the provenance of `application-pkcs12` as the
+  `application-vnd.squashfs` row does.
 - `docs/installing.md`: add the PKCS#12 certificate-bundle icon to
   the sentence listing the icon theme's placeholder illustrations
   and their sizes (the one naming the `application-vnd.squashfs`
@@ -297,7 +300,7 @@ choice.
 - The queued mimetype-icon entries ahead of this one (the gettext
   catalog, the offline wiki archive, the Snap package and the
   e-book) edit the same inventory block, `PINS` registry, invariants
-  row and installing.md sentence; this entry sits behind them in the
+  table and installing.md sentence; this entry sits behind them in the
   queue, so rebase on whatever they have landed when picking this
   up, keeping one row per icon.
 
