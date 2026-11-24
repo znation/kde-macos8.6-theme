@@ -395,6 +395,27 @@ ICON_SHAPES = {
         _shape("rect", x="3", y="7", width="16", height="12", fill="#FFFFFF"),
         _shape("rect", x="10", y="7", width="2", height="12", fill="#999999"),
     ),
+    os.path.join("32x32", "devices", "input-mouse.svg"): (
+        _shape("rect", x="7", y="5", width="18", height="22", rx="9", fill="#000000"),
+        _shape("rect", x="8", y="6", width="16", height="20", rx="8", fill="#DDDDDD"),
+        _shape("rect", x="8", y="6", width="16", height="7", fill="#FFFFFF"),
+        _shape("rect", x="15", y="6", width="2", height="7", fill="#000000"),
+        _shape("rect", x="14", y="13", width="4", height="7", rx="2", fill="#000000"),
+    ),
+    os.path.join("16x16", "devices", "input-mouse.svg"): (
+        _shape("rect", x="3", y="2", width="10", height="12", rx="5", fill="#000000"),
+        _shape("rect", x="4", y="3", width="8", height="10", rx="4", fill="#DDDDDD"),
+        _shape("rect", x="4", y="3", width="8", height="3", fill="#FFFFFF"),
+        _shape("rect", x="7", y="3", width="2", height="3", fill="#000000"),
+        _shape("rect", x="7", y="7", width="2", height="3", rx="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "devices", "input-mouse.svg"): (
+        _shape("rect", x="5", y="3", width="12", height="16", rx="6", fill="#000000"),
+        _shape("rect", x="6", y="4", width="10", height="14", rx="5", fill="#DDDDDD"),
+        _shape("rect", x="6", y="4", width="10", height="5", fill="#FFFFFF"),
+        _shape("rect", x="10", y="4", width="2", height="5", fill="#000000"),
+        _shape("rect", x="10", y="10", width="2", height="4", rx="1", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"): (
         _shape("path", d="M6 3 h14 l6 6 v20 H6 Z", fill="#000000"),
         _shape("path", d="M7 4 h12 l6 6 v18 H7 Z", fill="#FFFFFF"),

@@ -75,7 +75,10 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # (our own drawing of a monitor over a desktop case; the name is a
 # KDE-required value read from `libKF6Solid.so.6`), the
 # `media-optical` optical disc at all three sizes (our own drawing of a
-# CD or DVD: a disc with white glints and a hub),
+# CD or DVD: a disc with white glints and a hub), the mouse
+# `input-mouse` icon at all three sizes (our own drawing of a rounded
+# mouse body with a two-button band and a scroll wheel; the name is the
+# input-device icon name KDE builds from the udev subsystem),
 # the kicker logo the menu bar's top-left button shows at the two panel sizes,
 # and the `go-next-symbolic` submenu arrow the reference's open Apple menu
 # draws.
@@ -98,6 +101,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "computer.svg"),
     os.path.join("16x16", "devices", "computer.svg"),
     os.path.join("22x22", "devices", "computer.svg"),
+    os.path.join("32x32", "devices", "input-mouse.svg"),
+    os.path.join("16x16", "devices", "input-mouse.svg"),
+    os.path.join("22x22", "devices", "input-mouse.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "text-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "text-x-generic.svg"),

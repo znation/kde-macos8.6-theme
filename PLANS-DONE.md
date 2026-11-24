@@ -5,6 +5,97 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw mice with an original `input-mouse` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** When KDE lists an input device — the `input-` device-icon
+family KDE builds from the udev subsystem (`ID_INPUT_MOUSE` is the udev
+property of a mouse; the installed `libKF6Solid.so.6.13.0` carries the
+bare `input` stem) — the icon lookup falls through to Breeze today.
+Ship one original placeholder icon, `input-mouse`, at 16x16, 22x22 and
+32x32 in the theme's `devices` family.
+
+Planning-time probe with `kiconfinder6` under scratch `XDG_DATA_HOME`,
+`XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+`kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, with `DISPLAY`
+and `WAYLAND_DISPLAY` unset and `QT_QPA_PLATFORM=offscreen`:
+`input-mouse` resolved to `:/icons/breeze/devices/64/input-mouse.svg`
+while the shipped `x-office-document` resolved to this theme's 32x32
+file. No repo file ships or mentions `input-mouse` (grep across
+`PLANS.md`, `PLANS-DONE.md`, `PLACEHOLDERS.md`, `docs/`, the theme tree
+and `tests/support/icon/` finds nothing); no Planned entry covers it.
+Out of scope: ship no alias files and nothing but `input-mouse`;
+`input-keyboard` waits for its own plan.
+
+**Approach.**
+
+- Add `devices/input-mouse.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original mouse illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a mouse: a black-outlined rounded
+  body with a grey face, a white two-button band across the top, a
+  black split between the buttons and a black scroll wheel below the
+  band. Each file holds exactly these five `rect` elements in
+  document order, written `x,y width×height` with its `rx` and fill:
+  - 32x32: `7,5 18×22 rx=9 #000000`; `8,6 16×20 rx=8 #DDDDDD`; `8,6
+    16×7 #FFFFFF`; `15,6 2×7 #000000`; `14,13 4×7 rx=2 #000000`.
+  - 22x22: `5,3 12×16 rx=6 #000000`; `6,4 10×14 rx=5 #DDDDDD`; `6,4
+    10×5 #FFFFFF`; `10,4 2×5 #000000`; `10,10 2×4 rx=1 #000000`.
+  - 16x16: `3,2 10×12 rx=5 #000000`; `4,3 8×10 rx=4 #DDDDDD`; `4,3
+    8×3 #FFFFFF`; `7,3 2×3 #000000`; `7,7 2×3 rx=1 #000000`.
+- `PLACEHOLDERS.md`: one row per file beside that size's device rows,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `devices` paths, name the mouse icon
+  in the inventory comment above them, and say in the comment that the
+  name is the input-device icon name KDE builds from the udev
+  subsystem.
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
+  `ICON_SHAPES` from the element lists above (each pin carries the
+  rect's `rx`, so dropping a radius fails the pin).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `input-mouse` in the last cell: no reference pixels
+  were used, the name is the input-device icon name KDE builds as
+  `input-` + the udev subsystem (the installed `libKF6Solid.so.6.13.0`
+  contains the bare `input` stem and the udev property
+  `ID_INPUT_MOUSE` names the mouse), and the rounded-body-and-wheel
+  drawing is this theme's own choice.
+- `docs/installing.md`: add the mouse icon to the sentence listing the
+  device placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the five rectangles listed for that size in order, carries a
+  placeholder marker and has a `PLACEHOLDERS.md` row; the existing
+  inventory, palette, geometry and placeholder-register tests cover
+  all three.
+- Changing a rectangle's position, size, radius or fill, or the
+  element order, in one file makes the geometry test fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling removes
+  them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into
+  a scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME`
+  (with `[Icons] Theme=org.macos8.desktop` in `kdeglobals`),
+  `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY` and
+  `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `input-mouse` resolves to the theme's new 32x32 file, and
+  `x-office-document` and `text-x-generic` stay on their shipped theme
+  files. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make
+  check` after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw the desktop computer with an original `computer` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** The Computer place — the machine root Dolphin's places panel and
