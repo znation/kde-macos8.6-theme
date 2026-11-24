@@ -208,6 +208,89 @@ only), `tests/support/render/gates.py`, `tests/test_render_window_rules.py`,
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw removable drives with an original `drive-removable-media` icon (planned 2026-11-24 by the plan role; independent of the waiting regroup, invariants, staging and inactive-dialog plans)
+
+**Goal.** The icon theme's only device icon is `drive-harddisk`, so a USB
+stick on the desktop or in the file manager's Places list is drawn with
+Breeze's art beside the Platinum hard disk. Ship one original placeholder
+icon, `drive-removable-media`, at 16x16, 22x22 and 32x32. The installed
+`libKF6Solid.so.6` (6.13.0) contains the names `drive-removable-media`,
+`drive-removable-media-usb` and `drive-removable-media-usb-pendrive`. One
+name covers all three: planning-time probe with `kiconfinder6`, with a copy
+of the theme selected through scratch XDG homes, resolved the first two to
+Breeze; after a file named `drive-removable-media.svg` was added to the
+copy's `32x32/devices`, all three resolved to that file (the icon loader
+drops dash suffixes within a theme before trying the inherited one). Do not
+ship alias files for the two longer names.
+
+Optical, floppy and flash media icons are out of scope; so are the other
+names the theme inherits from Breeze.
+
+**Approach.**
+
+- Add `devices/drive-removable-media.svg` under `16x16`, `22x22` and `32x32`
+  of `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original removable-drive illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette, not
+  traced from anyone's artwork, and a root with matching `width`, `height`
+  and `viewBox`. The art is the matching size's hard-disk body and bevel
+  with a media slot (black, white lower lip) and a black eject button in
+  place of the label plate and light. Each file holds these nine `rect`
+  elements in order, written `x,y width×height fill`:
+  - 32x32: `3,8 26×17 #000000`; `4,9 24×15 #DDDDDD`; `4,9 24×2 #FFFFFF`;
+    `4,9 1×15 #FFFFFF`; `4,22 24×2 #999999`; `27,9 1×15 #999999`;
+    `7,13 18×2 #000000`; `7,15 18×1 #FFFFFF`; `21,18 4×2 #000000`.
+  - 22x22: `2,4 18×15 #000000`; `3,5 16×13 #DDDDDD`; `3,5 16×2 #FFFFFF`;
+    `3,5 1×13 #FFFFFF`; `3,17 16×1 #999999`; `18,5 1×13 #999999`;
+    `5,9 12×2 #000000`; `5,11 12×1 #FFFFFF`; `13,14 4×1 #000000`.
+  - 16x16: `1,3 14×10 #000000`; `2,4 12×8 #DDDDDD`; `2,4 12×1 #FFFFFF`;
+    `2,4 1×8 #FFFFFF`; `2,11 12×1 #999999`; `13,4 1×8 #999999`;
+    `4,7 8×1 #000000`; `4,8 8×1 #FFFFFF`; `9,10 3×1 #000000`.
+- `PLACEHOLDERS.md`: one row per file beside that size's `drive-harddisk`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` after the hard-disk paths, and name the removable drive in
+  the comment above it.
+- `tests/test_icon_theme_geometry.py`: add the three `ICON_SHAPES` entries
+  from the lists above. Add one test that each size's removable drive starts
+  with the same six drawing elements (body and bevel) as that size's
+  `drive-harddisk.svg`, comparing the shipped files.
+- `docs/invariants.md`: in the icon-theme row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, say the
+  `drive-removable-media` icon shares the hard disk's body and bevel, and
+  record its provenance in the row's last cell: no reference pixels were
+  used, the name is a KDE-required value read from `libKF6Solid.so.6`, and
+  the drawing is this theme's own choice.
+- `docs/installing.md`: add the removable-drive icon to the sentence listing
+  the shipped placeholder illustrations.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the nine rectangles listed for that size, carries a placeholder marker and
+  has a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing any of the first six rectangles in one removable-drive file makes
+  the body-sharing test fail.
+- Installing into a scratch root with
+  `INSTALL_PACKAGES=icon-theme` puts the three files in the installed theme,
+  and uninstalling removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. The three Solid names all resolve to the
+  theme's `drive-removable-media.svg`. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
