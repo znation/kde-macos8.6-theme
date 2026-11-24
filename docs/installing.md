@@ -190,6 +190,8 @@ name at the same three sizes), a certificate icon for X.509 certificate
 files (the `application-pkix-cert` name at the same three sizes), an
 Android-package icon for Android package files (the
 `application-vnd.android.package-archive` name at the same three sizes), a
+WIM disk-image icon for WIM and split WIM disk-image files (the
+`application-x-ms-wim` name at the same three sizes), a
 desktop-launcher icon for launcher files (the
 `application-x-desktop` name at the same three sizes), a BitTorrent-file
 icon for BitTorrent seed files (the `application-x-bittorrent` name at the

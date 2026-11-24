@@ -103,6 +103,41 @@ PINS = {
         _shape("rect", x="6", y="10", width="10", height="2", fill="#000000"),
         _shape("rect", x="6", y="14", width="10", height="2", fill="#000000"),
     ),
+    # The WIM disk-image item icon KDE draws for `application/x-ms-wim`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/x-ms-wim` type, which has no `generic-icon`,
+    # no aliases and no per-type fallback, so one file covers exactly its
+    # own name); the drawing shares the program window and holds a black
+    # split image plate, a plate with notched corners cut by a white
+    # vertical gap (the split-volume mark for the `*.wim` and split
+    # `*.swm` globs the type owns).
+    os.path.join("32x32", "mimetypes", "application-x-ms-wim.svg"): (
+        *_PROGRAM_WINDOW_32,
+        _shape("rect", x="7", y="14", width="19", height="9", fill="#000000"),
+        _shape("rect", x="7", y="14", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="25", y="14", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="7", y="22", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="25", y="22", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="16", y="14", width="1", height="9", fill="#FFFFFF"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-x-ms-wim.svg"): (
+        *_PROGRAM_WINDOW_16,
+        _shape("rect", x="3", y="8", width="10", height="4", fill="#000000"),
+        _shape("rect", x="3", y="8", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="12", y="8", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="3", y="11", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="12", y="11", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="8", y="8", width="1", height="4", fill="#FFFFFF"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-x-ms-wim.svg"): (
+        *_PROGRAM_WINDOW_22,
+        _shape("rect", x="4", y="9", width="14", height="7", fill="#000000"),
+        _shape("rect", x="4", y="9", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="17", y="9", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="4", y="15", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="17", y="15", width="1", height="1", fill="#FFFFFF"),
+        _shape("rect", x="11", y="9", width="1", height="7", fill="#FFFFFF"),
+    ),
     # The Python-bytecode item icon KDE draws for
     # `application/x-python-bytecode` items (the type-spelled icon name of
     # the installed shared MIME database's `application/x-python-bytecode`

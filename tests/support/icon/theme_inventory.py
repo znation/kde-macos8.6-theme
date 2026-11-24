@@ -310,6 +310,15 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-sharedlib.svg"),
     os.path.join("16x16", "mimetypes", "application-x-sharedlib.svg"),
     os.path.join("22x22", "mimetypes", "application-x-sharedlib.svg"),
+    # The WIM disk-image `application-x-ms-wim` icon at all three sizes (our
+    # own drawing of the program window with a black split image plate; the
+    # name is the type-spelled icon name of the `application/x-ms-wim` MIME
+    # type in the installed shared MIME database, which has no `generic-icon`,
+    # no aliases and no per-type fallback, and at the exact name Breeze's own
+    # file beats the theme's otherwise-missing fallback).
+    os.path.join("32x32", "mimetypes", "application-x-ms-wim.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-ms-wim.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-ms-wim.svg"),
     # The Python-bytecode `application-x-python-bytecode` icon at all three
     # sizes (our own drawing of that window holding a black chip; the name
     # is the type-spelled `application/x-python-bytecode` MIME type in the
