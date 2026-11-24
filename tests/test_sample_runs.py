@@ -7,7 +7,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
-from support.png_fixtures import control_named_png, make_png, rgb_image, solid_rgb
+from support.png_fixtures import make_png, rgb_image, solid_rgb
 from support.symlink_fixtures import symlinked_repo
 from tools import sample
 
@@ -248,11 +248,7 @@ class TestSampleRuns(CliTestCase):
         self.assertEqual(escaped.stdout, "")
 
     def test_script_control_path_round_trips_as_json(self):
-        with control_named_png() as path:
-            result = self._run_script(path, "0", "0", "--runs", "--alpha", "--json")
-        self._assert_success(result)
-        self.assertEqual(json.loads(result.stdout)["image"], path)
-        self.assertNotIn("\x1b", result.stdout)
+        self.assert_script_json_round_trips_control_path("--runs", "--alpha")
 
 
 if __name__ == "__main__":

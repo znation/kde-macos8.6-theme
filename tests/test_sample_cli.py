@@ -78,11 +78,7 @@ class TestSampleCli(CliTestCase):
                 self.assertEqual(json.loads(result.stdout), expected)
 
     def test_json_script_output_round_trips_control_path_safely(self):
-        with control_named_png() as path:
-            result = self._run_script(path, "0", "0", "--json")
-        self._assert_success(result)
-        self.assertEqual(json.loads(result.stdout)["image"], path)
-        self.assertNotIn("\x1b", result.stdout)
+        self.assert_script_json_round_trips_control_path()
 
     def test_reports_rgb_and_hex(self):
         path = self._image()

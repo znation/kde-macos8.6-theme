@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import os
 import subprocess
 import sys
@@ -24,6 +25,7 @@ from unittest import mock
 from support.process_assertions import assert_succeeded
 from support.executable_stubs import write_executable
 from support.repo_root import ROOT
+from support.png_fixtures import control_named_png
 from support.theme_install import run_captured
 from support.tmp_dir import make_tmp_dir
 
@@ -143,6 +145,22 @@ class CliTestCase(unittest.TestCase):
         """
         script = ROOT / "tools" / f"{self.PROGRAM}.py"
         return run_captured([sys.executable, str(script), *args])
+
+    def assert_script_json_round_trips_control_path(self, *flags: str) -> None:
+        """Pin the real script's ``--json`` output on a control-named PNG.
+
+        The three sample suites with a direct-script control-path test each
+        cover the script entry point once with a PNG whose name carries a
+        control character: the run must succeed and the ``image`` field must
+        round-trip the literal path while stdout carries no raw ESC byte.
+        *flags* are the tool-specific arguments between the coordinate pair
+        and ``--json``.
+        """
+        with control_named_png() as path:
+            result = self._run_script(path, "0", "0", *flags, "--json")
+        self._assert_success(result)
+        self.assertEqual(json.loads(result.stdout)["image"], path)
+        self.assertNotIn("\x1b", result.stdout)
 
     def _tmp_dir(self) -> Path:
         """Return a fresh temp dir that is removed when the test ends."""
