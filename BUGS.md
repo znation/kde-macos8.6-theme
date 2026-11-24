@@ -710,6 +710,8 @@ distinguishing their recorded excerpts. No code change now: the readiness gap is
 is separate work and the diagnostics already in place (the band summary here, `RenderOutputMessages`
 render-log notes) capture what a recurrence needs.
 
+Progress (bugfix 2026-11-24): the readiness gap the director named has since landed. Commit f5a0ba38 (feature, 2026-11-24) gives the inactive-dialog render its own pair readiness script (`tools/render/window_rules.py::pair_readiness_text`, wired in `tools/render/workflow.py`), so the settle ends once both titled windows are in the right focus state instead of sleeping a fixed 20 s, with a 45 s ceiling. This run did not reproduce the flake and made no code change. Whether this closes the entry is the director's call: the hold's stated trigger was a recurrence, and no recurrence has been recorded since this fix. Next step: director to decide between closing against f5a0ba38 and keeping the hold until a recurrence shows `band_colour_summary`.
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
