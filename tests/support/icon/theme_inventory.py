@@ -381,6 +381,16 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-pkix-cert.svg"),
     os.path.join("16x16", "mimetypes", "application-pkix-cert.svg"),
     os.path.join("22x22", "mimetypes", "application-pkix-cert.svg"),
+    # The NZB usenet-index `application-x-nzb` icon at all three sizes
+    # (our own drawing of the generic document's page with index dot and
+    # grey segment-bar groups; the name is the type-spelled icon name of
+    # the `application/x-nzb` MIME type, whose MIME-database entry has no
+    # `generic-icon`, no aliases and no per-type fallback, so one file
+    # covers the exact name, where Breeze's own file otherwise beats the
+    # theme's missing fallback).
+    os.path.join("32x32", "mimetypes", "application-x-nzb.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-nzb.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-nzb.svg"),
     # The desktop-launcher `application-x-desktop` icon at all three sizes
     # (our own drawing of the generic document's page with a small window;
     # the name is the type-spelled icon name of the `application/x-desktop`

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original NZB usenet-index illustration pending user-approved artwork. -->
+<!-- Platinum NZB usenet-index icon, 32x32.
+
+     Our own 32x32 drawing in the Platinum palette: the document drawing
+     (a #FFFFFF page with a 1px #000000 outline and a #DDDDDD folded
+     top-right corner) with the text lines replaced by index dot and
+     grey segment-bar groups, one group per article segment cluster an
+     NZB file lists. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M6 3 h14 l6 6 v20 H6 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M7 4 h12 l6 6 v18 H7 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M19 4 L25 4 L25 10 Z" fill="#DDDDDD"/>
+  <!-- Index dot and segment bars, whole-pixel cells. -->
+  <rect x="9" y="10" width="2" height="2" fill="#000000"/>
+  <rect x="13" y="10" width="10" height="2" fill="#999999"/>
+  <rect x="13" y="13" width="7" height="2" fill="#999999"/>
+  <rect x="9" y="16" width="2" height="2" fill="#000000"/>
+  <rect x="13" y="16" width="10" height="2" fill="#999999"/>
+  <rect x="13" y="19" width="7" height="2" fill="#999999"/>
+  <rect x="9" y="22" width="2" height="2" fill="#000000"/>
+  <rect x="13" y="22" width="10" height="2" fill="#999999"/>
+  <rect x="13" y="25" width="7" height="2" fill="#999999"/>
+</svg>

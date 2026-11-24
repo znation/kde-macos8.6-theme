@@ -1243,6 +1243,48 @@ PINS = {
         _shape("rect", x="13", y="13", width="1", height="1", fill="#000000"),
         _shape("rect", x="12", y="14", width="1", height="1", fill="#000000"),
     ),
+    # The NZB usenet-index item icon KDE draws for `application/x-nzb`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/x-nzb` type, which has no `generic-icon`,
+    # no `<icon>` element, no aliases and no per-type fallback, so one
+    # file covers exactly its own name); the drawing shares the generic
+    # document's page and holds index-dot-and-segment-bar groups, one
+    # group per article segment cluster an NZB file lists (the black
+    # index dot beside grey segment bars is what separates it from the
+    # JSON document's curly braces and the shell script's `>_` prompt).
+    os.path.join("32x32", "mimetypes", "application-x-nzb.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="9", y="10", width="2", height="2", fill="#000000"),
+        _shape("rect", x="13", y="10", width="10", height="2", fill="#999999"),
+        _shape("rect", x="13", y="13", width="7", height="2", fill="#999999"),
+        _shape("rect", x="9", y="16", width="2", height="2", fill="#000000"),
+        _shape("rect", x="13", y="16", width="10", height="2", fill="#999999"),
+        _shape("rect", x="13", y="19", width="7", height="2", fill="#999999"),
+        _shape("rect", x="9", y="22", width="2", height="2", fill="#000000"),
+        _shape("rect", x="13", y="22", width="10", height="2", fill="#999999"),
+        _shape("rect", x="13", y="25", width="7", height="2", fill="#999999"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-x-nzb.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="5", y="5", width="1", height="1", fill="#000000"),
+        _shape("rect", x="7", y="5", width="4", height="1", fill="#999999"),
+        _shape("rect", x="7", y="7", width="3", height="1", fill="#999999"),
+        _shape("rect", x="5", y="8", width="1", height="1", fill="#000000"),
+        _shape("rect", x="7", y="8", width="4", height="1", fill="#999999"),
+        _shape("rect", x="7", y="10", width="3", height="1", fill="#999999"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-x-nzb.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="7", y="7", width="1", height="1", fill="#000000"),
+        _shape("rect", x="10", y="7", width="6", height="1", fill="#999999"),
+        _shape("rect", x="10", y="9", width="4", height="1", fill="#999999"),
+        _shape("rect", x="7", y="11", width="1", height="1", fill="#000000"),
+        _shape("rect", x="10", y="11", width="6", height="1", fill="#999999"),
+        _shape("rect", x="10", y="13", width="4", height="1", fill="#999999"),
+        _shape("rect", x="7", y="15", width="1", height="1", fill="#000000"),
+        _shape("rect", x="10", y="15", width="6", height="1", fill="#999999"),
+        _shape("rect", x="10", y="17", width="4", height="1", fill="#999999"),
+    ),
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"): (
         _shape("rect", x="3", y="3", width="26", height="26", fill="#000000"),
         _shape("rect", x="4", y="4", width="24", height="24", fill="#DDDDDD"),
