@@ -23,7 +23,11 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.render import gates as render_gates
-from support.render.gates import DiagnosticsRootSteering, Renders
+from support.render.gates import (
+    DiagnosticsRootSteering,
+    FreshRendersState,
+    Renders,
+)
 
 
 @contextlib.contextmanager
@@ -63,35 +67,15 @@ def _stubbed_runner(finish_raises=None):
         yield started, finished
 
 
-class TestRenderBatch(unittest.TestCase):
+class TestRenderBatch(FreshRendersState, unittest.TestCase):
     def setUp(self):
         # The class state is shared with the real gates; swap in a fresh
         # table so the pinned assertions are true whatever ran before this
         # module in the same process, and restore it afterwards.
-        self._saved = (
-            Renders.requested,
-            Renders.directories,
-            Renders.results,
-            Renders.completed,
-            Renders.failure,
-        )
-        Renders.requested = set()
-        Renders.directories = {}
-        Renders.results = {}
-        Renders.completed = False
-        Renders.failure = None
+        self.swap_renders_state_in()
 
     def tearDown(self):
-        # The batch made real scratch directories; sweep them before the
-        # saved table comes back, or every run leaks them into the temp dir.
-        Renders._remove_directories()
-        (
-            Renders.requested,
-            Renders.directories,
-            Renders.results,
-            Renders.completed,
-            Renders.failure,
-        ) = self._saved
+        self.swap_renders_state_back()
 
     def _run_with_stubbed_runner(self, *kinds):
         """Request *kinds* and run the batch with a stubbed process runner.
@@ -326,7 +310,7 @@ class TestRenderBatch(unittest.TestCase):
 
 
 class TestFinishFailurePreservesTheCapture(
-    DiagnosticsRootSteering, unittest.TestCase
+    DiagnosticsRootSteering, FreshRendersState, unittest.TestCase
 ):
     """A batch-finish failure preserves the kind's capture, or says there is none.
 
@@ -337,33 +321,8 @@ class TestFinishFailurePreservesTheCapture(
     ``TMPDIR``.
     """
 
-    def _saved_state(self):
-        saved = (
-            Renders.requested,
-            Renders.directories,
-            Renders.results,
-            Renders.completed,
-            Renders.failure,
-        )
-        Renders.requested = set()
-        Renders.directories = {}
-        Renders.results = {}
-        Renders.completed = False
-        Renders.failure = None
-        return saved
-
-    def _restore_state(self, saved):
-        Renders._remove_directories()
-        (
-            Renders.requested,
-            Renders.directories,
-            Renders.results,
-            Renders.completed,
-            Renders.failure,
-        ) = saved
-
     def test_a_finish_failure_names_the_preserved_copys_path(self):
-        saved = self._saved_state()
+        self.swap_renders_state_in()
         payload = b"\x89PNG capture bytes"
         error = RuntimeError("render batch broke")
 
@@ -393,7 +352,7 @@ class TestFinishFailurePreservesTheCapture(
                 with self.assertRaises(RuntimeError) as raised:
                     Renders._run_all()
         finally:
-            self._restore_state(saved)
+            self.swap_renders_state_back()
         message = str(raised.exception)
         self.assertIn("checkbox", message)
         self.assertIn("capture preserved at", message)
@@ -407,7 +366,7 @@ class TestFinishFailurePreservesTheCapture(
             self.assertEqual(payload, handle.read())
 
     def test_a_finish_failure_without_a_capture_says_so(self):
-        saved = self._saved_state()
+        self.swap_renders_state_in()
         error = subprocess.TimeoutExpired([render_gates.SCRIPT, "capture.png"], 150)
         try:
             Renders.request("checkbox")
@@ -415,7 +374,7 @@ class TestFinishFailurePreservesTheCapture(
                 with self.assertRaises(RuntimeError) as raised:
                     Renders._run_all()
         finally:
-            self._restore_state(saved)
+            self.swap_renders_state_back()
         message = str(raised.exception)
         self.assertIn("checkbox", message)
         self.assertIn("dialog.png", message)

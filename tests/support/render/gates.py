@@ -507,6 +507,46 @@ def _prune_diagnostics(root):
         shutil.rmtree(os.path.join(root, name), ignore_errors=True)
 
 
+class FreshRendersState:
+    """Swap the ``Renders`` class state for a fresh table, and restore it.
+
+    ``Renders`` keeps its bookkeeping as class state shared with the real
+    gates, so a test that drives the batch must swap in a fresh table for
+    the pinned assertions to hold whatever ran before it in the same
+    process, and restore the saved table afterwards. Call
+    :meth:`swap_renders_state_in` where the old code saved and reset (a
+    ``setUp``, or the top of a test) and :meth:`swap_renders_state_back`
+    where it restored (the ``tearDown``, or the ``finally``); the back
+    swap sweeps the fresh table's scratch directories first, or every run
+    leaks them into the temp dir.
+    """
+
+    _RENDERS_FIELDS = (
+        "requested",
+        "directories",
+        "results",
+        "completed",
+        "failure",
+    )
+
+    def swap_renders_state_in(self):
+        """Save the shared bookkeeping and reset it to a fresh table."""
+        self._saved_renders_state = tuple(
+            getattr(Renders, name) for name in self._RENDERS_FIELDS
+        )
+        Renders.requested = set()
+        Renders.directories = {}
+        Renders.results = {}
+        Renders.completed = False
+        Renders.failure = None
+
+    def swap_renders_state_back(self):
+        """Sweep the fresh table's directories, restore the saved state."""
+        Renders._remove_directories()
+        for name, value in zip(self._RENDERS_FIELDS, self._saved_renders_state):
+            setattr(Renders, name, value)
+
+
 class DiagnosticsRootSteering:
     """Give a preservation probe a diagnostics root only it can reach.
 
