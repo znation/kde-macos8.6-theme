@@ -137,7 +137,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `application-vnd.squashfs` icon at all three sizes (the optical disc
 # the media-optical icon draws holding three white tapering bands; the
 # name is the type-spelled icon name of the `application/vnd.squashfs`
-# MIME type in the installed shared MIME database), the flash-media
+# MIME type in the installed shared MIME database), the QCOW disk-image
+# `application-x-qemu-disk` icon at all three sizes (the optical disc
+# the media-optical icon draws holding a white Q; the name is the
+# type-spelled icon name of the `application/x-qemu-disk` MIME type in
+# the installed shared MIME database), the flash-media
 # `media-flash`
 # icon at all three sizes (our own drawing of an upright card standing on
 # its contact pins; the name is a KDE-required value read from
@@ -511,6 +515,15 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-vnd.squashfs.svg"),
     os.path.join("16x16", "mimetypes", "application-vnd.squashfs.svg"),
     os.path.join("22x22", "mimetypes", "application-vnd.squashfs.svg"),
+    # The QCOW disk-image `application-x-qemu-disk` icon at all three sizes
+    # (the optical disc the media-optical icon draws holding a white Q;
+    # the name is the type-spelled icon name of the `application/x-qemu-disk`
+    # MIME type, whose MIME-database entry has no `generic-icon`, no aliases
+    # and no per-type fallback, so one file covers the exact name, where
+    # Breeze's own file otherwise beats the theme's missing fallback).
+    os.path.join("32x32", "mimetypes", "application-x-qemu-disk.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-qemu-disk.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-qemu-disk.svg"),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"),
     os.path.join("16x16", "mimetypes", "x-office-document.svg"),
     os.path.join("22x22", "mimetypes", "x-office-document.svg"),

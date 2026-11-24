@@ -1190,6 +1190,37 @@ PINS = {
         _shape("rect", x="6", y="10", width="10", height="2", fill="#FFFFFF"),
         _shape("rect", x="7", y="13", width="8", height="2", fill="#FFFFFF"),
     ),
+    # The QCOW disk-image item icon KDE draws for `application/x-qemu-disk`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/x-qemu-disk` "QEMU QCOW disk image" type,
+    # which has no `generic-icon`, no aliases and no per-type fallback, so
+    # one file covers exactly its own name); the drawing shares the disc
+    # family (the ring and face of the `media-optical` disc) and holds a
+    # white Q — a white ring with a grey hole and a white tail square, off
+    # centre on the grey face — the copy-on-write image's initial and the
+    # first byte of the type's `QFI` magic, distinct from the ISO disc's
+    # capital I with its glints and hub rings and from the squashfs bands.
+    os.path.join("32x32", "mimetypes", "application-x-qemu-disk.svg"): (
+        _shape("circle", cx="16", cy="16", r="14", fill="#000000"),
+        _shape("circle", cx="16", cy="16", r="13", fill="#DDDDDD"),
+        _shape("circle", cx="13", cy="13", r="5", fill="#FFFFFF"),
+        _shape("circle", cx="13", cy="13", r="3", fill="#DDDDDD"),
+        _shape("rect", x="16", y="16", width="2", height="2", fill="#FFFFFF"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-x-qemu-disk.svg"): (
+        _shape("circle", cx="8", cy="8", r="7", fill="#000000"),
+        _shape("circle", cx="8", cy="8", r="6", fill="#DDDDDD"),
+        _shape("circle", cx="7", cy="7", r="3", fill="#FFFFFF"),
+        _shape("circle", cx="7", cy="7", r="1", fill="#DDDDDD"),
+        _shape("rect", x="8", y="9", width="1", height="1", fill="#FFFFFF"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-x-qemu-disk.svg"): (
+        _shape("circle", cx="11", cy="11", r="10", fill="#000000"),
+        _shape("circle", cx="11", cy="11", r="9", fill="#DDDDDD"),
+        _shape("circle", cx="9", cy="9", r="4", fill="#FFFFFF"),
+        _shape("circle", cx="9", cy="9", r="2", fill="#DDDDDD"),
+        _shape("rect", x="11", y="12", width="1", height="2", fill="#FFFFFF"),
+    ),
     # The JSON-document item icon KDE draws for `application/json` items
     # (the type-spelled icon name of the installed shared MIME database's
     # `application/json` type, whose `generic-icon` is the shipped
