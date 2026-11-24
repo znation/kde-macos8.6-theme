@@ -88,9 +88,9 @@ def kdedefaults_kwinrc_messages(config_home: str, aurorae_id: str) -> list[str]:
     defaults = read_selected_values_at(
         path, {"org.kde.kdecoration2": ("library", "theme")}
     )
-    if defaults.get(("org.kde.kdecoration2", "library")) == (
-        "org.kde.kwin.aurorae"
-    ) and defaults.get(("org.kde.kdecoration2", "theme")) == aurorae_id:
+    library = defaults.get(("org.kde.kdecoration2", "library"))
+    theme = defaults.get(("org.kde.kdecoration2", "theme"))
+    if library == "org.kde.kwin.aurorae" and theme == aurorae_id:
         return [
             "uninstall: the window-decoration selection"
             " [library=org.kde.kwin.aurorae,"
