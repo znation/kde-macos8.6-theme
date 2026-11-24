@@ -256,9 +256,12 @@ name at the same three sizes), a Squashfs filesystem-image icon for
 Squashfs filesystem image files (the `application-vnd.squashfs`
 name at the same three sizes), an
 AppImage-bundle icon for AppImage application bundle files (the
-`application-vnd.appimage` name at the same three sizes), an ICC
-color-profile icon for ICC profile files (the
-`application-vnd.iccprofile` name at the same three sizes), an offline wiki archive icon for offline wiki archive
+`application-vnd.appimage` name at the same three sizes), a Flatpak
+repository-description icon for Flatpak repository description files
+(the `application-vnd.flatpak.repo` name at the same three sizes), an
+ICC color-profile icon for ICC profile files (the
+`application-vnd.iccprofile` name at the same three sizes), an
+offline wiki archive icon for offline wiki archive
 files (the `application-x-openzim` name at the same three sizes), a
 PKCS#12 certificate-bundle icon for PKCS#12 certificate-bundle files
 (the `application-pkcs12` name at the same three sizes), a

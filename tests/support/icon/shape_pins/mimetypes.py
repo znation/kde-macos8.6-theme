@@ -1172,6 +1172,46 @@ PINS = {
         _shape("rect", x="9", y="16", width="1", height="1", fill="#000000"),
         _shape("rect", x="5", y="17", width="5", height="1", fill="#000000"),
     ),
+    # The Flatpak repository-description item icon KDE draws for
+    # `application/vnd.flatpak.repo` items (the type-spelled icon name
+    # of the installed shared MIME database's
+    # `application/vnd.flatpak.repo` type, whose `generic-icon` is the
+    # shipped `package-x-generic`); one file covers exactly its own
+    # name, and the drawing shares the sealed package box and holds a
+    # stepped capital letter R on the white body left of the grey tape
+    # stripe (the letter's stem, top bar, bowl and two leg steps, a
+    # mark distinct from the deb package's letter D, the tar archive's
+    # letter T, the compressed-tar archive's stepped Z, the RAR
+    # archive's stepped diamond, the ZIP archive's zipper slider, the
+    # ARJ archive's stepped A, the queued Flatpak-ref
+    # arrow-into-open-crate mark and the queued AppImage launch arrow).
+    os.path.join("32x32", "mimetypes", "application-vnd.flatpak.repo.svg"): (
+        *_SEALED_PACKAGE_32,
+        _shape("rect", x="5", y="15", width="1", height="7", fill="#000000"),
+        _shape("rect", x="6", y="15", width="4", height="1", fill="#000000"),
+        _shape("rect", x="9", y="16", width="1", height="2", fill="#000000"),
+        _shape("rect", x="6", y="18", width="4", height="1", fill="#000000"),
+        _shape("rect", x="9", y="19", width="1", height="1", fill="#000000"),
+        _shape("rect", x="10", y="20", width="1", height="1", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-vnd.flatpak.repo.svg"): (
+        *_SEALED_PACKAGE_16,
+        _shape("rect", x="3", y="7", width="1", height="5", fill="#000000"),
+        _shape("rect", x="4", y="7", width="2", height="1", fill="#000000"),
+        _shape("rect", x="5", y="8", width="1", height="1", fill="#000000"),
+        _shape("rect", x="4", y="9", width="2", height="1", fill="#000000"),
+        _shape("rect", x="5", y="10", width="1", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-vnd.flatpak.repo.svg"): (
+        *_SEALED_PACKAGE_22,
+        _shape("rect", x="4", y="9", width="1", height="7", fill="#000000"),
+        _shape("rect", x="5", y="9", width="3", height="1", fill="#000000"),
+        _shape("rect", x="7", y="10", width="1", height="2", fill="#000000"),
+        _shape("rect", x="5", y="12", width="3", height="1", fill="#000000"),
+        _shape("rect", x="7", y="13", width="1", height="1", fill="#000000"),
+        _shape("rect", x="8", y="14", width="1", height="1", fill="#000000"),
+    ),
+
     # The gzip-compressed-tar-archive item icon KDE draws for
     # `application/x-compressed-tar` items (the type-spelled icon name
     # of the installed shared MIME database's

@@ -581,6 +581,14 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-vnd.squashfs.svg"),
     os.path.join("16x16", "mimetypes", "application-vnd.squashfs.svg"),
     os.path.join("22x22", "mimetypes", "application-vnd.squashfs.svg"),
+    # The Flatpak repository-description `application-vnd.flatpak.repo`
+    # icon at all three sizes (the sealed package box holding a black
+    # stepped capital letter R; the name is the type-spelled icon name
+    # of the `application/vnd.flatpak.repo` MIME type in the installed
+    # shared MIME database).
+    os.path.join("32x32", "mimetypes", "application-vnd.flatpak.repo.svg"),
+    os.path.join("16x16", "mimetypes", "application-vnd.flatpak.repo.svg"),
+    os.path.join("22x22", "mimetypes", "application-vnd.flatpak.repo.svg"),
     # The Snap-package `application-vnd.snap` icon at all three sizes (the
     # generic document's page holding a strapped crate; the name is the
     # type-spelled icon name of the `application/vnd.snap` MIME type in the
