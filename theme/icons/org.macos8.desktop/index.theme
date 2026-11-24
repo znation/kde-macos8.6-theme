@@ -3,7 +3,7 @@ Name=Platinum
 Comment=Platinum icon theme with original placeholder artwork
 Inherits=breeze
 
-Directories=32x32/devices,32x32/mimetypes,32x32/places,16x16/places,22x22/places,16x16/actions,22x22/actions,16x16/devices,16x16/mimetypes,22x22/devices,22x22/mimetypes
+Directories=32x32/devices,32x32/mimetypes,32x32/places,16x16/places,22x22/places,32x32/actions,16x16/actions,22x22/actions,16x16/devices,16x16/mimetypes,22x22/devices,22x22/mimetypes
 
 [32x32/devices]
 Size=32
@@ -28,6 +28,11 @@ Type=Fixed
 [22x22/places]
 Size=22
 Context=Places
+Type=Fixed
+
+[32x32/actions]
+Size=32
+Context=Actions
 Type=Fixed
 
 [16x16/actions]

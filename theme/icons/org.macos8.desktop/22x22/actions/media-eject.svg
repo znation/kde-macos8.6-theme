@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original eject-glyph illustration pending user-approved artwork. -->
+<!-- Mac OS 8.6 "Platinum" eject glyph.
+
+     Our own drawing in the Platinum palette, not traced from anyone's
+     artwork: a filled black triangle above a filled black bar, the two
+     sharing the same horizontal extent and centre so the glyph reads as
+     one mark. No reference screenshot shows an eject glyph, so no
+     reference pixels are used and the drawing is this theme's own
+     choice. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <path d="M7 13 L15 13 L11 6 Z" fill="#000000"/>
+  <rect x="7" y="15" width="8" height="2" fill="#000000"/>
+</svg>

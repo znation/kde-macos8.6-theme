@@ -143,6 +143,8 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # is the device name KDE's device views draw for phones and the dash
 # fallback of the `phone-apple-iphone` device icon),
 # the kicker logo the menu bar's top-left button shows at the two panel sizes,
+# the `media-eject` eject glyph the file dialogs' eject control draws (our own
+# triangle and bar; no reference screenshot shows an eject glyph),
 # and the `go-next-symbolic` submenu arrow the reference's open Apple menu
 # draws.
 SHIPPED_ICONS = (
@@ -297,6 +299,9 @@ SHIPPED_ICONS = (
     os.path.join("22x22", "places", "start-here-kde-symbolic.svg"),
     os.path.join("16x16", "actions", "go-next-symbolic.svg"),
     os.path.join("22x22", "actions", "go-next-symbolic.svg"),
+    os.path.join("16x16", "actions", "media-eject.svg"),
+    os.path.join("22x22", "actions", "media-eject.svg"),
+    os.path.join("32x32", "actions", "media-eject.svg"),
 )
 
 # The standard XDG folder places KDE resolves; the package draws each one

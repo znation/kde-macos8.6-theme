@@ -18,6 +18,7 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/look-and-feel/org.macos8.desktop/contents/splash/images/macos-logo.svg` | original geometric startup logo pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/places/folder.svg` | original generic folder illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/actions/go-next-symbolic.svg` | original submenu-arrow illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/actions/media-eject.svg` | original eject-glyph illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/devices/drive-harddisk.svg` | original hard-disk illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/devices/phone.svg` | original phone illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/devices/smartphone.svg` | original smartphone illustration pending user-approved artwork. |
@@ -75,6 +76,8 @@ tracking and replace the reference-cropped wallpaper.
 | `theme/icons/org.macos8.desktop/16x16/places/user-trash-full.svg` | original full Trash illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/16x16/places/user-trash.svg` | original Trash illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/actions/go-next-symbolic.svg` | original submenu-arrow illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/22x22/actions/media-eject.svg` | original eject-glyph illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/32x32/actions/media-eject.svg` | original eject-glyph illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/devices/drive-harddisk.svg` | original hard-disk illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/devices/phone.svg` | original phone illustration pending user-approved artwork. |
 | `theme/icons/org.macos8.desktop/22x22/devices/smartphone.svg` | original smartphone illustration pending user-approved artwork. |

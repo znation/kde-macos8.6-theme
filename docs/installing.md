@@ -222,7 +222,9 @@ three sizes), for the Home and
 Desktop places and the standard Documents, Downloads, Music, Pictures, Videos,
 Templates, Public and Temporary Files places (the same Platinum folder at every
 size), and for the menu bar's kicker logo (`start-here-kde-symbolic`, our own
-mark rather than Apple's) and the `go-next-symbolic` submenu arrow.
+mark rather than Apple's) and the `go-next-symbolic` submenu arrow, and the
+`media-eject` eject glyph the file dialogs' eject control draws (at 16x16,
+22x22 and 32x32; the theme ships no other 32x32 actions art).
 `PLACEHOLDERS.md` records each temporary graphic pending user-approved
 replacement. The illustrations are drawn for this theme, not traced from
 Apple's artwork, and inherits Breeze for every other name. The package also
