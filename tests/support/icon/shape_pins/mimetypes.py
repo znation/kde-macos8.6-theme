@@ -1,4 +1,4 @@
-"""Pins for the mimetypes family: documents, images and blank pages.
+"""Pins for the mimetypes family: documents, media, mail and blank pages.
 
 Every entry is a ``os.path.join(size, "mimetypes", name.svg)`` key holding
 the pinned tuple of drawing elements for that shipped file, in document
