@@ -247,6 +247,24 @@ class TestDefaultsGroups(unittest.TestCase):
             str(theme_defaults._MAX_DEFAULTS_BYTES), str(caught.exception)
         )
 
+    def test_a_defaults_file_exactly_at_the_cap_is_parsed_not_refused(self):
+        # The cap is inclusive: a defaults file of exactly
+        # _MAX_DEFAULTS_BYTES bytes is a valid file, not an oversize one.
+        # Nothing pinned the accepted side, so a `>=` in the shared reader's
+        # cap check (tools/config_read.py) would have turned every legal
+        # at-cap file into the oversize refusal with no failing test.
+        path = make_tmp_dir(self) / "defaults"
+        heading = "[kwinrc][Theme]\n"
+        filler = b"k=0\n" * (
+            (theme_defaults._MAX_DEFAULTS_BYTES - len(heading.encode())) // 4
+        )
+        path.write_bytes(heading.encode() + filler)
+        self.assertEqual(theme_defaults._MAX_DEFAULTS_BYTES, path.stat().st_size)
+        self.assertEqual(
+            {("kwinrc", "Theme"): {"k": "0"}},
+            theme_defaults.defaults_groups(path),
+        )
+
     def test_rejects_a_defaults_file_that_is_not_valid_utf8(self):
         # A contributor-supplied defaults file that is not valid UTF-8 would
         # otherwise raise UnicodeDecodeError, which the render's handler does
