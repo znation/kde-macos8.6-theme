@@ -154,6 +154,8 @@ the same three sizes), an office-document icon for document files (the
 spreadsheet and office-table files (the `x-office-spreadsheet` name at the
 same three sizes), a presentation icon for presentation files (the
 `x-office-presentation` name at the same three sizes), a
+contact-book icon for address-book files (the `x-office-address-book`
+name at the same three sizes), a
 template icon for template files (the `text-x-generic-template`
 name at the same three sizes), a
 web-document icon for HTML, XHTML and XML files (the `text-html`

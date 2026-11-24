@@ -5,6 +5,121 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw contact files with an original `x-office-address-book` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** The contact-file name `x-office-address-book` is requested by
+installed consumers but still draws Breeze's art beside the Platinum
+placeholders: with the theme installed, `kiconfinder6
+x-office-address-book` (2026-11-24, theme installed) resolves to
+`:/icons/breeze/mimetypes/32/x-office-address-book.svg` and exits 0.
+Ship one original placeholder icon, `x-office-address-book`, at 16x16,
+22x22 and 32x32, in the mimetypes series beside the shipped
+`x-office-document`, `x-office-spreadsheet` and `x-office-presentation`
+files. Provenance of the name (measured by scanning
+`strings -e l` output of every library under
+`/usr/lib/x86_64-linux-gnu/*.so*`, not only `libKF6*`): the installed
+`libkmailprivate.so.6` carries the literal beside KMail's recipient
+action strings (`select_recipients`, `mail-message-new`), and
+`libgtk-3.so`, `libgtk-4.so` and `libappstream-glib.so.8` carry it too;
+`libKF6BreezeIcons.so.6` also holds the literal but embeds Breeze's own
+art, so it is not a consumer. Breeze ships the name at mimetypes 16, 22,
+24, 32 and 64 (`/usr/share/icons/breeze/mimetypes/*/`), which is what
+the probe displaces. Nothing is captured: the installed shared MIME
+database declares no `generic-icon` element named
+`x-office-address-book` (`grep -c 'x-office-address-book'
+/usr/share/mime/packages/freedesktop.org.xml` prints 1, the DTD's
+allowed-values comment), so the KIconLoader per-type fallback captures
+no MIME type — one file covers exactly its own name, no alias files.
+No reference screenshot shows an address-book icon, so no reference
+pixels are used and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/x-office-address-book.svg` under `16x16`, `22x22` and
+  `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme` already
+  declares the three mimetypes directories. Give each file the XML
+  declaration, the comment
+  `<!-- PLACEHOLDER: original contact-book illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a Platinum closed address book:
+  a book block with the 1px #000000 outline, the #DDDDDD cover face and
+  the #FFFFFF/#999999 bevel, a dark name heading and ruled entry lines.
+  Each file holds these elements in order, written `x,y width×height
+  fill` for rects:
+  - 32x32 (12): `4,2 24×28 #000000`; `5,3 22×26 #DDDDDD`; `5,3 22×2
+    #FFFFFF`; `5,3 2×26 #FFFFFF`; `25,3 2×26 #999999`; `5,27 22×2
+    #999999`; `8,7 12×2 #000000`; `8,11 14×1 #000000`; `8,13 11×1
+    #000000`; `8,15 14×1 #000000`; `8,17 9×1 #000000`; `8,19 14×1
+    #000000`.
+  - 22x22 (11): `2,1 18×20 #000000`; `3,2 16×18 #DDDDDD`; `3,2 16×2
+    #FFFFFF`; `3,2 2×18 #FFFFFF`; `17,2 2×18 #999999`; `3,18 16×2
+    #999999`; `5,6 9×2 #000000`; `5,10 11×1 #000000`; `5,12 8×1
+    #000000`; `5,14 11×1 #000000`; `5,16 6×1 #000000`.
+  - 16x16 (11): `1,1 14×14 #000000`; `2,2 12×12 #DDDDDD`; `2,2 12×1
+    #FFFFFF`; `2,2 1×12 #FFFFFF`; `13,2 1×12 #999999`; `2,13 12×1
+    #999999`; `4,4 7×1 #000000`; `4,6 9×1 #000000`; `4,8 6×1 #000000`;
+    `4,10 9×1 #000000`; `4,12 5×1 #000000`.
+
+  These were drawn to read as a closed book with a white spine
+  highlight, a dark heading line and ruled entry lines at every size
+  (painted rect by rect at planning time), and to stay in the mimetypes
+  document-page family's palette.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `x-office-presentation` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the `x-office-presentation` paths, and name the
+  contact-book icon in the comment above them (the comment records the
+  requesting surface: KMail's recipient chooser in the installed
+  `libkmailprivate.so.6`, plus the GTK and appstream-glib libraries).
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above (every element is a `_shape("rect",
+  ...)` keeping its attributes); the existing
+  `test_the_geometry_registry_covers_every_shipped_icon` and
+  `test_each_icon_draws_its_pinned_artwork` then enforce the pins in
+  both directions.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `x-office-address-book` in the last cell: no reference
+  pixels were used, the name is read by KMail's recipient chooser in the
+  installed `libkmailprivate.so.6` and by the installed GTK 3, GTK 4 and
+  appstream-glib libraries (measured with `strings -e l` over every
+  `/usr/lib/x86_64-linux-gnu/*.so*`), `kiconfinder6` resolves it to the
+  shipped file, and the shared MIME database declares no
+  `generic-icon` binding for the name, so no per-type fallback is
+  captured; the book drawing is this theme's own choice.
+- `docs/installing.md`: add the contact-book icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and
+  comment and has a `PLACEHOLDERS.md` row; the existing inventory, palette,
+  geometry and placeholder-register tests cover all three.
+- Changing a rectangle's position, size or fill, or the element order in
+  one file makes the geometry pin fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME` (create the destination `icons` directory before
+  copying the theme into it, so the copy does not flatten), use a scratch
+  `HOME`, `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY`
+  and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `x-office-address-book` resolves to the theme's 32x32 file, and
+  `x-office-spreadsheet` stays on the theme's 32x32 file. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw tablets with an original `input-tablet` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A drawing tablet is drawn with Breeze's art beside the

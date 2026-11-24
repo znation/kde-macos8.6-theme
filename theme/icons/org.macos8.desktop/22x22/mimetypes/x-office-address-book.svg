@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original contact-book illustration pending user-approved artwork. -->
+<!-- Platinum x-office-address-book icon, 22x22.
+
+     Our own drawing in the Platinum palette: a closed address book with
+     a black outline, grey cover face, white top and spine bevels, grey
+     right and bottom bevels, a dark name heading and ruled entry lines.
+     Drawn for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <!-- Book outline. -->
+  <rect x="2" y="1" width="18" height="20" fill="#000000"/>
+  <!-- Cover face. -->
+  <rect x="3" y="2" width="16" height="18" fill="#DDDDDD"/>
+  <!-- Top bevel. -->
+  <rect x="3" y="2" width="16" height="2" fill="#FFFFFF"/>
+  <!-- Spine bevel. -->
+  <rect x="3" y="2" width="2" height="18" fill="#FFFFFF"/>
+  <!-- Right bevel. -->
+  <rect x="17" y="2" width="2" height="18" fill="#999999"/>
+  <!-- Bottom bevel. -->
+  <rect x="3" y="18" width="16" height="2" fill="#999999"/>
+  <!-- Name heading. -->
+  <rect x="5" y="6" width="9" height="2" fill="#000000"/>
+  <!-- Ruled entry lines. -->
+  <rect x="5" y="10" width="11" height="1" fill="#000000"/>
+  <rect x="5" y="12" width="8" height="1" fill="#000000"/>
+  <rect x="5" y="14" width="11" height="1" fill="#000000"/>
+  <rect x="5" y="16" width="6" height="1" fill="#000000"/>
+</svg>
