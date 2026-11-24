@@ -386,3 +386,144 @@ rubberband checks in their existing suites; theme sheets need no changes.
 - For a 2x9 crop at absolute origin (2,1), column zero matches relative rows {0,2,3,5,6,7} and column one matches {8}. Cap 2 emits exactly `(2,1,1)` and `(2,3,2)` as `{x,y,length}` records with 2 omitted. Cap 3 adds `(2,6,3)` with 1 omitted, detecting a cap restarted per column. Maximum length 2 plus cap 2 emits the leading pair with 1 omitted; minimum length 2 plus cap 1 emits `(2,3,2)` with 1 omitted. Contradictory length cutoffs yield an empty list with zero omitted. Cap 4 or larger includes the bottom-flushed `(3,9,1)` and reports zero omitted; no matches produce an empty list with zero omitted.
 - With summaries requested, count remains 7, column-run count remains 4 and longest column run remains `(2,6,3)` despite capping. Bounds, fraction, centroid, horizontal intervals, row/column diagnostics and coordinate paging match uncapped results. Include adjacent unequal RGB values accepted by tolerance and an exact-alpha rejection that splits an interval, checking literal capped records; stored RGB beneath alpha zero remains searchable. JSON and text expose the same prefix and omitted count. Without the option, neither the new member nor text line appears.
 - Zero, negative, fractional, malformed, non-ASCII and missing caps exit 2 with empty stdout. A valid cap with `--find-color` but without `--match-column-runs` fails before reading a missing image and names the required flag. Help describes the dependency; direct-script and package output agree. README distinguishes interval count from pixel length and states filtering precedes capping; the invariant row names the new tests. `make check` passes after the final edit.
+
+### Platinum icon theme: draw FLAC audio with an original `audio-flac` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A FLAC audio file (`*.flac`, as the file manager identifies it)
+draws this theme's own mark beside the Platinum documents and folders.
+Ship one original placeholder icon, `audio-flac`, at 16x16, 22x22 and
+32x32, in the same mimetype-item series as the queued `audio-ogg`
+container icon. It is the type-2-audio mark of the installed shared MIME
+database, sibling to the audio containers that already ship. Provenance:
+the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`audio/flac` ("FLAC audio") with no `<icon>` element, no
+`<generic-icon>` element and no `<alias>` elements, the single glob
+`*.flac` and a `<magic>` string match at offset 0; the dash-form name
+`audio-flac` occurs 0 times in the database (`grep -o` count 0). With no
+`<icon>` element the type asks its literal dash-form name first: a
+kiconfinder6 probe run at planning time (2026-11-24, theme installed
+into a scratch `XDG_DATA_HOME`, scratch `HOME`/`XDG_CONFIG_HOME` with
+`[Icons] Theme=org.macos8.desktop` in `kdeglobals`) resolved
+`audio-flac` to Breeze's `:/icons/breeze/mimetypes/32/audio-flac.svg`
+(Breeze ships the exact-name file at every mimetype size) while
+`audio-x-generic` resolved to the theme's own 32x32 file, and the theme
+ships no `audio-flac.svg` (no such name in any of the three mimetypes
+directories), so today a `.flac` file shows Breeze's art, not this
+theme's own. No reference screenshot shows a FLAC item icon, so no
+reference pixels are used and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/audio-flac.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three MimeTypes directories. Give each file the XML declaration, the
+  comment `<!-- PLACEHOLDER: original FLAC audio illustration pending
+  user-approved artwork. -->`, a short comment saying it is our own
+  drawing in the Platinum palette, not traced from anyone's artwork,
+  and a root with matching `width`, `height` and `viewBox`. The art
+  shares the generic document's page (the page outline, white page and
+  folded-corner flap of the `_PAGE_*` shapes the `shape_pins/_shared.py`
+  registry keeps) and holds a waveform pulse — one connected black
+  zigzag polygon (an EKG-style pulse line: rise, dip, taller rise, fall
+  to the baseline), a mark distinct from the `audio-ogg` equalizer's
+  four separate vertical bars (disjoint rects, not one connected
+  shape), from the `application-ogg` container's black box with the
+  white Ogg glyph, from the `video-x-generic` screen's right-pointing
+  play triangle and from the `application-vnd.appimage` launch arrow
+  (no triangle head, no shaft):
+  - 32x32: the three `_PAGE_32` page elements; then the pulse, `path
+    d="M9 21 L13 9 L15 17 L19 7 L21 21 Z" fill="#000000"` (vertices on
+    the page's centre columns, baseline row 21 spanning columns 9..21).
+    A script run at planning time checked every vertex sits inside the
+    white page polygon (`M7 4 h12 l6 6 v18 H7 Z`) and below the folded
+    corner's hypotenuse `y = x - 15` (the flap spans columns 19..25
+    above row 10; the pulse's topmost vertex is `(19, 7)`, on the white
+    side).
+  - 22x22: the three `_PAGE_22` page elements; then the pulse, `path
+    d="M7 15 L10 6 L11 12 L14 5 L15 15 Z" fill="#000000"` (baseline row
+    15 spanning columns 7..15). Every vertex sits inside the white page
+    (`M5 2 h8 l4 4 v13 H5 Z`) and below the flap hypotenuse `y = x - 11`
+    (the flap spans columns 13..17 above row 6; the topmost vertex is
+    `(14, 5)`), checked by the same script.
+  - 16x16: the three `_PAGE_16` page elements; then the pulse, `path
+    d="M5 11 L7 6 L8 9 L10 4 L11 11 Z" fill="#000000"` (baseline row 11
+    spanning columns 5..11). Every vertex sits inside the white page
+    (`M4 2 h5 l3 3 v8 H4 Z`) and below the flap hypotenuse `y = x - 7`
+    (the flap spans columns 9..12 above row 5; the topmost vertex is
+    `(10, 4)`), checked by the same script.
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract. The
+  mark is a single filled path — `fill="none"` strokes are outside
+  `PLATINUM_FILLS`, so no stroke-based element may appear.
+- `PLACEHOLDERS.md`: one row per file beside the audio-ogg rows,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings
+  in `PINS` from the lists above (the three `_PAGE_*` elements spread
+  as the prefix, then the pulse path), with a comment recording the
+  provenance as this plan states it.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `audio-flac` in the last cell, as the
+  `application-vnd.appimage` sentence there does.
+- `docs/installing.md`: add the FLAC audio icon to the sentence listing
+  the icon theme's placeholder illustrations and their sizes (the one
+  naming the `application-vnd.appimage` files).
+- The queued mimetype-icon entries ahead of this one (the pending
+  `application-ogg`, `application-vnd.flatpak.repo` and
+  `application-x-rpm` plans) edit the same inventory block, `PINS`
+  registry, invariants row and installing.md sentence; this entry sits
+  behind them in the queue, so rebase on whatever they have landed when
+  picking this up, keeping one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the three `_PAGE_*`
+  elements matching the blank-document pins, then the pulse path),
+  carries a placeholder marker and has a `PLACEHOLDERS.md` row; the
+  existing inventory, palette, geometry and placeholder-register tests
+  cover all three.
+- Changing one pulse vertex, the path's `d` or its fill, or the element
+  order, in one file makes the geometry test fail; dropping a file
+  while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The `#000000` and `#FFFFFF` fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged; no
+  element carries `fill="none"` or a `stroke` attribute.
+- The waveform pulse shares no drawing element with the `audio-ogg`
+  equalizer bars (one connected polygon, not four disjoint rects), none
+  with the `application-ogg` box-and-glyph container mark, none with
+  the `video-x-generic` play triangle and none with the
+  `application-vnd.appimage` arrow, so the siblings stay visually
+  distinct.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into
+  a scratch `XDG_DATA_HOME` (the `make install
+  INSTALL_PACKAGES=icon-theme DESTDIR=<root>` route installs it at
+  `<root>$XDG_DATA_HOME/icons`; add that installed path to
+  `XDG_DATA_DIRS`), use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`),
+  `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY` and
+  `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `audio-flac` resolves to the theme's 32x32
+  `mimetypes/audio-flac.svg` (at planning time the name falls through
+  to Breeze's `:/icons/breeze/mimetypes/32/audio-flac.svg`), and
+  `audio-x-generic` still resolves to the theme's own file. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
