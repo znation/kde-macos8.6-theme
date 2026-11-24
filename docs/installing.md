@@ -158,7 +158,9 @@ template icon for template files (the `text-x-generic-template`
 name at the same three sizes), a
 web-document icon for HTML, XHTML and XML files (the `text-html`
 name at the same three sizes), a flash-media card icon for memory cards
-(the `media-flash` name at the same three sizes), an
+(the `media-flash` name at the same three sizes), a
+floppy-disk icon for raw floppy-disk images (the `media-floppy`
+name at the same three sizes), an
 image icon for picture and graphics files (the `image-x-generic`
 name at the same three sizes), an audio icon for sound files (the
 `audio-x-generic` name at the same three sizes), a font icon for font

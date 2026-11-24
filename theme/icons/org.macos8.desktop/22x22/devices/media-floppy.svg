@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original floppy-disk illustration pending user-approved artwork. -->
+<!-- Platinum floppy-disk icon, 22x22.
+
+     Our own 22x22 drawing in the Platinum palette: a square disk seen
+     from the front, with a black outline, a #DDDDDD body with a white
+     top row and left column and a #999999 bottom row and right column,
+     a metal shutter window with a slot at the top, and a white label
+     plate outlined in black at the bottom carrying a label line.
+     Drawn for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <rect x="2" y="2" width="18" height="18" fill="#000000"/>
+  <rect x="3" y="3" width="16" height="16" fill="#DDDDDD"/>
+  <rect x="3" y="3" width="16" height="1" fill="#FFFFFF"/>
+  <rect x="3" y="3" width="1" height="16" fill="#FFFFFF"/>
+  <rect x="3" y="18" width="16" height="1" fill="#999999"/>
+  <rect x="18" y="3" width="1" height="16" fill="#999999"/>
+  <rect x="8" y="5" width="9" height="5" fill="#000000"/>
+  <rect x="9" y="6" width="7" height="3" fill="#DDDDDD"/>
+  <rect x="12" y="6" width="1" height="3" fill="#000000"/>
+  <rect x="6" y="11" width="10" height="7" fill="#000000"/>
+  <rect x="7" y="12" width="8" height="5" fill="#FFFFFF"/>
+  <rect x="9" y="13" width="4" height="1" fill="#999999"/>
+</svg>
