@@ -18,7 +18,8 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # the folder art, 16x16 and 22x22 renditions of the folder, aliases, Trash
 # and full Trash, 16x16 and 22x22 renditions of the hard disk and document,
 # the removable-drive `drive-removable-media` icon at all three sizes (our own
-# drawing of a USB stick, sharing the hard disk's body and bevel),
+# drawing of a drive with a media slot and eject button, sharing the hard
+# disk's body and bevel),
 # the kicker logo the menu bar's top-left button shows at the two panel sizes,
 # and the `go-next-symbolic` submenu arrow the reference's open Apple menu
 # draws.
