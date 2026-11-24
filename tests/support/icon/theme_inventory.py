@@ -77,6 +77,10 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `application-x-7z-compressed` icon at all three sizes (the sealed
 # package box holding a stepped numeral 7; the name is the type-spelled
 # icon name of the `application/x-7z-compressed` MIME type in the
+# installed shared MIME database), the gzip-archive
+# `application-gzip` icon at all three sizes (the sealed
+# package box holding a downward arrow; the name is the type-spelled
+# icon name of the `application/gzip` MIME type in the
 # installed shared MIME database), the flash-media `media-flash`
 # icon at all three sizes (our own drawing of an upright card standing on
 # its contact pins; the name is a KDE-required value read from
@@ -291,6 +295,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-7z-compressed.svg"),
     os.path.join("16x16", "mimetypes", "application-x-7z-compressed.svg"),
     os.path.join("22x22", "mimetypes", "application-x-7z-compressed.svg"),
+    os.path.join("32x32", "mimetypes", "application-gzip.svg"),
+    os.path.join("16x16", "mimetypes", "application-gzip.svg"),
+    os.path.join("22x22", "mimetypes", "application-gzip.svg"),
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "image-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "image-x-generic.svg"),

@@ -574,6 +574,42 @@ PINS = {
         _shape("rect", x="7", y="10", width="2", height="2", fill="#000000"),
         _shape("rect", x="6", y="12", width="2", height="2", fill="#000000"),
     ),
+    # The gzip-archive item icon KDE draws for `application/gzip`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/gzip` type, whose `generic-icon`
+    # is the shipped `package-x-generic`); one file covers exactly its own
+    # name, and the drawing shares the sealed package box.
+    os.path.join("32x32", "mimetypes", "application-gzip.svg"): (
+        _shape("rect", x="3", y="6", width="26", height="22", fill="#000000"),
+        _shape("rect", x="4", y="7", width="24", height="3", fill="#DDDDDD"),
+        _shape("rect", x="4", y="7", width="24", height="1", fill="#FFFFFF"),
+        _shape("rect", x="4", y="10", width="24", height="17", fill="#FFFFFF"),
+        _shape("rect", x="15", y="10", width="2", height="17", fill="#999999"),
+        _shape("rect", x="8", y="13", width="2", height="6", fill="#000000"),
+        _shape("rect", x="6", y="19", width="6", height="2", fill="#000000"),
+        _shape("rect", x="7", y="21", width="4", height="1", fill="#000000"),
+        _shape("rect", x="8", y="22", width="2", height="1", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-gzip.svg"): (
+        _shape("rect", x="1", y="3", width="14", height="11", fill="#000000"),
+        _shape("rect", x="2", y="4", width="12", height="2", fill="#DDDDDD"),
+        _shape("rect", x="2", y="4", width="12", height="1", fill="#FFFFFF"),
+        _shape("rect", x="2", y="6", width="12", height="7", fill="#FFFFFF"),
+        _shape("rect", x="7", y="6", width="2", height="7", fill="#999999"),
+        _shape("rect", x="3", y="7", width="2", height="3", fill="#000000"),
+        _shape("rect", x="2", y="10", width="4", height="1", fill="#000000"),
+        _shape("rect", x="3", y="11", width="2", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-gzip.svg"): (
+        _shape("rect", x="2", y="4", width="18", height="16", fill="#000000"),
+        _shape("rect", x="3", y="5", width="16", height="2", fill="#DDDDDD"),
+        _shape("rect", x="3", y="5", width="16", height="1", fill="#FFFFFF"),
+        _shape("rect", x="3", y="7", width="16", height="12", fill="#FFFFFF"),
+        _shape("rect", x="10", y="7", width="2", height="12", fill="#999999"),
+        _shape("rect", x="5", y="9", width="2", height="4", fill="#000000"),
+        _shape("rect", x="4", y="13", width="4", height="2", fill="#000000"),
+        _shape("rect", x="5", y="15", width="2", height="1", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"): (
         _shape("rect", x="3", y="3", width="26", height="26", fill="#000000"),
         _shape("rect", x="4", y="4", width="24", height="24", fill="#DDDDDD"),

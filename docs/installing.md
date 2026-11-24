@@ -196,7 +196,8 @@ same three sizes), a mail icon for `mailto:` links and email messages (the
 `internet-mail` name at the same three sizes), a PDF document icon for PDF
 files (the `application-pdf` name at the same three sizes), a 7z-archive
 icon for 7z archive files (the `application-x-7z-compressed` name at the
-same three sizes), a flash-media card
+same three sizes), a gzip-archive icon for gzip archive files (the
+`application-gzip` name at the same three sizes), a flash-media card
 icon for
 memory cards (the `media-flash` name at the same three sizes), a floppy-disk
 icon for raw floppy-disk images
