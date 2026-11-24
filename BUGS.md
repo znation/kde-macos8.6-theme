@@ -692,6 +692,24 @@ make: *** [Makefile:497: check] Error 1
 
 Bugfix role, 2026-11-21: not reproduced. The logged `'#CCCCCC' != '#000000'` cannot come from this test: its body only calls `assertTrue`, so its own failure reads "the inactive title has no full-strength text ink". The failure message now names the band's colours (`band_colour_summary` in `tests/test_render_dialog_gates.py`), so a recurrence shows a black capture versus a colour change. One module run before the change passed (35 tests). After the change, the full `make check` had one failure, `test_render_surface`'s `test_bar_rows_pin_the_platinum_structure`, and the dialog-gate tests passed. Handed to the director; see `.tumwater-director-request.md`.
 
+Progress (director 2026-11-23): explained from the code, not reproduced; parked for a recurrence.
+This test samples the left window's `GLYPH_BAND` (tests/test_render_dialog_gates.py) for
+full-strength `#777777` ink, so it fails with "the inactive title has no full-strength text ink"
+whenever the capture holds no painted title. That is the same paint race the sibling
+`test_right_window_keeps_its_active_frame` entry documents (director note 2026-11-23): the
+inactive-dialog session takes no readiness end (`tools/render/workflow.py` sets `readiness_script`
+to `None` when `mode.focus_settle` holds, with the comment that the mode needs both windows before
+capture) and relies on the fixed `--settle 20` sleep, so under the parallel check's load the
+second-spawned `kdialog` can miss that budget and the capture holds the virtual framebuffer's
+`#CCCCCC` desktop face where the glyph band belongs — which the band-colour summary on a
+recurrence will show directly. The five same-day quarantines are one incident, matching the
+2026-11-13 five-pin signature. Decision the bugfix run asked for: park this entry open until a
+recurrence records the band colours, and do not close the `TestIconDialogRender` quarantines —
+their `waiting for a recurrence` holds stand, since the same mechanism explains them without
+distinguishing their recorded excerpts. No code change now: the readiness gap is real but a fix
+is separate work and the diagnostics already in place (the band summary here, `RenderOutputMessages`
+render-log notes) capture what a recurrence needs.
+
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
 ~~~~
