@@ -17,16 +17,20 @@ from tools.render import session as render_session, workflow as render_workflow 
 
 class TestSessionFocusSettle(unittest.TestCase):
     def test_session_script_matches_the_four_pre_split_script_fixtures(self):
+        # Lengths and digests were refreshed when the terminate stage's two
+        # post-capture waits gained the `command sleep` guard the other
+        # stages already carried (2026-11-24): each grew by the two
+        # inserted `command ` words, 16 bytes.
         fixtures = (
-            (None, None, None, 4208, "70ffdaef27a3dbb0fa10fa234e495c67c44de7d08dff10e309dffc8f5276c048"),
-            ("/fixture/focus.js", None, None, 4223, "fa140f1cd26195d60a747a30548db004b8a0ff7116b8c3263f7817779dab86fa"),
-            (None, "/fixture/readiness.js", None, 4227, "49d16d7da0db8166de114b52fc8eaadfae5afe6417a30fb15d49947c2dccc961"),
-            ("/fixture/focus.js", "/fixture/readiness.js", None, 4242, "aac335ab3920029e81edddba15425917842a3dc6ea0216e73f3d31e238086687"),
+            (None, None, None, 4224, "93f1eea7b9bda99a8565113fd31a7efada45501abdd9fb57dc6bc307c87b08d5"),
+            ("/fixture/focus.js", None, None, 4239, "4f6f7d9e4e31e9b4ef65a61eded2342f9a2bb242603391db48f9e635a81a940f"),
+            (None, "/fixture/readiness.js", None, 4243, "4420746e72b19529752b4ab579d688a822ac7fe738181a05a2e39159e1eb91e8"),
+            ("/fixture/focus.js", "/fixture/readiness.js", None, 4258, "f71247ce9781835f2e5bc188dce2b11c25dd18e39d51b5ac09ec65a3ad93d55d"),
             # The fifth combination is the focus/readiness/report set the
             # CLI now builds: the report stage joins only when a report
             # script is passed, so the four pre-split fixtures above keep
             # their lengths and digests.
-            ("/fixture/focus.js", "/fixture/readiness.js", "/fixture/render-window-report.js", 4692, "810cdd6dc577af260de3f1544372a2ace6b62f4d378508a98cd59e84c1e2ba18"),
+            ("/fixture/focus.js", "/fixture/readiness.js", "/fixture/render-window-report.js", 4708, "df53fd43275299b023b8995111032520de776891424c87df9abbe7f8e6c1d8c5"),
         )
         for focus, readiness, report, expected_length, expected_digest in fixtures:
             with self.subTest(focus=focus, readiness=readiness, report=report):

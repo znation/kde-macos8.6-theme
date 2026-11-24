@@ -128,11 +128,14 @@ def _capture_and_terminate(focus: str = "focus") -> str:
         'resumed=0; while [ "$resumed" -lt 50 ]; do '
         'state=$(sed \'s/.*) //; s/ .*//\' "/proc/$client/stat" 2>/dev/null); '
         '[ "$state" != T ] && break; '
-        'sleep 0.1; resumed=$((resumed + 1)); done; '
+        # `command sleep` keeps the wait on the real binary: the session
+        # environment inherits the caller's, so an exported `sleep` function
+        # would otherwise shadow these waits as it would the settle stages'.
+        'command sleep 0.1; resumed=$((resumed + 1)); done; '
         'kill "$client" 2>/dev/null; '
         'waited=0; '
         'while kill -0 "$client" 2>/dev/null && [ "$waited" -lt 50 ]; do '
-        'sleep 0.1; waited=$((waited + 1)); done; '
+        'command sleep 0.1; waited=$((waited + 1)); done; '
         'kill -9 "$client" 2>/dev/null; '
         'wait "$client" 2>/dev/null; '
         'echo "render-session: client reaped" >&2; '

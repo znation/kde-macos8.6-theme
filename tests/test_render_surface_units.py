@@ -160,6 +160,18 @@ class TestSessionScript(unittest.TestCase):
             os.kill(child.pid, signal.SIGCONT)
             child.wait(timeout=5)
 
+    def test_keeps_every_session_wait_on_the_command_sleep_guard(self):
+        # The readiness listener, the focus settle and the settle wait run
+        # their sleeps through `command sleep`, so a caller-exported `sleep`
+        # function cannot shadow them: the session environment inherits the
+        # caller's, and a same-named function shadows a bare command word
+        # (`tests/test_render_readiness.py` stubs `spectacle` with a
+        # function in exactly this script). The terminate stage's two
+        # post-capture waits keep the same guard.
+        script = render_session.session_script()
+        self.assertGreater(script.count("command sleep"), 0)
+        self.assertEqual(script.count("command sleep"), script.count("sleep"))
+
     def test_exports_the_client_pid_before_the_freeze(self):
         # A capture-side helper cannot learn the client pid from a pidfile
         # the client writes: under load the freeze can land before the
