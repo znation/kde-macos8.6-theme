@@ -259,5 +259,30 @@ class TestMakeTargets(unittest.TestCase):
         self.assertIn("tools/apply_ghostty.py --remove", result.stdout)
 
 
+class TestPermissionBits(GhosttyCase):
+    # The Ghostty config is the user's own file; a rewrite must keep the mode
+    # the user gave it (the write path passes the existing mode through), not
+    # fall back to the umask default a freshly created file gets.
+    def setUp(self):
+        super().setUp()
+        self.target.parent.mkdir(parents=True)
+        self.target.write_bytes(b"background = #000000\n")
+        os.chmod(self.target, 0o640)
+
+    def test_apply_keeps_the_existing_config_mode(self):
+        assert_succeeded(self, self.run_tool("--optional"))
+        self.assertEqual(self.block_text(), self.target.read_bytes())
+        self.assertEqual(0o640, stat.S_IMODE(os.stat(self.target).st_mode))
+
+    def test_remove_keeps_the_existing_config_mode(self):
+        assert_succeeded(self, self.run_tool("--optional"))
+        assert_succeeded(self, self.run_tool("--remove"))
+        self.assertEqual(b"background = #000000\n", self.target.read_bytes())
+        self.assertEqual(0o640, stat.S_IMODE(os.stat(self.target).st_mode))
+
+    def block_text(self):
+        return b"background = #000000\n" + self.block()
+
+
 if __name__ == "__main__":
     unittest.main()
