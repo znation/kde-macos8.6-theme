@@ -215,7 +215,7 @@ excerpt extraction, which lives outside this repository.
 
 ### Platinum icon theme: draw bzip2-compressed tar archives with an
 original `application-x-bzip2-compressed-tar` icon (planned 2026-11-24
-by the plan role; independent of the waiting plans — done 2026-11-24 by the feature role
+by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A `.tar.bz2` item maps to the shared MIME database's canonical
 type `application/x-bzip2-compressed-tar`, whose database `generic-icon`
