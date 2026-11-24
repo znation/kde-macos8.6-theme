@@ -631,5 +631,39 @@ class TestPixelMismatchNamesThePixel(PixelPins, unittest.TestCase):
         self.assertIn("pixel (302, 324)", message)
 
 
+class TestLiveInkProbe(PixelPins, unittest.TestCase):
+    """The shared live-ink probe accepts ink anywhere in its rect.
+
+    The reading is replaced with fixed colours here, so no render runs.
+    """
+
+    def candidate_image(self):
+        return None
+
+    def test_ink_at_the_rect_corner_passes(self):
+        # The rect is inclusive on all four edges: ink in the last row
+        # and column must count, or a band whose only ink sits at an
+        # edge would be missed.
+        with mock.patch(
+            "support.render.gates.pixel_at",
+            side_effect=lambda image, x, y: (
+                (0x11, 0x11, 0x11) if (x, y) == (310, 330) else (0xDD, 0xDD, 0xDD)
+            ),
+        ):
+            self.assert_inks_off_the_face(
+                300, 320, 310, 330, "the band draws no ink"
+            )
+
+    def test_an_all_face_band_fails_naming_the_band(self):
+        with mock.patch(
+            "support.render.gates.pixel_at", return_value=(0xDD, 0xDD, 0xDD)
+        ):
+            with self.assertRaises(AssertionError) as caught:
+                self.assert_inks_off_the_face(
+                    300, 320, 310, 330, "the band draws no ink"
+                )
+        self.assertIn("the band draws no ink", str(caught.exception))
+
+
 if __name__ == "__main__":
     unittest.main()

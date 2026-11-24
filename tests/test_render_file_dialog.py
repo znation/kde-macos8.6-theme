@@ -389,25 +389,14 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
                 self.assert_pixel(x, y, "#DDDDDD")
         # The chooser's directory label above the header draws live ink
         # (rows 68..77 measured); its glyphs stay unpinned.
-        image = self.candidate_image()
-        self.assertTrue(
-            any(
-                hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
-                for x in range(150, 251)
-                for y in range(60, 91)
-            ),
-            "the directory label above the header draws no ink",
+        self.assert_inks_off_the_face(
+            150, 60, 250, 90, "the directory label above the header draws no ink"
         )
         # So do the header labels and the file rows (the row text and the
         # type-icon art stay unpinned per README; the icon cells themselves
         # are byte-pinned by the sibling type-icon test below).
-        self.assertTrue(
-            any(
-                hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
-                for x in range(152, 474)
-                for y in range(99, 252)
-            ),
-            "the list panel draws no header or row ink",
+        self.assert_inks_off_the_face(
+            152, 99, 473, 251, "the list panel draws no header or row ink"
         )
 
     def test_the_sidebar_pins_its_selected_row(self):
@@ -437,16 +426,10 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         # pixel off the #DDDDDD face inside its measured band (the
         # glyphs themselves stay unpinned, like the other app-drawn
         # text). A dropped header fails here.
-        image = self.candidate_image()
         for x0, x1, y0, y1 in self.GROUP_HEADERS:
             with self.subTest(header=(x0, x1)):
-                self.assertTrue(
-                    any(
-                        hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
-                        for x in range(x0, x1 + 1)
-                        for y in range(y0, y1 + 1)
-                    ),
-                    "the sidebar group header draws no ink",
+                self.assert_inks_off_the_face(
+                    x0, y0, x1, y1, "the sidebar group header draws no ink"
                 )
 
     def test_the_places_entry_pins_its_folder_cell(self):
@@ -458,14 +441,8 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         self.assert_band(
             (x0, y0, width, height), sidebar_fixtures.FOLDER_CELL_ROWS
         )
-        image = self.candidate_image()
-        self.assertTrue(
-            any(
-                hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
-                for x in range(58, 97)
-                for y in range(73, 87)
-            ),
-            "the Home entry's label draws no ink",
+        self.assert_inks_off_the_face(
+            58, 73, 96, 86, "the Home entry's label draws no ink"
         )
 
     def test_the_device_entries_pin_their_drive_cells(self):
@@ -483,16 +460,10 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         # Each device name must really draw beside its cell: at least
         # one pixel off the #DDDDDD face inside its measured band. A
         # dropped device entry's name fails here.
-        image = self.candidate_image()
         for x0, x1, y0, y1 in self.DEVICE_LABEL_BANDS:
             with self.subTest(label=y0):
-                self.assertTrue(
-                    any(
-                        hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
-                        for x in range(x0, x1 + 1)
-                        for y in range(y0, y1 + 1)
-                    ),
-                    "the device entry's label draws no ink",
+                self.assert_inks_off_the_face(
+                    x0, y0, x1, y1, "the device entry's label draws no ink"
                 )
 
     def test_the_capacity_bars_pin_their_troughs(self):
@@ -628,22 +599,11 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
                     continue
                 self.assert_pixel(x, y, "#DDDDDD")
         # The two labels draw live ink inside their measured glyph bands.
-        image = self.candidate_image()
-        self.assertTrue(
-            any(
-                hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
-                for x in range(153, 190)
-                for y in range(270, 280)
-            ),
-            "the Name row's label draws no ink",
+        self.assert_inks_off_the_face(
+            153, 270, 189, 279, "the Name row's label draws no ink"
         )
-        self.assertTrue(
-            any(
-                hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
-                for x in range(153, 166)
-                for y in range(297, 307)
-            ),
-            "the Filter row's label draws no ink",
+        self.assert_inks_off_the_face(
+            153, 297, 165, 306, "the Filter row's label draws no ink"
         )
 
     def test_the_toolbar_and_bottom_buttons_draw_raised_boxes(self):
@@ -689,7 +649,6 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         # Each of the four boxes really draws its mark: at least one pixel
         # off the #DDDDDD face inside the outline (the toolbar marks and
         # the button labels are app-drawn greys, left unpinned).
-        image = self.candidate_image()
         for x0, x1, y0, y1 in (
             (348, 373, 30, 55),
             (385, 410, 30, 55),
@@ -697,13 +656,8 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
             (440, 471, 322, 341),
         ):
             with self.subTest(box=(x0, x1, y0, y1)):
-                self.assertTrue(
-                    any(
-                        hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
-                        for x in range(x0, x1 + 1)
-                        for y in range(y0, y1 + 1)
-                    ),
-                    "the box draws no mark inside its outline",
+                self.assert_inks_off_the_face(
+                    x0, y0, x1, y1, "the box draws no mark inside its outline"
                 )
 
     def test_the_column_header_band_pins_its_face_and_dividers(self):
@@ -744,15 +698,13 @@ class TestFileDialogRender(DialogGate, unittest.TestCase):
         # themselves stay live). The style-drawn sort arrow is byte-pinned
         # to its measured 11x9 pixel map: a dropped, moved, resampled or
         # recoloured arrow fails the byte-compare.
-        image = self.candidate_image()
         for x0, x1 in self.HEADER_CAPTIONS:
             with self.subTest(caption=(x0, x1)):
-                self.assertTrue(
-                    any(
-                        hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
-                        for x in range(x0, x1 + 1)
-                        for y in range(self.CAPTION_ROWS[0], self.CAPTION_ROWS[1] + 1)
-                    ),
+                self.assert_inks_off_the_face(
+                    x0,
+                    self.CAPTION_ROWS[0],
+                    x1,
+                    self.CAPTION_ROWS[1],
                     "the header caption draws no ink",
                 )
         self.assert_band(

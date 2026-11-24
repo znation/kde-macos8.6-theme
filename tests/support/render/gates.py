@@ -189,6 +189,26 @@ class PixelPins:
             rect, [["#DDDDDD"] * rect[2] for _ in range(rect[3])]
         )
 
+    def assert_inks_off_the_face(self, x0, y0, x1, y1, message):
+        """Assert the inclusive rect draws at least one pixel off the face.
+
+        The live-ink probe the app-drawn label, caption and mark pins
+        share (9 call sites in tests/test_render_file_dialog.py): the
+        glyphs themselves stay unpinned, but a band that drew nothing
+        over the flat #DDDDDD face fails here. The rectangle is
+        inclusive on all four edges, the form the measured band
+        constants already carry.
+        """
+        image = self.candidate_image()
+        self.assertTrue(
+            any(
+                hex_colour(pixel_at(image, x, y)) != "#DDDDDD"
+                for x in range(x0, x1 + 1)
+                for y in range(y0, y1 + 1)
+            ),
+            message,
+        )
+
 
 # The dialog render's engine-drawn widget gate: `--checkbox-dialog` opens a
 # kdialog warning at the headless KWin session's centre in a 480x360 capture,
