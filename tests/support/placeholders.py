@@ -11,6 +11,10 @@ marked file with no row, a row whose path is missing, a row whose file
 carries no marker, a file or the register that is not valid UTF-8 text, or a
 text asset whose symlink resolves outside ``theme/``.
 
+A row whose path exists but is not a regular file (a directory) and a row
+whose parent exists but is a file are named as such instead of being
+reported as missing; "does not exist" would mislead in both cases.
+
 ``tests/test_placeholders.py`` drives these checks.
 
 A register that lists one asset twice is refused by name with both rows'
@@ -212,8 +216,9 @@ def cross_check(root, register):
 
     Returns ``(markers, entries)`` so a caller can assert more; raises
     :class:`AssertionError` naming the first disagreement: a marked file with
-    no row, a row whose path is missing, a row whose file carries no marker,
-    or a register that lists one asset twice.
+    no row, a row whose path is missing (or is present but not a regular
+    file, or sits under a parent that exists as a file), a row whose file
+    carries no marker, or a register that lists one asset twice.
     A checked-in symlink at *register* that resolves outside *root* raises
     ``ValueError`` before it is read, so its rows are never echoed in the
     diagnostic.
@@ -230,7 +235,23 @@ def cross_check(root, register):
                 )
             )
     for asset in sorted(entries):
-        if not os.path.isfile(os.path.join(root, asset)):
+        target = os.path.join(root, asset)
+        if not os.path.isfile(target):
+            if os.path.lexists(target):
+                raise AssertionError(
+                    escape_controls(
+                        f"{register} lists {asset}, which exists but is not "
+                        "a regular file (a directory)"
+                    )
+                )
+            parent = os.path.dirname(target)
+            if os.path.exists(parent) and not os.path.isdir(parent):
+                raise AssertionError(
+                    escape_controls(
+                        f"{register} lists {asset}, whose parent {parent} "
+                        "exists but is not a directory"
+                    )
+                )
             raise AssertionError(
                 escape_controls(
                     f"{register} lists {asset}, which does not exist"

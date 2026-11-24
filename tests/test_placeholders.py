@@ -321,6 +321,31 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "does not exist"):
             cross_check(tmp, register)
 
+    def test_cross_check_names_a_register_path_that_is_a_directory(self):
+        # os.path.isfile is False for a directory just as for an absent
+        # path; the diagnostic must not call a present directory missing.
+        tmp = make_tmp_dir(self)
+        (tmp / "theme" / "a.svg").mkdir(parents=True)
+        register = self._write_register(tmp, {os.path.join("theme", "a.svg"): "an a"})
+        with self.assertRaisesRegex(AssertionError, "not a regular file"):
+            cross_check(tmp, register)
+
+    def test_cross_check_names_an_existing_file_parent(self):
+        # A row one level under a row that is itself a plain file has an
+        # existing parent that is not a directory; naming the parent tells
+        # the contributor which row misplaced it.
+        tmp = make_tmp_dir(self)
+        self._write_marker(tmp, os.path.join("theme", "a.svg"), "an a")
+        register = self._write_register(
+            tmp,
+            {
+                os.path.join("theme", "a.svg"): "an a",
+                os.path.join("theme", "a.svg", "b.svg"): "a b",
+            },
+        )
+        with self.assertRaisesRegex(AssertionError, "parent .* is not a directory"):
+            cross_check(tmp, register)
+
     def test_cross_check_escapes_control_characters_in_a_register_asset(self):
         # PLACEHOLDERS.md is contributor-supplied, and cross_check echoes a
         # row's asset path in its AssertionError. An ESC there must be shown as
