@@ -5,6 +5,89 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Parallel-check suite extraction: move the empty-run verdict tests into their own module (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup, GTK rule cases, Makefile refusal and terminal palette entries) — done 2026-11-24 by the feature role
+
+**Goal.** `tests/test_check_parallel.py` is 702 lines, nearly all in one
+`TestCoordinator` class. Six of its tests, plus one helper, cover a single
+concern: whether the coordinator trusts a worker's exit 5 as unittest's
+"NO TESTS RAN" empty run. Move them into a new
+`tests/test_check_parallel_empty_run.py`. Put the scratch-suite setup both
+classes need in a support base, so neither test module imports the other.
+No tool, Makefile or check behaviour changes. No test is added, removed
+or renamed except by its class.
+
+**Approach.**
+
+- New `tests/support/check_parallel_coordinator.py`: a module docstring
+  saying it holds the base class for tests that run
+  `tools/check_parallel.py` against scratch suites. It defines
+  `CoordinatorTestCase(unittest.TestCase)`, holding `TestCoordinator`'s
+  current `setUp` (the `XDG_CACHE_HOME` patch with its comment) plus its
+  `_project` and `_run` helpers, moved verbatim. Import only what those
+  three use (`os`, `unittest`, `mock`, `make_tmp_dir`, `make_suite_dir`,
+  `_write_module`, `run_main`, `check_parallel`). Keep it flat in
+  `tests/support/` next to `check_parallel_fixtures.py`, which keeps the
+  fixture module sources only.
+- `tests/test_check_parallel.py`: `TestCoordinator` subclasses
+  `CoordinatorTestCase` and loses the moved `setUp`, `_project` and `_run`.
+  Delete the moved tests (listed below) and drop any import left unused
+  (`tests/test_no_unused_imports.py` flags leftovers). Add
+  ``test_check_parallel_empty_run.py`` to the module docstring's
+  "The checks split by the module they cover" sentence, describing it as
+  covering the exit-5 empty-run verdicts.
+- New `tests/test_check_parallel_empty_run.py`: a module docstring saying
+  it pins the coordinator's exit-5 / NO TESTS RAN verdicts, and pointing to
+  `tests/test_check_parallel_marker.py` for the per-byte marker scan. Add
+  `class TestEmptyRunVerdicts(CoordinatorTestCase)`, holding verbatim, with
+  their comments: `test_a_module_with_no_tests_does_not_fail_the_run`,
+  `test_an_exit_5_without_the_no_tests_ran_summary_fails_the_run`,
+  `test_a_forged_no_tests_ran_summary_fails_the_run`,
+  `test_an_exit_5_with_only_one_empty_run_marker_fails`,
+  `test_a_forged_summary_with_a_test_docstring_fails_the_run`,
+  `test_a_started_test_hidden_before_the_bounded_log_tail_fails`, and the
+  `_assert_forged_summary_fails` helper. Put the class above the
+  `if __name__ == "__main__":` block, which mirrors the one in
+  `tests/test_check_parallel.py`.
+- `docs/invariants.md`: retarget every
+  `tests/test_check_parallel.py::TestCoordinator::<moved test>` anchor to
+  `tests/test_check_parallel_empty_run.py::TestEmptyRunVerdicts::<moved test>`.
+  Those anchors are in the parallel-check row (which also cites the
+  module's other tests) and the "trusts an exit-5 `NO TESTS RAN` summary"
+  row. In the parallel-check row's prose, "the named verdict, ordering,
+  and terminal-control cases in `TestCoordinator`" becomes the ordering and
+  terminal-control cases in `TestCoordinator` and the exit-5 verdict cases
+  in `TestEmptyRunVerdicts` (`tests/test_check_parallel_empty_run.py`).
+  Leave the other anchors as they are.
+- `tests/support/validation_gaps/no_fake.py`: retarget the
+  `check-parallel-forged-empty-summary`, `check-parallel-testless-module`
+  and `check-parallel-forged-exit-5` reproductions to the new module and
+  class. Leave the other `TestCoordinator` reproductions as they are
+  (log-stem collision and unterminated log).
+- Before editing, grep `tests docs README.md .github` for each moved test
+  name, to find any other anchor or prose pointer to update.
+
+**Files touched.** `tests/test_check_parallel.py`, new
+`tests/test_check_parallel_empty_run.py`, new
+`tests/support/check_parallel_coordinator.py`, `docs/invariants.md`,
+`tests/support/validation_gaps/no_fake.py`.
+
+**Acceptance criteria.**
+
+- `rg -n 'test_check_parallel\.py::TestCoordinator::(test_a_module_with_no_tests|test_an_exit_5|test_a_forged|test_a_started_test_hidden)' tests docs`
+  finds nothing. Each of the six moved test names is defined only in
+  `tests/test_check_parallel_empty_run.py`.
+- `rg -n 'from test_check_parallel import|import test_check_parallel\b' tests`
+  finds nothing: the new module does not import the old test module.
+- `make check CHECK_TESTS='test_check_parallel test_check_parallel_empty_run test_invariants test_validation_gaps test_no_unused_imports test_suite_discovery'`
+  passes, and its output shows the six moved tests running under
+  `test_check_parallel_empty_run.TestEmptyRunVerdicts`.
+- `tests/test_check_parallel.py` is under 560 lines, and the new test
+  module is under 220 lines.
+- No behaviour change: `git diff` shows only moved code, import lines,
+  docstrings, and anchor paths or class names.
+- `make check` passes after the final edit, apart from main's known-red
+  tests.
+
 ### Suite-discovery extraction: move the shadowed-definition guard into its own module (planned 2026-11-21 by the plan role; independent of the waiting tests/support regroup, terminal palette and parallel-check plans) — done 2026-11-24 by the feature role
 
 **Goal.** `tests/test_suite_discovery.py` mixes two responsibilities: the

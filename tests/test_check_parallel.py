@@ -13,10 +13,12 @@ without running the real suite more than once.
 The checks split by the module they cover: ``test_check_parallel_order.py``
 pins the durations cache and queue, ``test_check_parallel_results.py`` the
 results report, ``test_check_parallel_marker.py`` the started-test marker
-scan, ``test_check_parallel_discovery.py`` the module discovery,
+scan, ``test_check_parallel_empty_run.py`` the exit-5 empty-run verdicts,
+``test_check_parallel_discovery.py`` the module discovery,
 and ``test_check_parallel_workers.py`` the worker spawn and clean-up
 defenses. The shared scratch module sources live in
-``support/check_parallel_fixtures.py``.
+``support/check_parallel_fixtures.py``; the coordinator test base class in
+``support/check_parallel_coordinator.py``.
 
 The Makefile wiring (the CHECK_PARALLEL variable and its guard) is pinned in
 ``test_make_check.py``; the suite's own module inventory in
@@ -44,7 +46,7 @@ from support.check_parallel_fixtures import (
     make_package,
     make_suite_dir,
 )
-from support.cli_fixtures import run_main
+from support.check_parallel_coordinator import CoordinatorTestCase
 from support.process_assertions import assert_failed, assert_succeeded
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
@@ -52,22 +54,8 @@ from tools import check_parallel
 from tools.check import parallel_workers
 
 
-class TestCoordinator(unittest.TestCase):
+class TestCoordinator(CoordinatorTestCase):
     """Run the coordinator against scratch suites of fixture modules."""
-
-    def setUp(self):
-        # Address every run's durations cache at a scratch home: a sandbox
-        # suite's save must not rewrite the developer's real user cache,
-        # whose recorded durations the next full run's queue orders by (the
-        # coordinator prunes entries whose modules are absent from
-        # --tests-dir, so a one-module sandbox tree's save used to leave
-        # that real cache holding one module of 317).
-        self.cache_home = make_tmp_dir(self) / "cache"
-        cache = mock.patch.dict(
-            os.environ, {"XDG_CACHE_HOME": str(self.cache_home)}
-        )
-        cache.start()
-        self.addCleanup(cache.stop)
 
     def test_a_sandbox_run_saves_under_the_addressed_cache_home(self):
         # Each run resolves its durations cache through the environment's
@@ -83,16 +71,6 @@ class TestCoordinator(unittest.TestCase):
         self.assertTrue(cache.is_file())
         record = json.loads(cache.read_text(encoding="utf-8"))
         self.assertEqual(["test_ok"], list(record["durations"]))
-
-    def _project(self, files: dict[str, str]) -> str:
-        """Write a scratch suite and return its tests directory."""
-        tests_dir = make_suite_dir(self)
-        for name, source in files.items():
-            _write_module(tests_dir, name, source)
-        return tests_dir
-
-    def _run(self, *args):
-        return run_main(check_parallel.main, "tools/check_parallel.py", args)
 
     def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
         tests_dir = self._project({"test_ok.py": OK_MODULE})
@@ -335,156 +313,6 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("test_a_test_b.TestOther", top_section)
         self.assertNotIn("test_a_test_b.TestOther", package_section)
         self.assertNotIn("test_a.test_b.TestOk", top_section)
-
-    def test_a_module_with_no_tests_does_not_fail_the_run(self):
-        # unittest exits 5 (NO TESTS RAN) when a module's run collects no
-        # tests, on Python 3.12 and later; interpreters before 3.12 exit 0
-        # for the same empty run (the Makefile's CHECK_PATTERN guard relies
-        # on that same version split). The serial discover run gets nothing
-        # from such a module and still passes either way, so the parallel
-        # run must pass too, with the section naming the outcome instead of
-        # failing while the other modules' results stand.
-        tests_dir = self._project(
-            {"test_empty.py": "import unittest\n", "test_ok.py": OK_MODULE}
-        )
-        result = self._run("--tests-dir", tests_dir, "--workers", "2")
-        assert_succeeded(self, result)
-        if sys.version_info >= (3, 12):
-            self.assertIn(
-                "===== test_empty: ran no tests (unittest's NO TESTS RAN, "
-                "exit 5) =====",
-                result.stdout,
-            )
-        else:
-            self.assertIn("===== test_empty: exit 0 =====", result.stdout)
-        self.assertIn("===== test_ok: exit 0 =====", result.stdout)
-        self.assertIn("Ran 1 test in", result.stdout)
-
-    def test_an_exit_5_without_the_no_tests_ran_summary_fails_the_run(self):
-        # The exit-5 status alone is not evidence of an empty run: a
-        # module whose test dies of its own `os._exit(5)` leaves a log
-        # with no unittest result block. Serial `unittest discover` fails
-        # such a run (the whole process exits 5); the parallel run must
-        # fail too, not pass on a fake `ran no tests` verdict.
-        tests_dir = self._project(
-            {
-                "test_boom.py": (
-                    "import os, unittest\n"
-                    "\n"
-                    "\n"
-                    "class TestBoom(unittest.TestCase):\n"
-                    "    def test_boom(self):\n"
-                    "        os._exit(5)\n"
-                ),
-                "test_ok.py": OK_MODULE,
-            }
-        )
-        result = self._run("--tests-dir", tests_dir, "--workers", "2")
-        assert_failed(self, result)
-        self.assertIn(
-            "===== test_boom: exit 5 but the log shows no unittest "
-            "NO TESTS RAN summary =====",
-            result.stdout,
-        )
-        self.assertIn("===== test_ok: exit 0 =====", result.stdout)
-        self.assertIn("1 module failed", result.stdout)
-
-    def test_a_forged_no_tests_ran_summary_fails_the_run(self):
-        self._assert_forged_summary_fails("")
-
-    def test_an_exit_5_with_only_one_empty_run_marker_fails(self):
-        # An import can terminate before unittest prints a verbose test
-        # line. Even then, either summary marker alone is insufficient
-        # evidence that unittest completed an empty run.
-        for marker in ("Ran 0 tests in 0.000s", "NO TESTS RAN"):
-            with self.subTest(marker=marker):
-                tests_dir = self._project(
-                    {
-                        "test_partial.py": (
-                            "import os\n"
-                            f"print({marker!r}, flush=True)\n"
-                            "os._exit(5)\n"
-                        ),
-                        "test_ok.py": OK_MODULE,
-                    }
-                )
-                result = self._run("--tests-dir", tests_dir, "--workers", "2")
-                assert_failed(self, result)
-                self.assertIn(
-                    "===== test_partial: exit 5 but the log shows no unittest "
-                    "NO TESTS RAN summary =====",
-                    result.stdout,
-                )
-                self.assertIn("===== test_ok: exit 0 =====", result.stdout)
-                self.assertIn("1 module failed", result.stdout)
-
-    def test_a_forged_summary_with_a_test_docstring_fails_the_run(self):
-        self._assert_forged_summary_fails('        """An ordinary test description."""\n')
-
-    def test_a_started_test_hidden_before_the_bounded_log_tail_fails(self):
-        tests_dir = self._project(
-            {
-                "test_forge.py": (
-                    "import os, sys, unittest\n"
-                    "\n\n"
-                    "class TestForge(unittest.TestCase):\n"
-                    "    def test_forge(self):\n"
-                    "        print('x' * 70000, flush=True)\n"
-                    "        print('Ran 0 tests in 0.000s\\n\\nNO TESTS RAN', flush=True)\n"
-                    "        os._exit(5)\n"
-                ),
-                "test_ok.py": OK_MODULE,
-            }
-        )
-        result = self._run("--tests-dir", tests_dir, "--workers", "2")
-        assert_failed(self, result)
-        self.assertIn(
-            "===== test_forge: exit 5 but the log shows a started test "
-            "beside unittest's NO TESTS RAN summary =====",
-            result.stdout,
-        )
-
-    def _assert_forged_summary_fails(self, docstring):
-        # The printed summary is only proof when nothing ran: unittest's
-        # verbose runner writes one `test ... (...) ... ` line per test
-        # before running it and flushes it, so a log that carries both NO
-        # TESTS RAN markers beside such a line shows a test that started --
-        # a module whose test prints the markers itself and then dies of
-        # its own `os._exit(5)`. Serial `unittest discover` fails that run
-        # (the whole process exits 5); the parallel run must fail too, not
-        # pass on the forged `ran no tests` verdict.
-        tests_dir = self._project(
-            {
-                "test_forge.py": (
-                    "import os, sys, unittest\n"
-                    "\n"
-                    "\n"
-                    "class TestForge(unittest.TestCase):\n"
-                    "    def test_forge(self):\n"
-                    + docstring +
-                    "        print(\n"
-                    "            \"\\n\"\n"
-                    "            \"-----------------------------------------"
-                    "-----------------------------\\n\"\n"
-                    "            \"Ran 0 tests in 0.000s\\n\"\n"
-                    "            \"\\n\"\n"
-                    "            \"NO TESTS RAN\\n\"\n"
-                    "        )\n"
-                    "        sys.stdout.flush()\n"
-                    "        os._exit(5)\n"
-                ),
-                "test_ok.py": OK_MODULE,
-            }
-        )
-        result = self._run("--tests-dir", tests_dir, "--workers", "2")
-        assert_failed(self, result)
-        self.assertIn(
-            "===== test_forge: exit 5 but the log shows a started test "
-            "beside unittest's NO TESTS RAN summary =====",
-            result.stdout,
-        )
-        self.assertIn("===== test_ok: exit 0 =====", result.stdout)
-        self.assertIn("1 module failed", result.stdout)
 
     def test_an_unterminated_log_never_merges_with_the_next_section(self):
         # A worker that dies mid-print (an `os._exit(1)` inside a test, with

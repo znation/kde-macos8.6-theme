@@ -28,7 +28,7 @@ NO_FAKE_REPRODUCTIONS = (
     Reproduction(
         "check-parallel-forged-empty-summary",
         ("accepts a forged empty-run summary from a started test",),
-        "tests/test_check_parallel.py::TestCoordinator"
+        "tests/test_check_parallel_empty_run.py::TestEmptyRunVerdicts"
         "::test_a_forged_no_tests_ran_summary_fails_the_run",
     ),
     Reproduction(
@@ -52,13 +52,13 @@ NO_FAKE_REPRODUCTIONS = (
     Reproduction(
         "check-parallel-testless-module",
         ("a pattern-matched module that collects no tests",),
-        "tests/test_check_parallel.py::TestCoordinator"
+        "tests/test_check_parallel_empty_run.py::TestEmptyRunVerdicts"
         "::test_a_module_with_no_tests_does_not_fail_the_run",
     ),
     Reproduction(
         "check-parallel-forged-exit-5",
         ("a module that dies of its own os._exit(5) skips its tests silently",),
-        "tests/test_check_parallel.py::TestCoordinator"
+        "tests/test_check_parallel_empty_run.py::TestEmptyRunVerdicts"
         "::test_an_exit_5_without_the_no_tests_ran_summary_fails_the_run",
     ),
     Reproduction(
