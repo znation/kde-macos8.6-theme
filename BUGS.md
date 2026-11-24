@@ -660,7 +660,7 @@ The mechanism: the inactive-dialog session takes no readiness end (`tools/render
 `readiness_script` to `None` whenever `mode.focus_settle` holds, with the comment that the
 inactive-dialog mode needs both windows before capture) and relies on the fixed `--settle 20` sleep;
 under the parallel check's load the second-spawned `kdialog` can miss that budget, and the render's
-`_capture_is_unpainted` guard only catches entirely-black captures, not a half-painted pair. The
+`capture_is_unpainted` guard (tools/render/capture_diagnosis.py) only catches entirely-black captures, not a half-painted pair. The
 focus-settle script settles activation but not mapping. Director decision the previous note asked
 for: keep the `RenderOutputMessages` render-log note — it widens only failure messages (a passing
 render adds nothing), and `assert_ring`'s dict `assertEqual` already routes through it, so a

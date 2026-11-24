@@ -3,19 +3,18 @@
 from __future__ import annotations
 
 import argparse
-import os
 from pathlib import Path
 
 if __package__.startswith("tools"):
-    from tools.containment import open_regular_binary
-    from tools.diagnostics import log_tail_lines, report_error, report_failure, report_note
+    from tools.diagnostics import report_error, report_failure
     from tools.png import PngError, read_png
     from tools.process_group import run_logged
     from tools.render.output import publish
     from tools.gtk.user_files import ConfigError
     from tools.render.splash_client import splash_client
     from tools.render.dialogs import DIALOG_MODES, DialogMode
-    from tools.render.session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command
+    from tools.render.capture_diagnosis import capture_is_unpainted, client_exited_during_capture, log_size, report_render_log
+    from tools.render.session import Session, session_command
     from tools.render.window_rules import (
         RULES_FILE,
         write_focus_settle_script,
@@ -33,15 +32,15 @@ if __package__.startswith("tools"):
     )
     from tools.repo_root import ROOT
 else:  # run directly from render_surface.py
-    from containment import open_regular_binary
-    from diagnostics import log_tail_lines, report_error, report_failure, report_note
+    from diagnostics import report_error, report_failure
     from png import PngError, read_png
     from process_group import run_logged
     from render.output import publish
     from gtk.user_files import ConfigError
     from render.splash_client import splash_client
     from render.dialogs import DIALOG_MODES, DialogMode
-    from render.session import CLIENT_EXITED_DURING_CAPTURE, Session, session_command
+    from render.capture_diagnosis import capture_is_unpainted, client_exited_during_capture, log_size, report_render_log
+    from render.session import Session, session_command
     from render.window_rules import (
         RULES_FILE,
         write_focus_settle_script,
@@ -60,70 +59,6 @@ else:  # run directly from render_surface.py
     from repo_root import ROOT
 
 TOOL = "render_surface"
-
-
-def _capture_is_unpainted(rgb: bytes) -> bool:
-    """Return whether a capture's RGB plane is entirely black."""
-    return not any(rgb)
-
-
-def _log_size(log: Path) -> str:
-    """Return the size of the session log, or ``missing`` when it is absent."""
-    try:
-        return f"{log.stat().st_size} bytes"
-    except OSError:
-        return "missing"
-
-
-def _report_render_log(log: Path) -> None:
-    """Print the session log's last lines on stdout after a painted capture.
-
-    A passing render discards its session log with the scratch directory, so
-    a later pixel mismatch could not show which settle path ran. Printing the
-    tail keeps that evidence in the run's own output; a log that cannot be
-    read is reported in its place rather than failing a capture that painted.
-    """
-    try:
-        lines = log_tail_lines(log)
-    except (OSError, ValueError) as exc:
-        report_note(TOOL, f"render log unreadable: {exc}")
-        return
-    report_note(TOOL, f"render log ({_log_size(log)}), last lines:")
-    for line in lines:
-        report_note(TOOL, f"  {line}")
-
-
-# How far into the session log the black-capture diagnosis looks for the
-# client's exit marker: the marker is written after the capture command
-# returns and before the reap line, so it sits at the log's end and a
-# bounded tail covers it however chatty the client's own output was.
-_EXIT_MARKER_TAIL_BYTES = 1 << 16
-
-
-def _client_exited_during_capture(log: Path) -> bool:
-    """Return whether the session log recorded the client dying mid-capture.
-
-    The session script prints :data:`CLIENT_EXITED_DURING_CAPTURE` when the
-    client that passed the settle's liveness check is gone by the time the
-    capture command returns; its window was destroyed before or while the
-    frame was taken, so a black capture then names the vanished client, not
-    an unpainted window. The read is a bounded tail like the failure
-    report's, and an unreadable log keeps the generic diagnosis instead of
-    failing the report.
-    """
-    try:
-        with open_regular_binary(str(log)) as handle:
-            handle.seek(0, os.SEEK_END)
-            start = max(0, handle.tell() - _EXIT_MARKER_TAIL_BYTES)
-            handle.seek(start)
-            return CLIENT_EXITED_DURING_CAPTURE in handle.read(
-                _EXIT_MARKER_TAIL_BYTES
-            ).decode("utf-8", "replace")
-    except (OSError, ValueError):
-        # ValueError names a non-regular log (the open guard's FIFO or device
-        # refusal), the same pair the failure report and the publish path
-        # catch for this guard, so the generic diagnosis survives it too.
-        return False
 
 
 def _dialog_config_files() -> tuple[str, ...]:
@@ -272,7 +207,7 @@ def render(args: argparse.Namespace) -> int:
                 # whether the session logged anything before it ended.
                 detail = (
                     f"; the session exited 0 and wrote no capture at "
-                    f"{session.surface} (render log {_log_size(command.log)})"
+                    f"{session.surface} (render log {log_size(command.log)})"
                 )
             return report_failure(
                 TOOL, f"capture is not a readable PNG: {exc}{detail}", command.log
@@ -281,8 +216,8 @@ def render(args: argparse.Namespace) -> int:
             return report_failure(
                 TOOL, f"capture is {image.width}x{image.height}, expected {args.width}x{args.height}", command.log
             )
-        if _capture_is_unpainted(image.rgb):
-            if _client_exited_during_capture(command.log):
+        if capture_is_unpainted(image.rgb):
+            if client_exited_during_capture(command.log):
                 return report_failure(
                     TOOL,
                     "capture is entirely black: the client exited during the "
@@ -296,7 +231,7 @@ def render(args: argparse.Namespace) -> int:
                 f"the {args.settle:g}s settle; retry with a longer --settle",
                 command.log,
             )
-        _report_render_log(command.log)
+        report_render_log(command.log, TOOL)
         try:
             publish(session.surface, output)
         except (OSError, ValueError) as exc:
