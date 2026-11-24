@@ -40,7 +40,7 @@ In `tests/test_render_surface_units.py::TestSessionScript.test_holds_the_client_
 the current stub records the final state and poll count after at most 200 sleeps
 of 10 ms. A final non-`T` state at that cap would be a different, still-unconfirmed
 failure; the original message does not establish that the cap expired.
-`tools/render_session.py::session_script` sends STOP before spectacle and CONT
+`tools/render/session_script.py::session_script` sends STOP before spectacle and CONT
 after it; the test's `run_logged` call has a 30-second outer timeout.
 Keep the cap for now: it gives a missing STOP a direct assertion failure instead
 of consuming the outer timeout. If the corrected test recurs, use its recorded
@@ -79,7 +79,7 @@ Director investigation (2026-11-19):
 `tests/test_render_surface.py::TestDesktopRender.candidate_image` includes
 the render exit status, stdout and stderr when reading the desktop output
 raises `OSError`; `test_missing_capture_reports_render_result` exercises
-that path. In `tools/render_workflow.py::render`, the recorded
+that path. In `tools/render/workflow.py::render`, the recorded
 "capture is not a readable PNG" message follows a zero session status from
 `run_logged`; nonzero status takes the earlier "render session exited"
 branch. This explains the reporting path, not why `surface.png` was absent.
@@ -111,7 +111,7 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_the_bar_between_the_mark_and_the_right_half_is_empty (test_render_surface.TestDesktopRender.test_the_bar_between_the_mark_and_the_right_half_is_empty)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
-**Needs review 2026-11-19 by director: Decide whether to park this pending a recurrence (recommended), and whether to track it as one incident with its three siblings. This entry and the `test_left_mark_is_the_raised_box`, `test_the_right_half_draws_its_live_content` and `test_exits_zero_and_writes_a_640x400_png` entries archive the same failure from the same scratch directory (`/tmp/render-surface-4758ej_h`). `TestDesktopRender.setUpClass` takes all of its tests' input from one `Renders.ensure("desktop")` render, so one desktop render that exited without writing `surface.png` explains all four failures. Code review cannot say why the capture was missing: in `tools/render_workflow.py::render` this message is reached only after the session command returned 0. Diagnostics for a recurrence are already merged: `TestDesktopRender.candidate_image` reports the render's exit status, stdout and stderr; the workflow's missing-capture branch adds that the session exited 0, plus the render log's size; and `tools/diagnostics.py::report_failure` appends the log tail. No further diagnostic work is needed before a recurrence.**
+**Needs review 2026-11-19 by director: Decide whether to park this pending a recurrence (recommended), and whether to track it as one incident with its three siblings. This entry and the `test_left_mark_is_the_raised_box`, `test_the_right_half_draws_its_live_content` and `test_exits_zero_and_writes_a_640x400_png` entries archive the same failure from the same scratch directory (`/tmp/render-surface-4758ej_h`). `TestDesktopRender.setUpClass` takes all of its tests' input from one `Renders.ensure("desktop")` render, so one desktop render that exited without writing `surface.png` explains all four failures. Code review cannot say why the capture was missing: in `tools/render/workflow.py::render` this message is reached only after the session command returned 0. Diagnostics for a recurrence are already merged: `TestDesktopRender.candidate_image` reports the render's exit status, stdout and stderr; the workflow's missing-capture branch adds that the session exited 0, plus the render log's size; and `tools/diagnostics.py::report_failure` appends the log tail. No further diagnostic work is needed before a recurrence.**
 
 **Director handoff 2026-11-19**
 
@@ -147,7 +147,7 @@ Not reproduced by the bugfix role on 2026-11-19: no focused run this session. Sa
 
 **Director handoff 2026-11-19**
 
-Bugfix run 2026-11-19: not reproduced. Focused runs of `test_render_surface.TestDesktopRender.test_the_right_half_draws_its_live_content` were not repeated this run; the earlier entries (106-192) record that the focused gate passes locally. The render tool's missing-capture branch (`tools/render_workflow.py`) now names the state when the session exits 0 without writing `surface.png`, and reports the render log's size. Regression test: `test_render_failure_paths.TestFailurePaths.test_session_without_a_capture_exits_1` fails on the old message and passes with the change. Next failure should show whether the session exited 0 with an empty log. See `.tumwater-director-request.md`.
+Bugfix run 2026-11-19: not reproduced. Focused runs of `test_render_surface.TestDesktopRender.test_the_right_half_draws_its_live_content` were not repeated this run; the earlier entries (106-192) record that the focused gate passes locally. The render tool's missing-capture branch (`tools/render/workflow.py`) now names the state when the session exits 0 without writing `surface.png`, and reports the render log's size. Regression test: `test_render_failure_paths.TestFailurePaths.test_session_without_a_capture_exits_1` fails on the old message and passes with the change. Next failure should show whether the session exited 0 with an empty log. See `.tumwater-director-request.md`.
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
@@ -167,7 +167,7 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_exits_zero_and_writes_a_640x400_png (test_render_surface.TestDesktopRender.test_exits_zero_and_writes_a_640x400_png)` failed, then passed on the same tree (quarantined by tumwater 2026-11-18)
 
-**Needs review 2026-11-19 by director: Decide whether to park pending recurrence (recommended), requesting complete render stderr, including its session-log tail, on recurrence, or commission additional capture diagnostics now. Code review places this error in tools/render_workflow.py after the session command returns zero and before publish(); the missing file is the scratch capture, not the destination. tools/render_session.py::session_script records Spectacle's status, and tools/diagnostics.py::report_failure appends a bounded log tail, but that tail is absent from the recorded excerpt. The excerpt does not establish why the capture file was absent; the reported focused pass does not resolve that cause.**
+**Needs review 2026-11-19 by director: Decide whether to park pending recurrence (recommended), requesting complete render stderr, including its session-log tail, on recurrence, or commission additional capture diagnostics now. Code review places this error in tools/render/workflow.py after the session command returns zero and before publish(); the missing file is the scratch capture, not the destination. tools/render/session_script.py::session_script records Spectacle's status, and tools/diagnostics.py::report_failure appends a bounded log tail, but that tail is absent from the recorded excerpt. The excerpt does not establish why the capture file was absent; the reported focused pass does not resolve that cause.**
 
 **Director handoff 2026-11-18**
 
@@ -245,7 +245,7 @@ make: *** [Makefile:491: check] Error 1
 
 ### `test_draws_the_push_button_face_at_the_existing_recipe (test_render_dialog_gates.TestIconDialogRender.test_draws_the_push_button_face_at_the_existing_recipe)` failed, then passed on the same tree (quarantined by tumwater 2026-11-19)
 
-**Needs review 2026-11-19 by bugfix: the next failure's message will show only the pixel mismatch (`'#CCCCCC' != '#000000'`) and not the cause, because `tools/render_workflow.py` reports the render log only when the render fails, so a passing capture's log (the settle-ceiling and window-ready lines) is discarded; keeping that log on a passing capture and attaching it to the gate's failure message is the change that would name the cause.**
+**Needs review 2026-11-19 by bugfix: the next failure's message will show only the pixel mismatch (`'#CCCCCC' != '#000000'`) and not the cause, because `tools/render/workflow.py` reports the render log only when the render fails, so a passing capture's log (the settle-ceiling and window-ready lines) is discarded; keeping that log on a passing capture and attaching it to the gate's failure message is the change that would name the cause.**
 
 The check failed on this test and then passed on a re-run of the same tree, so tumwater quarantined it: it counts as a known failure until this entry leaves `## Open`. Find why it is unstable and fix it.
 
@@ -354,7 +354,7 @@ Progress 2026-11-19 by the director role (review of the bugfix role's settle hyp
 unmapped-chooser reading does not explain this incident, so the settle fix that landed as
 ba11b7555 (`Renders.KINDS` `icon` kind with `--settle 20`, pinned by
 `TestIconRenderSettleBudget`) is not grounds to close the seven quarantines. A chooser that was
-unmapped at capture leaves a desktop-face frame, which `tools/render_workflow.py` publishes:
+unmapped at capture leaves a desktop-face frame, which `tools/render/workflow.py` publishes:
 its `report_failure` paths reject only a timeout, a non-zero session status, an unreadable or
 wrong-size capture, and an entirely black capture. The render would then exit 0, so
 `test_exits_zero` (`assertEqual(0, self.returncode, self.stderr)`) would pass, but it is one of
@@ -433,7 +433,7 @@ this entry.
 
 Progress 2026-11-19 by the director role (review of the bugfix role's handoff): the seven
 `TestIconDialogRender` quarantines are consistent with one cause, the icon render exiting
-non-zero. In `tools/render_workflow.py` every failure path (timeout, session exit status,
+non-zero. In `tools/render/workflow.py` every failure path (timeout, session exit status,
 unreadable capture, wrong size, entirely black capture) returns through `report_failure` before
 `publish`, so a failed render leaves no `dialog.png`. `DialogGate.candidate_image` then calls
 `read_png` on a missing file, so `test_writes_a_480x360_png` and the five pixel gates raise on the
