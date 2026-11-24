@@ -369,6 +369,111 @@ and 32x32.
   test_placeholders test_invariants'` passes, and so does full `make check`
   after the final edit, apart from main's known-red tests.
 
+### Platinum icon theme: draw the printer with an original `printer` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** The printer — the device the Print Queue and printer-configuration
+windows draw (`Icon=printer` in the installed
+`org.kde.PrintQueue.desktop`, `org.kde.ConfigurePrinter.desktop` and
+`org.kde.kde-add-printer.desktop` entries) — is drawn with Breeze's art
+beside the Platinum drive and media icons. Ship one original placeholder
+icon, `printer`, at 16x16, 22x22 and 32x32.
+Planning-time probe with `kiconfinder6` and a copy of the theme selected
+through scratch XDG homes (`DISPLAY` and `WAYLAND_DISPLAY` unset,
+`QT_QPA_PLATFORM=offscreen`; the control, `drive-harddisk`, resolved to
+the theme's 32x32 file): `printer` resolved to
+`:/icons/breeze/devices/64/printer.svg`, as do `video-display`,
+`camera-photo` and `phone`, which stay out of scope here. Provenance of
+the name: the installed `libKF6Solid.so.6.13.0` contains no `print`
+literal (`strings -e l`), so the surface that names the icon is the
+installed KDE print desktop entries above; no reference screenshot in
+`macos8.6-screenshots/` shows a printer, so the drawing is this theme's
+own choice. Out of scope: ship no alias files and nothing but
+`printer`; this plan shares no drawing with the drive family — a
+printer is a body with paper sheets, not a drive body — so it gets its
+own pins and no sharing test.
+
+**Approach.**
+
+- Add `devices/printer.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original printer illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a Platinum printer: a sheet feeding
+  from the top, the raised #DDDDDD body with the 1px #000000 outline and
+  the #FFFFFF/#999999 bevel, a #000000 output slot, a sheet emerging
+  from the slot down the front, and a #000000 power light. Each file
+  holds these elements in order, written `x,y width×height fill` for
+  rects and `cx,cy r fill` for circles:
+  - 32x32: `8,2 16×8 #000000`; `9,3 14×6 #FFFFFF`; `11,5 10×1
+    #999999`; `4,10 24×13 #000000`; `5,11 22×11 #DDDDDD`; `5,11 22×1
+    #FFFFFF`; `5,11 1×11 #FFFFFF`; `5,21 22×1 #999999`; `26,11 1×11
+    #999999`; `9,14 14×1 #000000`; `8,15 14×12 #000000`; `9,16 12×10
+    #FFFFFF`; `11,18 8×1 #999999`; `11,21 8×1 #999999`; `11,24 5×1
+    #999999`; `24,18 1 #000000`.
+  - 22x22: `6,1 10×6 #000000`; `7,2 8×4 #FFFFFF`; `8,3 6×1 #999999`;
+    `2,7 18×9 #000000`; `3,8 16×7 #DDDDDD`; `3,8 16×1 #FFFFFF`; `3,8
+    1×7 #FFFFFF`; `3,14 16×1 #999999`; `18,8 1×7 #999999`; `6,10 9×1
+    #000000`; `6,11 10×8 #000000`; `7,12 8×6 #FFFFFF`; `8,14 6×1
+    #999999`; `8,16 6×1 #999999`; `16,9 2×1 #000000`.
+  - 16x16: `4,1 8×4 #000000`; `5,2 6×2 #FFFFFF`; `6,3 4×1 #999999`;
+    `1,5 14×7 #000000`; `2,6 12×5 #DDDDDD`; `2,6 12×1 #FFFFFF`; `2,6
+    1×5 #FFFFFF`; `2,10 12×1 #999999`; `13,6 1×5 #999999`; `4,8 8×1
+    #000000`; `3,9 10×6 #000000`; `4,10 8×4 #FFFFFF`; `5,11 6×1
+    #999999`; `5,13 6×1 #999999`; `11,7 2×1 #000000`.
+
+  The pins read the SVG XML, so the geometry is checked by construction
+  from these lists, not by rasterizing.
+- `PLACEHOLDERS.md`: one row per file beside that size's `drive-harddisk`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `devices` paths, and name the printer
+  in a comment above them.
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `printer` in the last cell: no reference pixels were
+  used, the name is required by the installed KDE print desktop entries
+  (`org.kde.PrintQueue.desktop` and friends) while `libKF6Solid.so.6.13.0`
+  has no `print` literal, and the body-and-sheets drawing is this
+  theme's own choice.
+- `docs/installing.md`: add the printer icon to the sentence listing the
+  icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and has
+  a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing an element's position, size or fill, the power light's
+  position or size, or the element order, in one file makes
+  `test_each_icon_draws_its_pinned_artwork` fail; dropping a file while
+  leaving it shipped makes `test_the_geometry_registry_covers_every_shipped_icon`
+  fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `printer` resolves to the theme's 32x32
+  file, and `video-display`, `camera-photo` and `phone` stay on Breeze.
+  Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
