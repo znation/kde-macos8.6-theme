@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original SQLite-database illustration pending user-approved artwork. -->
+<!-- Platinum SQLite-database icon, 32x32 rendition.
+
+     Our own 32x32 drawing in the Platinum palette: the generic document's
+     page with its text lines replaced by a black band holding a white
+     database canister. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M6 3 h14 l6 6 v20 H6 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M7 4 h12 l6 6 v18 H7 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M19 4 L25 4 L25 10 Z" fill="#DDDDDD"/>
+  <!-- Database band. -->
+  <rect x="10" y="15" width="12" height="7" fill="#000000"/>
+  <!-- Database canister, whole-pixel cells. -->
+  <rect x="11" y="15" width="10" height="1" fill="#FFFFFF"/>
+  <rect x="11" y="16" width="1" height="5" fill="#FFFFFF"/>
+  <rect x="20" y="16" width="1" height="5" fill="#FFFFFF"/>
+  <rect x="12" y="18" width="8" height="1" fill="#FFFFFF"/>
+  <rect x="11" y="21" width="10" height="1" fill="#FFFFFF"/>
+</svg>

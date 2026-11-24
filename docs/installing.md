@@ -185,7 +185,8 @@ for script files (the `application-x-shellscript` name at the same three
 sizes), a desktop-launcher icon for launcher files (the
 `application-x-desktop` name at the same three sizes), a BitTorrent-file
 icon for BitTorrent seed files (the `application-x-bittorrent` name at the
-same three sizes), a script icon for the script types without their own
+same three sizes), a SQLite-database icon for SQLite database files (the
+`application-vnd.sqlite3` name at the same three sizes), a script icon for the script types without their own
 shipped name (the
 `text-x-script` name at the same three sizes), a Perl-script icon for Perl
 script files (the `application-x-perl` name at the same three sizes), a

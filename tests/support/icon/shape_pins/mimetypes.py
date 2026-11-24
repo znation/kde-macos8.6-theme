@@ -411,6 +411,40 @@ PINS = {
         _shape("rect", x="10", y="13", width="1", height="1", fill="#FFFFFF"),
         _shape("rect", x="9", y="14", width="4", height="1", fill="#FFFFFF"),
     ),
+    # The SQLite-database item icon KDE draws for `application/vnd.sqlite3`
+    # items (the type-spelled icon name of the installed shared MIME
+    # database's `application/vnd.sqlite3` type, which has no `generic-icon`
+    # and whose `application/x-sqlite3` alias resolves to the canonical
+    # name, so one file covers both); the drawing shares the generic
+    # document's page and holds a black band with a white database canister
+    # on the white face.
+    os.path.join("32x32", "mimetypes", "application-vnd.sqlite3.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="10", y="15", width="12", height="7", fill="#000000"),
+        _shape("rect", x="11", y="15", width="10", height="1", fill="#FFFFFF"),
+        _shape("rect", x="11", y="16", width="1", height="5", fill="#FFFFFF"),
+        _shape("rect", x="20", y="16", width="1", height="5", fill="#FFFFFF"),
+        _shape("rect", x="12", y="18", width="8", height="1", fill="#FFFFFF"),
+        _shape("rect", x="11", y="21", width="10", height="1", fill="#FFFFFF"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-vnd.sqlite3.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="5", y="6", width="6", height="5", fill="#000000"),
+        _shape("rect", x="5", y="6", width="6", height="1", fill="#FFFFFF"),
+        _shape("rect", x="5", y="7", width="1", height="3", fill="#FFFFFF"),
+        _shape("rect", x="10", y="7", width="1", height="3", fill="#FFFFFF"),
+        _shape("rect", x="6", y="8", width="4", height="1", fill="#FFFFFF"),
+        _shape("rect", x="5", y="10", width="6", height="1", fill="#FFFFFF"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-vnd.sqlite3.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="7", y="10", width="8", height="5", fill="#000000"),
+        _shape("rect", x="8", y="10", width="6", height="1", fill="#FFFFFF"),
+        _shape("rect", x="8", y="11", width="1", height="3", fill="#FFFFFF"),
+        _shape("rect", x="13", y="11", width="1", height="3", fill="#FFFFFF"),
+        _shape("rect", x="9", y="12", width="4", height="1", fill="#FFFFFF"),
+        _shape("rect", x="8", y="14", width="6", height="1", fill="#FFFFFF"),
+    ),
     os.path.join("32x32", "mimetypes", "x-office-presentation.svg"): (
         *_PAGE_32,
         _shape("rect", x="10", y="12", width="12", height="9", fill="#000000"),
