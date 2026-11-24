@@ -9,6 +9,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools.firefox import user_files as firefox_user_files
@@ -42,6 +43,73 @@ class TestProfileTextCap(unittest.TestCase):
         message = str(caught.exception)
         self.assertIn(str(self.path), message)
         self.assertIn("larger than", message)
+
+
+class TestProfileTextAbsence(unittest.TestCase):
+    """A profile file that does not exist reads as ``None``, not an error.
+
+    ``read_profile_text``'s docstring promises ``None`` for an absent path,
+    and the install and removal workflows lean on that: profile_actions
+    owns a sheet only when ``read_profile_text(sheet_path)`` returns text,
+    so a fresh profile must read as ``None`` for every owned file instead
+    of raising the wrapped :class:`FileNotFoundError`.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.path = Path(self._tmp.name) / "userChrome.css"
+
+    def test_a_missing_profile_file_reads_as_none(self):
+        self.assertFalse(self.path.exists())
+        self.assertIsNone(read_profile_text(self.path))
+
+
+class TestProfilePublish(unittest.TestCase):
+    """The publish helpers write bytes verbatim and refuse write failures.
+
+    ``write_profile_text`` publishes its text encoded as UTF-8 and
+    ``write_profile_bytes`` publishes *data* at *path* exactly as given;
+    a hidden decode or re-encode in either would corrupt a byte round-trip.
+    The module's docstring makes :class:`ConfigError` the wrap for a write
+    failure so ``main`` can report one ``install_firefox: error:`` line
+    instead of letting a bare ``OSError`` traceback escape; the refusal
+    must name the action and the path and keep the ``OSError`` as cause.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.path = Path(self._tmp.name) / "userChrome.css"
+
+    def test_published_text_is_encoded_as_utf8_bytes(self):
+        text = "café — Platinum\n"
+        firefox_user_files.write_profile_text(self.path, text)
+        self.assertEqual(text.encode("utf-8"), self.path.read_bytes())
+
+    def test_published_bytes_are_written_verbatim(self):
+        # Bytes that are not valid UTF-8 must still land byte-for-byte: the
+        # publisher takes *data*, not text, so it must not interpret them.
+        data = b"\x00\xff not utf-8\n"
+        firefox_user_files.write_profile_bytes(self.path, data)
+        self.assertEqual(data, self.path.read_bytes())
+
+    def test_a_failing_write_is_refused_by_path_as_a_config_error(self):
+        # The wrap lives here, so this is where its shape is pinned: the
+        # raised type is ConfigError (the type main catches to print the
+        # one ``install_firefox: error:`` line), the message names the
+        # action and the path, and the OSError stays as the cause.
+        failure = OSError("simulated write failure")
+        with mock.patch.object(
+            firefox_user_files, "write_atomically", side_effect=failure
+        ):
+            with self.assertRaises(ConfigError) as caught:
+                firefox_user_files.write_profile_bytes(self.path, b"data")
+        message = str(caught.exception)
+        self.assertIn("cannot write", message)
+        self.assertIn(str(self.path), message)
+        self.assertIs(failure, caught.exception.__cause__)
+        self.assertFalse(self.path.exists())
 
 
 class TestProfileTextRefusals(unittest.TestCase):
