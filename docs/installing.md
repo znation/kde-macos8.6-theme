@@ -140,7 +140,7 @@ at the right edge with each icon's name on one line under it, as Mac OS 8.6 does
 `plasma-apply-desktoptheme org.macos8.desktop`; the global theme applies it through
 `[plasmarc][Theme]` in its `contents/defaults`. The global theme also selects the
 `org.macos8.desktop` icon theme through `[kdeglobals][Icons]` in the same `contents/defaults`; it
-ships original placeholder illustrations for the desktop's hard-disk, removable-drive, optical-disc, folder,
+ships original placeholder illustrations for the desktop's hard-disk, removable-drive, optical-drive, optical-disc, folder,
 document, Trash and full-Trash icons, drawn at 32x32 with 16x16 and 22x22 renditions, a blank
 document for untyped and empty files (the `application-octet-stream`, `application-x-zerosize`
 and `unknown` names at the same three sizes), a program icon for program

@@ -133,6 +133,39 @@ ICON_SHAPES = {
         _shape("rect", x="5", y="11", width="12", height="1", fill="#FFFFFF"),
         _shape("rect", x="13", y="14", width="4", height="1", fill="#000000"),
     ),
+    os.path.join("32x32", "devices", "drive-optical.svg"): (
+        _shape("rect", x="3", y="8", width="26", height="17", fill="#000000"),
+        _shape("rect", x="4", y="9", width="24", height="15", fill="#DDDDDD"),
+        _shape("rect", x="4", y="9", width="24", height="2", fill="#FFFFFF"),
+        _shape("rect", x="4", y="9", width="1", height="15", fill="#FFFFFF"),
+        _shape("rect", x="4", y="22", width="24", height="2", fill="#999999"),
+        _shape("rect", x="27", y="9", width="1", height="15", fill="#999999"),
+        _shape("circle", cx="16", cy="16", r="5", fill="#000000"),
+        _shape("circle", cx="16", cy="16", r="4", fill="#FFFFFF"),
+        _shape("circle", cx="16", cy="16", r="2", fill="#000000"),
+    ),
+    os.path.join("16x16", "devices", "drive-optical.svg"): (
+        _shape("rect", x="1", y="2", width="14", height="12", fill="#000000"),
+        _shape("rect", x="2", y="3", width="12", height="10", fill="#DDDDDD"),
+        _shape("rect", x="2", y="3", width="12", height="1", fill="#FFFFFF"),
+        _shape("rect", x="2", y="3", width="1", height="10", fill="#FFFFFF"),
+        _shape("rect", x="2", y="12", width="12", height="1", fill="#999999"),
+        _shape("rect", x="13", y="3", width="1", height="10", fill="#999999"),
+        _shape("circle", cx="8", cy="8", r="3", fill="#000000"),
+        _shape("circle", cx="8", cy="8", r="2", fill="#FFFFFF"),
+        _shape("circle", cx="8", cy="8", r="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "devices", "drive-optical.svg"): (
+        _shape("rect", x="2", y="4", width="18", height="15", fill="#000000"),
+        _shape("rect", x="3", y="5", width="16", height="13", fill="#DDDDDD"),
+        _shape("rect", x="3", y="5", width="16", height="2", fill="#FFFFFF"),
+        _shape("rect", x="3", y="5", width="1", height="13", fill="#FFFFFF"),
+        _shape("rect", x="3", y="17", width="16", height="1", fill="#999999"),
+        _shape("rect", x="18", y="5", width="1", height="13", fill="#999999"),
+        _shape("circle", cx="11", cy="12", r="4", fill="#000000"),
+        _shape("circle", cx="11", cy="12", r="3", fill="#FFFFFF"),
+        _shape("circle", cx="11", cy="12", r="2", fill="#000000"),
+    ),
     os.path.join("32x32", "devices", "media-optical.svg"): (
         _shape("circle", cx="16", cy="16", r="14", fill="#000000"),
         _shape("circle", cx="16", cy="16", r="13", fill="#DDDDDD"),
@@ -427,6 +460,21 @@ class TestIconGeometry(unittest.TestCase):
             )
             self.assertEqual(
                 _drawing_elements(removable)[:6],
+                _drawing_elements(disk)[:6],
+                size,
+            )
+        # The optical drive is also the hard disk's body and bevel holding a
+        # centred disc, so its first six drawing elements must be the hard
+        # disk's at 22x22 and 32x32. At 16x16 the body is two pixels taller
+        # than the hard disk's face so the disc fits inside the bevel, and
+        # the sharing check holds by exclusion there.
+        for size in ("32x32", "22x22"):
+            disk = parse_svg(os.path.join(PACKAGE, size, "devices", "drive-harddisk.svg"))
+            optical = parse_svg(
+                os.path.join(PACKAGE, size, "devices", "drive-optical.svg")
+            )
+            self.assertEqual(
+                _drawing_elements(optical)[:6],
                 _drawing_elements(disk)[:6],
                 size,
             )

@@ -5,6 +5,103 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw optical drives with an original `drive-optical` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** An optical drive — the disc's drive in the device notifier and
+Dolphin's places — is drawn with Breeze's art beside the Platinum hard
+disk and removable drive. Ship one original placeholder icon,
+`drive-optical`, at 16x16, 22x22 and 32x32. The installed
+`libKF6Solid.so.6.13.0` contains exactly one name with this stem,
+`drive-optical` itself (`strings -e l`; there are no longer
+`drive-optical-*` names to consider).
+Planning-time probe with `kiconfinder6` and a copy of the theme selected
+through scratch XDG homes: `drive-optical` and `media-floppy` resolved to
+Breeze; after `drive-optical.svg` was added to the copy's three `devices`
+directories, `drive-optical` resolved to its 32x32 file while
+`media-floppy` stayed on Breeze. `drive-harddisk-root`,
+`drive-removable-media-usb` and `drive-removable-media-usb-pendrive`
+already resolve to our `drive-harddisk` and `drive-removable-media` files
+without alias files, so ship none: `drive-optical.svg` covers only its own
+name. Floppy and flash media stay out of scope. This plan shares files,
+but no drawing, with the media-optical and removable-drive icon plans;
+either order works.
+
+**Approach.**
+
+- Add `devices/drive-optical.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original optical-drive illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is the drive family's black-outlined
+  body with the Platinum bevel, holding a centred disc. At 22x22 and
+  32x32 the body and bevel are the hard disk's first six elements; at
+  16x16 the body is two pixels taller so the disc fits inside the bevel
+  (the hard disk's 16x16 face is one row too short for a disc). Each
+  file holds these nine elements in order, written `x,y width×height
+  fill` for rects and `cx,cy r fill` for circles:
+  - 32x32: `3,8 26×17 #000000`; `4,9 24×15 #DDDDDD`; `4,9 24×2 #FFFFFF`;
+    `4,9 1×15 #FFFFFF`; `4,22 24×2 #999999`; `27,9 1×15 #999999`; then,
+    centred on 16,16, `5 #000000`; `4 #FFFFFF`; `2 #000000`.
+  - 22x22: `2,4 18×15 #000000`; `3,5 16×13 #DDDDDD`; `3,5 16×2 #FFFFFF`;
+    `3,5 1×13 #FFFFFF`; `3,17 16×1 #999999`; `18,5 1×13 #999999`; then,
+    centred on 11,12, `4 #000000`; `3 #FFFFFF`; `2 #000000`.
+  - 16x16: `1,2 14×12 #000000`; `2,3 12×10 #DDDDDD`; `2,3 12×1 #FFFFFF`;
+    `2,3 1×10 #FFFFFF`; `2,12 12×1 #999999`; `13,3 1×10 #999999`; then,
+    centred on 8,8, `3 #000000`; `2 #FFFFFF`; `1 #000000`.
+
+  These were rendered at planning time and read as a drive with a disc at
+  each size, the disc clear of the bevel at every size.
+- `PLACEHOLDERS.md`: one row per file beside that size's `drive-harddisk`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `devices` paths, and name the optical
+  drive in the comment above it.
+- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above, and extend the existing
+  `test_removable_drive_shares_the_hard_disk_body_and_bevel` with the same
+  six-element sharing check for `drive-optical` at 22x22 and 32x32 only.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `drive-optical` in the last cell: no reference pixels were
+  used, the name is a KDE-required value read from `libKF6Solid.so.6`, the
+  body-and-bevel sharing holds at 22x22 and 32x32 but not at 16x16, and
+  the centred-disc drawing is this theme's own choice.
+- `docs/installing.md`: add the optical-drive icon to the sentence listing
+  the icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the nine elements listed for that size, carries a placeholder marker and
+  has a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry
+  and placeholder-register tests cover all three.
+- Changing a rectangle's position, size or fill, a circle's centre, radius
+  or fill, or the element order, in one file makes the geometry test fail.
+- The six-element sharing check holds at 22x22 and 32x32: changing one of
+  the optical drive's first six elements there, without changing the hard
+  disk's, fails it; at 16x16 the taller body passes it by exclusion.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME`
+  and `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `drive-optical` resolves to the theme's
+  file, `media-floppy` stays on Breeze, and the three loader-reduced names
+  above still resolve to the hard-disk and removable-drive files. Report
+  the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw shell scripts with an original `application-x-shellscript` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A shell script (a `*.sh` file) in the file manager or an open or

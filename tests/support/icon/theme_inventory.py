@@ -19,7 +19,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # and full Trash, 16x16 and 22x22 renditions of the hard disk and document,
 # the removable-drive `drive-removable-media` icon at all three sizes (our own
 # drawing of a drive with a media slot and eject button, sharing the hard
-# disk's body and bevel), the program `application-x-executable` icon at
+# disk's body and bevel), the optical-drive `drive-optical` icon at all three
+# sizes (our own drawing of the drive family's body and bevel holding a
+# centred disc, sharing the hard disk's body and bevel at 22x22 and 32x32;
+# at 16x16 the body is two pixels taller so the disc fits inside the bevel),
+# the program `application-x-executable` icon at
 # all three sizes (our own drawing of a window holding a play triangle),
 # the shell-script `application-x-shellscript` icon at all three sizes
 # (our own drawing of a document with a terminal prompt), the
@@ -35,8 +39,11 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "drive-removable-media.svg"),
     os.path.join("16x16", "devices", "drive-removable-media.svg"),
     os.path.join("22x22", "devices", "drive-removable-media.svg"),
+    os.path.join("32x32", "devices", "drive-optical.svg"),
     os.path.join("32x32", "devices", "media-optical.svg"),
+    os.path.join("16x16", "devices", "drive-optical.svg"),
     os.path.join("16x16", "devices", "media-optical.svg"),
+    os.path.join("22x22", "devices", "drive-optical.svg"),
     os.path.join("22x22", "devices", "media-optical.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "text-x-generic.svg"),

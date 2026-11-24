@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original optical-drive illustration pending user-approved artwork. -->
+<!-- Mac OS 8.6 "Platinum" optical-drive icon, 16x16 rendition.
+
+     Our own 16x16 redraw in the Platinum palette: the drive family's
+     black-outlined #DDDDDD body with the Platinum bevel (#FFFFFF top/left,
+     #999999 bottom/right), holding a centred disc. The body is two pixels
+     taller than the hard disk's 16x16 face so the disc fits inside the
+     bevel. Drawn for this theme, not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Body outline and #DDDDDD face. -->
+  <rect x="1" y="2" width="14" height="12" fill="#000000"/>
+  <rect x="2" y="3" width="12" height="10" fill="#DDDDDD"/>
+  <!-- Platinum bevel: white along the top and left, grey along the bottom
+       and right. -->
+  <rect x="2" y="3" width="12" height="1" fill="#FFFFFF"/>
+  <rect x="2" y="3" width="1" height="10" fill="#FFFFFF"/>
+  <rect x="2" y="12" width="12" height="1" fill="#999999"/>
+  <rect x="13" y="3" width="1" height="10" fill="#999999"/>
+  <!-- Centred disc. -->
+  <circle cx="8" cy="8" r="3" fill="#000000"/>
+  <circle cx="8" cy="8" r="2" fill="#FFFFFF"/>
+  <circle cx="8" cy="8" r="1" fill="#000000"/>
+</svg>
