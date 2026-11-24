@@ -17,15 +17,13 @@ from __future__ import annotations
 import atexit
 import contextlib
 import os
-import shutil
 import subprocess
-import tempfile
 import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.render import gates as render_gates
-from support.render.gates import Renders
+from support.render.gates import DiagnosticsRootSteering, Renders
 
 
 @contextlib.contextmanager
@@ -327,7 +325,9 @@ class TestRenderBatch(unittest.TestCase):
         self.assertIs(error, raised.exception.__cause__)
 
 
-class TestFinishFailurePreservesTheCapture(unittest.TestCase):
+class TestFinishFailurePreservesTheCapture(
+    DiagnosticsRootSteering, unittest.TestCase
+):
     """A batch-finish failure preserves the kind's capture, or says there is none.
 
     The scratch tree is swept at interpreter exit, so the attributable finish
@@ -336,14 +336,6 @@ class TestFinishFailurePreservesTheCapture(unittest.TestCase):
     The diagnostics root is steered into this test's own scratch tree with
     ``TMPDIR``.
     """
-
-    def setUp(self):
-        self.parent = tempfile.mkdtemp(prefix="finish-failure-")
-        self.addCleanup(shutil.rmtree, self.parent, ignore_errors=True)
-        patcher = mock.patch.dict(os.environ, {"TMPDIR": self.parent})
-        patcher.start()
-        self.addCleanup(patcher.stop)
-        self.root = os.path.join(self.parent, "platinum-render-diagnostics")
 
     def _saved_state(self):
         saved = (

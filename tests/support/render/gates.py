@@ -507,6 +507,30 @@ def _prune_diagnostics(root):
         shutil.rmtree(os.path.join(root, name), ignore_errors=True)
 
 
+class DiagnosticsRootSteering:
+    """Give a preservation probe a diagnostics root only it can reach.
+
+    The four test classes that drive :func:`preserve_capture` directly
+    (three in ``test_render_gate_messages`` and the finish-failure class in
+    ``test_render_gates_batch``) steer the root into a scratch parent by
+    pointing ``TMPDIR`` at it, so pruning assertions see only directories
+    the probe seeded and a concurrent run's live diagnostics directory is
+    never touched. Mix it in before ``unittest.TestCase`` and start the
+    subclass's ``setUp`` with ``super().setUp()``; the probe then reads
+    :attr:`root` (the path :func:`diagnostics_root` returns) and may use
+    :attr:`parent` to build the capture directories it seeds.
+    """
+
+    def setUp(self):
+        parent = tempfile.mkdtemp(prefix="preservation-root-")
+        self.addCleanup(shutil.rmtree, parent, ignore_errors=True)
+        patcher = mock.patch.dict(os.environ, {"TMPDIR": parent})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.parent = parent
+        self.root = diagnostics_root()
+
+
 class RenderOutputMessages:
     """Append the render's own output to every pixel assertion's failure.
 

@@ -16,6 +16,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.render.gates import (
+    DiagnosticsRootSteering,
     DialogGate,
     PixelPins,
     RenderOutputMessages,
@@ -128,7 +129,7 @@ class TestPixelAssertionMessages(unittest.TestCase):
         _probe("out", "").assertEqual("#000000", "#000000")
 
 
-class TestCapturePreservation(unittest.TestCase):
+class TestCapturePreservation(DiagnosticsRootSteering, unittest.TestCase):
     """``preserve_capture`` copies a capture where the sweep cannot reach it.
 
     The diagnostics root is steered into this test's own scratch tree with
@@ -137,14 +138,9 @@ class TestCapturePreservation(unittest.TestCase):
     """
 
     def setUp(self):
+        super().setUp()
         self.directory = tempfile.mkdtemp(prefix="preservation-probe-")
         self.addCleanup(shutil.rmtree, self.directory, ignore_errors=True)
-        parent = tempfile.mkdtemp(prefix="preservation-root-")
-        self.addCleanup(shutil.rmtree, parent, ignore_errors=True)
-        patcher = mock.patch.dict(os.environ, {"TMPDIR": parent})
-        patcher.start()
-        self.addCleanup(patcher.stop)
-        self.root = os.path.join(parent, "platinum-render-diagnostics")
 
     def _write_capture(self):
         return _write_capture(self.directory)
@@ -187,7 +183,9 @@ class TestCapturePreservation(unittest.TestCase):
         self.assertIn("20200101T000009Z-1-old", names)
 
 
-class TestFailureMessagesNameThePreservedCapture(unittest.TestCase):
+class TestFailureMessagesNameThePreservedCapture(
+    DiagnosticsRootSteering, unittest.TestCase
+):
     """A failing gate's message names the preserved capture's path.
 
     A gate whose scratch directory holds the capture fails with a note
@@ -197,14 +195,9 @@ class TestFailureMessagesNameThePreservedCapture(unittest.TestCase):
     """
 
     def setUp(self):
+        super().setUp()
         self.directory = tempfile.mkdtemp(prefix="preservation-probe-")
         self.addCleanup(shutil.rmtree, self.directory, ignore_errors=True)
-        parent = tempfile.mkdtemp(prefix="preservation-root-")
-        self.addCleanup(shutil.rmtree, parent, ignore_errors=True)
-        patcher = mock.patch.dict(os.environ, {"TMPDIR": parent})
-        patcher.start()
-        self.addCleanup(patcher.stop)
-        self.root = os.path.join(parent, "platinum-render-diagnostics")
         self.probe = _probe("", "")
         self.probe.directory = self.directory
 
@@ -247,7 +240,9 @@ class TestFailureMessagesNameThePreservedCapture(unittest.TestCase):
             self.assertEqual(CAPTURE_BYTES, handle.read())
 
 
-class TestBandMismatchNamesTheFailingPixel(unittest.TestCase):
+class TestBandMismatchNamesTheFailingPixel(
+    DiagnosticsRootSteering, unittest.TestCase
+):
     """A band mismatch names the first differing cell's pixel.
 
     ``assert_band``'s failure adds the failing row's first differing cell —
@@ -256,15 +251,11 @@ class TestBandMismatchNamesTheFailingPixel(unittest.TestCase):
     """
 
     def setUp(self):
+        super().setUp()
         self.probe = _BandProbe()
         self.directory = tempfile.mkdtemp(prefix="band-probe-")
         self.addCleanup(shutil.rmtree, self.directory, ignore_errors=True)
         self.probe.directory = self.directory
-        parent = tempfile.mkdtemp(prefix="band-root-")
-        self.addCleanup(shutil.rmtree, parent, ignore_errors=True)
-        patcher = mock.patch.dict(os.environ, {"TMPDIR": parent})
-        patcher.start()
-        self.addCleanup(patcher.stop)
 
     BAND = (310, 300, 4, 2)
     ROWS = [["#DDDDDD"] * 4] * 2
