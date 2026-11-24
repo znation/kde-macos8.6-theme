@@ -17,7 +17,7 @@ from support.kpackage_install_case import KPackageInstallCase
 from support.package_metadata import PackageMetadata
 from support.reference_image import skip_unless_materialized
 from support.installed_paths import installed_wallpaper, installed_wallpaper_dir
-from support.repo_root import ROOT
+from support.repo_root import ROOT, patched_root
 
 from tools import make_wallpaper, png  # noqa: E402
 
@@ -140,7 +140,7 @@ class TestImageReadContainment(unittest.TestCase):
             # Drive the real setUpClass through a per-test subclass, so a
             # failure here cannot clear the images the shipped suite loaded.
             case = type("ContainmentCase", (TestImages,), {})
-            with mock.patch.object(sys.modules[__name__], "ROOT", root), \
+            with patched_root(root), \
                     mock.patch.object(
                         sys.modules[__name__], "IMAGES", str(root / "images")
                     ):

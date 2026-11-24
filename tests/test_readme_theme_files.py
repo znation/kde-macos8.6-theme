@@ -12,15 +12,13 @@ from __future__ import annotations
 import glob
 import os
 import re
-import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest import mock
 
 from support.desktoptheme_paths import PACKAGE
 from support.fifo_fixtures import assert_read_refused_in_child
-from support.repo_root import ROOT
+from support.repo_root import ROOT, patched_root
 from support.symlink_fixtures import symlinked_repo
 from support.user_docs import read_user_docs
 from tools import containment as tools_containment
@@ -97,7 +95,7 @@ class TestReadmeTextContainment(unittest.TestCase):
             root, link = symlinked_repo(
                 tmp, "README.md", "`widgets/private.svg`\n"
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 with self.assertRaises(ValueError) as caught:
                     readme_text()
         self.assertIn(str(link), str(caught.exception))
@@ -110,7 +108,7 @@ class TestReadmeTextContainment(unittest.TestCase):
                 "`widgets/a.svg`\n",
                 target="actual-readme.md",
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 self.assertEqual(readme_text(), "`widgets/a.svg`\n")
 
     def test_refuses_an_oversize_readme_instead_of_loading_it_whole(self):
@@ -123,7 +121,7 @@ class TestReadmeTextContainment(unittest.TestCase):
             root.mkdir()
             path = root / "README.md"
             path.write_bytes(b"x" * (tools_containment._MAX_READ_BYTES + 1))
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 with self.assertRaises(ValueError) as caught:
                     readme_text()
         self.assertIn(str(path), str(caught.exception))

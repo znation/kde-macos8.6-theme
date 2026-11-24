@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from unittest import mock
 
 
 _BOOTSTRAP_ROOT = Path(__file__).resolve().parents[2]
@@ -25,3 +26,17 @@ if str(_BOOTSTRAP_ROOT) not in sys.path:
     sys.path.insert(0, str(_BOOTSTRAP_ROOT))
 
 from tools.repo_root import ROOT  # noqa: E402  (needs the path inserted above)
+
+
+def patched_root(root):
+    """Point the calling test module's ``ROOT`` global at *root* until exit.
+
+    Containment suites import ``ROOT`` at module level and read the
+    repository through it, so a fixture directory becomes visible to the
+    reader under test only by swapping that global. The swap targets the
+    caller — the test module whose test invoked this — so each suite
+    patches only its own binding. Use as ``with patched_root(fixture):``;
+    the original ``ROOT`` is restored on exit.
+    """
+    module = sys.modules[sys._getframe(1).f_globals["__name__"]]
+    return mock.patch.object(module, "ROOT", root)

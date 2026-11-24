@@ -9,17 +9,15 @@ false phrase.
 from __future__ import annotations
 
 import os
-import sys
 import tempfile
 import time
 import unittest
 from pathlib import Path
-from unittest import mock
 
 from support import containment
 from support.desktoptheme_paths import ARROWS_SVG, MENUBARITEM_SVG, VIEWITEM_SVG
 from support.fifo_fixtures import assert_read_refused_in_child
-from support.repo_root import ROOT
+from support.repo_root import ROOT, patched_root
 from support.symlink_fixtures import symlinked_repo
 from tools import containment as tools_containment
 
@@ -90,7 +88,7 @@ class TestHeaderCommentContainment(unittest.TestCase):
             root, link = symlinked_repo(
                 tmp, "viewitem.svg", "<!-- private -->\n"
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 with self.assertRaises(ValueError) as caught:
                     header_comment(link)
         self.assertIn(str(link), str(caught.exception))
@@ -102,7 +100,7 @@ class TestHeaderCommentContainment(unittest.TestCase):
             root, link = symlinked_repo(
                 tmp, "link.svg", "<!-- ok -->\n", target="theme/viewitem.svg"
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 comment = header_comment(link)
         self.assertEqual(comment, " ok ")
 

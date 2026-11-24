@@ -14,11 +14,9 @@ from __future__ import annotations
 
 import gzip
 import os
-import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest import mock
 
 from support import containment
 from support import snippet_child
@@ -32,7 +30,7 @@ from support.aurorae_fixtures import (
 from support.fifo_fixtures import assert_fifo_read_refused
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
-from support.repo_root import ROOT
+from support.repo_root import ROOT, patched_root
 from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 from support.svg_case import parse_svg
@@ -297,7 +295,7 @@ class TestReadCappedContainment(unittest.TestCase):
             root, link = symlinked_repo(
                 tmp, "decoration.svg", b"PRIVATE-SECRET-BYTES"
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 with self.assertRaises(ValueError) as caught:
                     _read_capped(link)
         self.assertIn(str(link), str(caught.exception))
@@ -350,7 +348,7 @@ class TestReadCappedContainment(unittest.TestCase):
             root, link = symlinked_repo(
                 tmp, "decoration.svg", b"artwork", target="theme/decoration.svg"
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 self.assertEqual(_read_capped(link), b"artwork")
 
 

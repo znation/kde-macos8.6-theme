@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import sys
 import tempfile
 import unittest
-from unittest import mock
 
 from support import containment
 from support.aurorae_fixtures import PROFILER_REFERENCE, PROFILER_ROWS
@@ -13,7 +11,7 @@ from support.desktoptheme_paths import TABBAR_SVG
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
-from support.repo_root import ROOT
+from support.repo_root import ROOT, patched_root
 from support.symlink_fixtures import symlinked_repo
 from svg_assertions import (
     assert_center_tile_is,
@@ -197,7 +195,7 @@ class TestPaletteReadContainment(unittest.TestCase):
             root, link = symlinked_repo(
                 tmp, "tabbar.svg", "PRIVATE-SECRET-TEXT"
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 with self.assertRaises(ValueError) as caught:
                     _svg_text(link)
         self.assertIn(str(link), str(caught.exception))

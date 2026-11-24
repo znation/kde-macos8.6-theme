@@ -9,10 +9,8 @@ and the install/uninstall lifecycle. The per-icon drawing pins live in
 from __future__ import annotations
 
 import os
-import sys
 import tempfile
 import unittest
-from unittest import mock
 
 from support import containment
 from support.install_lifecycle_cases import InstallLifecycleCases
@@ -22,7 +20,7 @@ from support.shipped_files import shipped_files
 from support.svg_case import parse_svg
 from support.icon.theme_inventory import ICON_ID, PACKAGE, SHIPPED_ICONS
 from support.installed_paths import installed_icon_theme, installed_icons_dir
-from support.repo_root import ROOT
+from support.repo_root import ROOT, patched_root
 from support.symlink_fixtures import symlinked_repo
 from svg_assertions import (
     assert_no_external_references,
@@ -164,7 +162,7 @@ class TestIconTextContainment(unittest.TestCase):
             root, link = symlinked_repo(
                 tmp, "PLACEHOLDERS.md", "private marker\n"
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 with self.assertRaises(ValueError) as caught:
                     _read_icon_text(link)
         self.assertIn(str(link), str(caught.exception))
@@ -178,7 +176,7 @@ class TestIconTextContainment(unittest.TestCase):
                 "placeholder text\n",
                 target="theme/PLACEHOLDERS.md",
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 text = _read_icon_text(link)
         self.assertEqual(text, "placeholder text\n")
 

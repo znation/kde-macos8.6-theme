@@ -10,13 +10,11 @@ from __future__ import annotations
 
 import os
 import re
-import sys
 import tempfile
 import unittest
-from unittest import mock
 
 from support import containment
-from support.repo_root import ROOT
+from support.repo_root import ROOT, patched_root
 from support.symlink_fixtures import symlinked_repo
 from support.user_docs import read_user_docs
 from tools import render_surface
@@ -89,7 +87,7 @@ class TestReadCommandContainment(unittest.TestCase):
             root, link = symlinked_repo(
                 tmp, "README.md", "make private-target\n"
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 with self.assertRaises(ValueError) as caught:
                     read("README.md")
         self.assertIn(str(link), str(caught.exception))
@@ -99,7 +97,7 @@ class TestReadCommandContainment(unittest.TestCase):
             root, _ = symlinked_repo(
                 tmp, "README.md", "make check\n", target="actual-readme.md"
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 self.assertEqual(read("README.md"), "make check\n")
 
 

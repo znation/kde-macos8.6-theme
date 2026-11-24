@@ -53,10 +53,9 @@ import re
 import sys
 import tempfile
 import unittest
-from unittest import mock
 
 from support import containment
-from support.repo_root import ROOT
+from support.repo_root import ROOT, patched_root
 from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 
@@ -112,7 +111,7 @@ class TestMakefileReadContainment(unittest.TestCase):
             root, link = symlinked_repo(
                 tmp, "Makefile", "CHECK_PATTERN ?= private-*.py\n"
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 with self.assertRaises(ValueError) as caught:
                     makefile_check_pattern()
         self.assertIn(str(link), str(caught.exception))
@@ -126,7 +125,7 @@ class TestMakefileReadContainment(unittest.TestCase):
                 "CHECK_PATTERN ?= test*.py\n",
                 target="actual.mk",
             )
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+            with patched_root(root):
                 self.assertEqual(makefile_check_pattern(), "test*.py")
 
 
