@@ -48,11 +48,13 @@ from support.gtk_theme_spec import (
     LINK_BUTTON,
     LINK_TEXT,
     MENU_SEPARATOR,
+    MIXED_GLYPH,
     PANED_HANDLE_HORIZONTAL,
     PANED_HANDLE_VERTICAL,
     PROGRESSBAR_PROGRESS,
     PROGRESSBAR_TROUGH,
     RAISED_BEVEL,
+    RADIO_GLYPH,
     ROW_SELECTED,
     RUBBERBAND,
     SCALE_EMPTY_FILL,
@@ -148,6 +150,49 @@ class SheetRuleAssertions:
                 self.rules[selector].get(name),
                 value,
                 f"{selector}: expected {name}: {value}",
+            )
+
+    def assert_treeview_selected_check_radio_faces(self):
+        """Pin the selected-row check and radio faces both GTK sheets restate.
+
+        The sheet-tail record answers the four treeview-class-armed
+        selected-row arms (probed verbatim in each sheet comment and
+        docs/invariants.md) per-property: the colour arm's ink and border
+        return to the existing check recipe's hard black, the checked and
+        indeterminate glyph arms swap the toolkit's recoloured symbolic dot
+        and dash for the existing black-ink shipped assets, and stock's
+        radius and 14px-size arm restates nothing. No suite adds a face
+        declaration beyond the two answers per member spelling. Called by
+        the GTK 3 and GTK 4 treeview suites and no others.
+        """
+        seal = {"color": BLACK, "border-color": BLACK}
+        expected = {
+            "treeview.view check:selected:focus": dict(seal),
+            "treeview.view check:selected": dict(seal),
+            "treeview.view radio:selected:focus": dict(seal),
+            "treeview.view radio:selected": dict(seal),
+            "treeview.view radio:checked:selected": dict(RADIO_GLYPH),
+            "treeview.view radio:indeterminate:selected": dict(MIXED_GLYPH),
+        }
+        self.assert_rule_group(expected)
+        # The family sweep: every rule carrying one of the two
+        # treeview-class-armed control tokens is one of the six spellings
+        # above, so no stock arm of either group survives unrepresented.
+        self.assertEqual(
+            {
+                s
+                for s in self.rules
+                if "treeview.view check" in s or "treeview.view radio" in s
+            },
+            set(expected),
+        )
+        # Source order: each restated spelling lands after the existing
+        # plain-state `radio:checked` glyph rule's parsed position.
+        for selector in expected:
+            self.assertGreater(
+                self.selectors.index(selector),
+                self.selectors.index("radio:checked"),
+                selector,
             )
 
 

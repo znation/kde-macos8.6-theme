@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 
 from support.gtk4_sheet import Gtk4SheetRuleCases
-from support.gtk_theme_spec import ENTRY_FIELD, MIXED_GLYPH, RADIO_GLYPH
+from support.gtk_theme_spec import ENTRY_FIELD
 from support.platinum_palette import BLACK, GREY, SELECTION, TROUGH, WHITE
 
 
@@ -23,35 +23,7 @@ class TestGtk4Treeview(Gtk4SheetRuleCases, unittest.TestCase):
         nothing. No merge here adds a face declaration beyond the two
         answers per member spelling.
         """
-        seal = {"color": BLACK, "border-color": BLACK}
-        expected = {
-            "treeview.view check:selected:focus": dict(seal),
-            "treeview.view check:selected": dict(seal),
-            "treeview.view radio:selected:focus": dict(seal),
-            "treeview.view radio:selected": dict(seal),
-            "treeview.view radio:checked:selected": dict(RADIO_GLYPH),
-            "treeview.view radio:indeterminate:selected": dict(MIXED_GLYPH),
-        }
-        self.assert_rule_group(expected)
-        # The family sweep: every rule carrying one of the two
-        # treeview-class-armed control tokens is one of the six spellings
-        # above, so no stock arm of either group survives unrepresented.
-        self.assertEqual(
-            {
-                s
-                for s in self.rules
-                if "treeview.view check" in s or "treeview.view radio" in s
-            },
-            set(expected),
-        )
-        # Source order: each restated spelling lands after the existing
-        # plain-state `radio:checked` glyph rule's parsed position.
-        for selector in expected:
-            self.assertGreater(
-                self.selectors.index(selector),
-                self.selectors.index("radio:checked"),
-                selector,
-            )
+        self.assert_treeview_selected_check_radio_faces()
 
     def test_treeview_entry_fields(self):
         # The existing entry recipe governs the stock treeview-embedded entry
