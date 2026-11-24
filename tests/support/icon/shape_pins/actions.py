@@ -1,4 +1,4 @@
-"""Pins for the actions family: the symbolic arrows and the eject glyph.
+"""Pins for the actions family (the symbolic arrows and the eject glyph).
 
 Every entry is a ``os.path.join(size, "actions", name.svg)`` key holding
 the pinned tuple of drawing elements for that shipped file, in document
