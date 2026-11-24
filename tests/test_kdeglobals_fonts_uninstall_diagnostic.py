@@ -57,7 +57,6 @@ KEYS = [
     ("General", "smallestReadableFont", SMALL_VALUE),
     ("WM", "activeFont", CHICAGO_VALUE),
 ]
-COLOR_SCHEME_RESET = "plasma-apply-colorscheme BreezeLight"
 ICON_THEME_ID = "org.macos8.desktop"
 
 

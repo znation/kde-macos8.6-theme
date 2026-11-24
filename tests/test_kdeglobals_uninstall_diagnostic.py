@@ -33,7 +33,6 @@ ICON_THEME_ID = "org.macos8.desktop"
 RESET = "kwriteconfig6 --file kdeglobals"
 STYLE_RESET = RESET + " --group KDE --key widgetStyle --delete"
 ICONS_RESET = RESET + " --group Icons --key Theme --delete"
-COLOR_SCHEME_RESET = "plasma-apply-colorscheme BreezeLight"
 
 
 
