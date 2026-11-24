@@ -216,11 +216,15 @@ class TestRequireConfigAndDataHomeWrappers(unittest.TestCase):
         with self.assertRaises(self._Refusal) as caught:
             xdg_homes.require_config_home({}, self._Refusal)
         self.assertIn("XDG_CONFIG_HOME is unset", str(caught.exception))
+        self.assertIn("the $HOME/.config fallback cannot be used", str(caught.exception))
 
     def test_the_data_home_refusal_names_xdg_data_home(self):
         with self.assertRaises(self._Refusal) as caught:
             xdg_homes.require_data_home({}, self._Refusal)
         self.assertIn("XDG_DATA_HOME is unset", str(caught.exception))
+        self.assertIn(
+            "the $HOME/.local/share fallback cannot be used", str(caught.exception)
+        )
 
 
 class TestUnresolvedHomeState(unittest.TestCase):
