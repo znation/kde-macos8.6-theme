@@ -587,6 +587,13 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-openzim.svg"),
     os.path.join("16x16", "mimetypes", "application-x-openzim.svg"),
     os.path.join("22x22", "mimetypes", "application-x-openzim.svg"),
+    # The PKCS#12 certificate-bundle `application-pkcs12` icon at all
+    # three sizes (the document page holding a black padlock; the name
+    # is the type-spelled icon name of the `application/pkcs12` MIME
+    # type in the installed shared MIME database).
+    os.path.join("32x32", "mimetypes", "application-pkcs12.svg"),
+    os.path.join("16x16", "mimetypes", "application-pkcs12.svg"),
+    os.path.join("22x22", "mimetypes", "application-pkcs12.svg"),
     os.path.join("32x32", "mimetypes", "x-office-document.svg"),
     os.path.join("16x16", "mimetypes", "x-office-document.svg"),
     os.path.join("22x22", "mimetypes", "x-office-document.svg"),

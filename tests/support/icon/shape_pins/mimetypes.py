@@ -1354,6 +1354,41 @@ PINS = {
         _shape("rect", x="12", y="12", width="1", height="1", fill="#FFFFFF"),
         _shape("rect", x="10", y="12", width="2", height="1", fill="#FFFFFF"),
     ),
+    # The PKCS#12 certificate-bundle item icon KDE draws for
+    # `application/pkcs12` items (the type-spelled icon name of the
+    # installed shared MIME database's `application/pkcs12` type, which
+    # has no `generic-icon`, one alias and no per-type fallback, so one
+    # file covers exactly its own name); the drawing shares the generic
+    # document's page and holds a black padlock, a shackle over a locked
+    # body with a keyhole (a mark distinct from the certificate's
+    # seal-and-ribbons and the PGP key's silhouette).
+    os.path.join("32x32", "mimetypes", "application-pkcs12.svg"): (
+        *_PAGE_32,
+        _shape("rect", x="13", y="11", width="6", height="1", fill="#000000"),
+        _shape("rect", x="13", y="11", width="1", height="4", fill="#000000"),
+        _shape("rect", x="18", y="11", width="1", height="4", fill="#000000"),
+        _shape("rect", x="12", y="15", width="8", height="7", fill="#000000"),
+        _shape("rect", x="13", y="16", width="6", height="5", fill="#DDDDDD"),
+        _shape("rect", x="15", y="17", width="2", height="3", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-pkcs12.svg"): (
+        *_PAGE_16,
+        _shape("rect", x="6", y="6", width="4", height="1", fill="#000000"),
+        _shape("rect", x="6", y="6", width="1", height="3", fill="#000000"),
+        _shape("rect", x="9", y="6", width="1", height="3", fill="#000000"),
+        _shape("rect", x="5", y="9", width="6", height="4", fill="#000000"),
+        _shape("rect", x="6", y="10", width="4", height="2", fill="#DDDDDD"),
+        _shape("rect", x="7", y="10", width="2", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-pkcs12.svg"): (
+        *_PAGE_22,
+        _shape("rect", x="9", y="7", width="4", height="1", fill="#000000"),
+        _shape("rect", x="9", y="7", width="1", height="4", fill="#000000"),
+        _shape("rect", x="12", y="7", width="1", height="4", fill="#000000"),
+        _shape("rect", x="8", y="11", width="6", height="5", fill="#000000"),
+        _shape("rect", x="9", y="12", width="4", height="3", fill="#DDDDDD"),
+        _shape("rect", x="10", y="12", width="2", height="2", fill="#000000"),
+    ),
     # The JSON-document item icon KDE draws for `application/json` items
     # (the type-spelled icon name of the installed shared MIME database's
     # `application/json` type, whose `generic-icon` is the shipped

@@ -254,6 +254,8 @@ name at the same three sizes), an ICC color-profile icon for ICC
 profile files (the `application-vnd.iccprofile` name at the same
 three sizes), an offline wiki archive icon for offline wiki archive
 files (the `application-x-openzim` name at the same three sizes), a
+PKCS#12 certificate-bundle icon for PKCS#12 certificate-bundle files
+(the `application-pkcs12` name at the same three sizes), a
 JSON-document icon for JSON files (the
 `application-json` name at the same three sizes), a
 flash-media card

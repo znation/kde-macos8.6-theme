@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original PKCS#12 certificate-bundle illustration pending user-approved artwork. -->
+<!-- Platinum PKCS#12 certificate-bundle icon, 22x22 rendition.
+
+     Our own 22x22 redraw in the Platinum palette: the document drawing
+     (a #FFFFFF page with a 1px #000000 outline and a #DDDDDD folded
+     top-right corner) with the text lines replaced by a black padlock,
+     a shackle over a locked body with a keyhole. Drawn for this theme,
+     not traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M4 1 h10 l4 4 v15 H4 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M5 2 h8 l4 4 v13 H5 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M13 2 L17 2 L17 6 Z" fill="#DDDDDD"/>
+  <!-- Padlock: shackle over the body, keyhole on the face. -->
+  <rect x="9" y="7" width="4" height="1" fill="#000000"/>
+  <rect x="9" y="7" width="1" height="4" fill="#000000"/>
+  <rect x="12" y="7" width="1" height="4" fill="#000000"/>
+  <rect x="8" y="11" width="6" height="5" fill="#000000"/>
+  <rect x="9" y="12" width="4" height="3" fill="#DDDDDD"/>
+  <rect x="10" y="12" width="2" height="2" fill="#000000"/>
+</svg>
