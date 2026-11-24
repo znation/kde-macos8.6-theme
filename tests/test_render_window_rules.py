@@ -16,6 +16,7 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.render.session_stub import FakeSession as _FakeSession
 from tools.render import dialogs as render_dialogs
 from tools.render.window_rules import (
     FOCUSED_GEOMETRY,
@@ -26,14 +27,6 @@ from tools.render.window_rules import (
     rules_text,
     write_window_rules,
 )
-
-
-class _FakeSession:
-    """The attributes the writers read: the config and scratch homes."""
-
-    def __init__(self, config: Path, root: Path | None = None):
-        self.config = config
-        self.root = root if root is not None else config
 
 
 class TestWindowRules(unittest.TestCase):
