@@ -11,15 +11,7 @@ import unittest
 from pathlib import Path
 
 from support.gtk_rule_cases import GtkSheetRuleCases
-from support.gtk_theme_spec import (
-    BUTTON_BEVEL,
-    DISABLED_TEXT,
-    INVERTED_BUTTON_BEVEL,
-)
-from support.platinum_palette import (
-    BLACK,
-    FACE,
-)
+from support.gtk_theme_spec import button_arms
 from support.repo_root import ROOT
 
 THEME_DIR = Path(ROOT) / "theme" / "gtk" / "org.macos8.desktop"
@@ -40,31 +32,7 @@ class TestGtkThemeButtons(GtkSheetRuleCases, unittest.TestCase):
         test_action_class_flat_arms.) Exactly two call sites: the
         suggested- and destructive-action plain families.
         """
-        face = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        sunken = {
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": INVERTED_BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        disabled = {
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": BUTTON_BEVEL,
-            "color": DISABLED_TEXT["color"],
-        }
+        face, sunken, disabled = button_arms()
         self.assert_rule(prefix, face)
         self.assert_rule(f"{prefix}:hover", face)
         self.assert_rule(f"{prefix}:active", sunken)
@@ -124,34 +92,7 @@ class TestGtkThemeButtons(GtkSheetRuleCases, unittest.TestCase):
         the base, hover and backdrop arms clear the stock motion claims
         with `transition: none`.
         """
-        face = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-            "transition": "none",
-        }
-        sunken = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": INVERTED_BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        disabled = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": BUTTON_BEVEL,
-            "color": DISABLED_TEXT["color"],
-        }
+        face, sunken, disabled = button_arms(background_everywhere=True, transition=True)
         self.assert_rule("button.flat", face)
         self.assert_rule("button.flat:hover", face)
         self.assert_rule("button.flat:backdrop", face)
@@ -225,33 +166,7 @@ class TestGtkThemeButtons(GtkSheetRuleCases, unittest.TestCase):
         equal-or-higher class counts (probed from gtk-contained.css in
         libgtk-3 3.24.49 with gresource).
         """
-        face = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        sunken = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": INVERTED_BUTTON_BEVEL,
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        disabled = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border-color": BLACK,
-            "box-shadow": BUTTON_BEVEL,
-            "color": DISABLED_TEXT["color"],
-        }
+        face, sunken, disabled = button_arms(background_everywhere=True)
         for action_class in ("suggested-action", "destructive-action"):
             with self.subTest(action_class=action_class):
                 prefix = f"button.{action_class}.flat"

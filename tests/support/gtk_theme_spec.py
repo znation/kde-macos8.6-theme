@@ -162,6 +162,63 @@ def osd_button_arms(clip=False):
     return base, active, disabled
 
 
+# The plain push-button face the GTK 3 sheet's colour-class and flat button
+# families restate: the raised face in the ``border-color`` spelling (no full
+# border, no radius — the stock rules those families extend own those),
+# ``BUTTON_BEVEL`` and the black label with its cleared emboss.
+BUTTON_FACE_RECIPE = {
+    "background-color": FACE,
+    "background-image": "none",
+    "border-color": BLACK,
+    "box-shadow": BUTTON_BEVEL,
+    "color": BLACK,
+    "outline-color": BLACK,
+    "text-shadow": "none",
+    "-gtk-icon-shadow": "none",
+}
+
+
+def button_arms(background_everywhere=False, transition=False):
+    """Return the push button's (raised, sunken, disabled) restatements.
+
+    The raised arm is :data:`BUTTON_FACE_RECIPE`, plus ``transition: none``
+    when *transition* (the stock flat family's motion clearance); the sunken
+    arm swaps only the box-shadow to :data:`INVERTED_BUTTON_BEVEL`; the
+    disabled arm keeps :data:`BUTTON_BEVEL` with the Inactive grey
+    (``DISABLED_TEXT``). The stock transparent faces the ``.flat`` families
+    overlay force the ``background-color`` claim on every arm; pass
+    *background_everywhere* to add it to the sunken and disabled arms (the
+    raised arm always carries it). Returns fresh dicts, so a suite may trim
+    or extend its own copy without touching the shared recipe.
+
+    Called by the three families of ``tests/test_gtk_theme_buttons`` that
+    pin the colour-class and flat restatements: the plain action arms with
+    neither flag, the ``button.flat`` arms with both flags, and the
+    colour-class ``.flat`` arms with *background_everywhere* only. The
+    arrow and menu-arrow faces extend this recipe with per-widget keys
+    (``tests/test_gtk_theme_notebook``, ``tests/test_gtk_theme_menu``) and
+    keep their own copies.
+    """
+    base = dict(BUTTON_FACE_RECIPE)
+    if transition:
+        base["transition"] = "none"
+    # The sunken arm derives from the recipe, not from *base*: the flat
+    # families clear the stock motion claims on the raised arms alone, and
+    # their sunken arms carry no `transition`.
+    sunken = {**BUTTON_FACE_RECIPE, "box-shadow": INVERTED_BUTTON_BEVEL}
+    del sunken["background-color"]
+    disabled = {
+        "background-image": "none",
+        "border-color": BLACK,
+        "box-shadow": BUTTON_BEVEL,
+        "color": DISABLED_TEXT["color"],
+    }
+    if background_everywhere:
+        sunken["background-color"] = FACE
+        disabled["background-color"] = FACE
+    return base, sunken, disabled
+
+
 # The progress-bar and scale spec both sheets implement. Their selectors differ
 # (GTK 3 names the nodes as descendants, GTK 4 as children), but the trough,
 # selection fill and beveled thumb declarations must match.
