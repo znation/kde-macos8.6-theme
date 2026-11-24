@@ -155,6 +155,104 @@ either order works.
   test_placeholders test_invariants'` passes, and so does full `make check`
   after the final edit, apart from main's known-red tests.
 
+### Platinum icon theme: draw web documents with an original `text-html` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** An HTML, XHTML or XML file in the file manager falls back to
+the Platinum blank document — planning-time probe with `kiconfinder6` and
+a scratch-selected copy of the theme: `text-html` resolved to the theme's
+`text-x-generic.svg` while the control `package-x-generic` resolved to its
+own file — so web files are indistinguishable from untyped files. Ship
+one original placeholder icon, `text-html`, at 16x16, 22x22 and 32x32.
+The name needs no alias machinery: `text/html` and `text/xml` resolve to
+it by type spelling alone, and the installed shared MIME database gives
+it as the `generic-icon` of ten further types (`application/xhtml+xml`,
+`application/xml`, `application/rss+xml`, `application/atom+xml`,
+`application/x-xbel`, `application/x-mozilla-bookmarks`,
+`application/vnd.oasis.opendocument.text-web`, `text/x-opml+xml`,
+`text/x-component` and `application/xml-external-parsed-entity`). Ship no
+aliases and nothing but `text-html`. The art is a browser window holding
+a globe: it shares the `application-x-executable` window's body and title
+band (the precedent the drive family sets by sharing the hard disk's
+body) and draws its own content, so it stays distinct from the document
+family's page art. Either order relative to the waiting icon plans works;
+it shares no elements with them.
+
+**Approach.**
+
+- Add `mimetypes/text-html.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original web-document illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. Each file holds these elements in order,
+  written `x,y W×H fill` for rects and `cx,cy r fill` for circles:
+  - 32x32 (9): `3,5 26×22 #000000`; `4,6 24×4 #DDDDDD`; `4,6 24×1
+    #FFFFFF`; `6,8 20×1 #999999`; `4,11 24×15 #FFFFFF`; `16,19 r6
+    #000000`; `16,19 r5 #FFFFFF`; `11,19 11×1 #000000`; `16,14 1×11
+    #000000`.
+  - 22x22 (9): `2,3 18×16 #000000`; `3,4 16×3 #DDDDDD`; `3,4 16×1
+    #FFFFFF`; `5,5 12×1 #999999`; `3,8 16×10 #FFFFFF`; `11,13 r4
+    #000000`; `11,13 r3 #FFFFFF`; `8,13 7×1 #000000`; `11,10 1×7
+    #000000`.
+  - 16x16 (9): `1,2 14×12 #000000`; `2,3 12×3 #DDDDDD`; `2,3 12×1
+    #FFFFFF`; `4,4 8×1 #999999`; `2,7 12×6 #FFFFFF`; `8,10 r2
+    #000000`; `8,10 r1 #FFFFFF`; `6,10 5×1 #000000`; `8,8 1×4
+    #000000`.
+
+  The window is `application-x-executable`'s first five elements at each
+  size; the globe is a black ring (the two circles), a black equator and
+  a black meridian. These were painted rect by rect at planning time and
+  read as a window with a globe at every size.
+- `PLACEHOLDERS.md`: one row per file beside that size's
+  `application-x-executable` row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `mimetypes` paths, and name the
+  web-document window in the comment above it.
+- `tests/test_icon_theme_geometry.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above; the existing
+  `test_the_geometry_registry_covers_every_shipped_icon` and
+  `test_each_icon_draws_its_pinned_artwork` then enforce the pins in both
+  directions. No sharing check is added: the globe window does not
+  formally share the executable's pin.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `text-html` in the last cell: no reference pixels were
+  used, the name is the icon of `text/html` and `text/xml` and the
+  `generic-icon` of ten further types in the installed shared MIME
+  database, and the window-with-globe drawing is this theme's own choice.
+- `docs/installing.md`: add the web-document window to the sentence
+  listing the icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/test_icon_theme_geometry.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and
+  comment and has a `PLACEHOLDERS.md` row; the existing inventory, palette,
+  geometry and placeholder-register tests cover all three.
+- Changing a rectangle's or circle's position, size or fill, or the
+  element order, in one file makes the geometry pin fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME` (create the destination `icons` directory before
+  copying the theme into it, so the copy does not flatten), use a scratch
+  `HOME`, `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY`
+  and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `text-html` resolves to the theme's new 32x32 file, and
+  `text-x-generic` stays on the blank document. Report the output in
+  VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
