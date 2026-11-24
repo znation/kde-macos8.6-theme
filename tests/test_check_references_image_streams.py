@@ -183,6 +183,47 @@ class TestImageStreamCompleteness(unittest.TestCase):
         )
 
 
+class TestLfsPointerDeclaration(CheckerTestCase):
+    """A declared file holding an unmaterialized Git LFS pointer is refused.
+
+    A fresh clone that has not run ``git lfs pull`` hands the checker a small
+    text pointer under an image name, so the LFS check must outrank the
+    payload sniff and carry the remediation ``git lfs install && git lfs
+    pull``: without it the image bytes never arrive, and the generic
+    not-an-image diagnostic would send the operator hunting an HTML error
+    page instead of fetching the set. The built-in self-test consumes only
+    the ``Git LFS pointer`` substring of this diagnostic, so the remediation
+    half and the ordering against the payload sniff are pinned only here.
+    """
+
+    POINTER = (
+        b"version https://git-lfs.github.com/spec/v1\n"
+        b"oid sha256:deadbeef\n"
+        b"size 12345\n"
+    )
+
+    def test_a_declared_lfs_pointer_is_refused_with_the_pull_remediation(self):
+        module = self.checker
+        problems = check_references_in(
+            module,
+            "stub.png | https://example.test/x | label\n",
+            {"stub.png": self.POINTER},
+        )
+        # One declared entry, one problem: the LFS diagnostic, not any
+        # payload or truncation refusal beside it.
+        self.assertEqual(1, len(problems), problems)
+        assert_problem(
+            self,
+            problems,
+            "stub.png",
+            "is an unmaterialized Git LFS pointer",
+            "git lfs install && git lfs pull",
+        )
+        joined = "\n".join(problems)
+        self.assertNotIn("is not a PNG, JPEG, GIF or WebP image", joined)
+        self.assertNotIn("ends without the", joined)
+
+
 class TestTruncatedDeclaredImage(CheckerTestCase):
     """A declared file missing its format's terminator is a checker problem.
 
