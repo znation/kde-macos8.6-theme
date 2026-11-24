@@ -74,6 +74,24 @@ def gone(pid: int) -> bool:
     return False
 
 
+def assert_descendant_outliving_the_child_is_killed(case):
+    """Pin the normal-exit cleanup for both supervisor variants.
+
+    Shared by the same-named test in :class:`TestRunLogged`
+    (``tests/test_process_group.py``) and :class:`TestRunLoggedSplit`
+    (``tests/test_process_group_split.py``): a descendant the child starts and
+    outlives must be killed by the time ``run_logged``/``run_logged_split``
+    returns from a normal exit, so the pid the descendant left in
+    ``case.root``/``pid`` is gone. Like
+    :func:`assert_custom_handler_keeps_its_behavior_during_start`, the case
+    provides ``run_sh(script)`` and ``root``.
+    """
+    pidfile = case.root / "pid"
+    status = case.run_sh(f'sleep 60 & echo $! > "{pidfile}"; exit 0')
+    case.assertEqual(0, status)
+    case.assertTrue(gone(int(pidfile.read_text(encoding="utf-8"))))
+
+
 def assert_custom_handler_keeps_its_behavior_during_start(case, number):
     """Pin the start race for a custom *number* handler.
 

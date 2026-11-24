@@ -17,6 +17,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.popen_signal import assert_custom_handler_keeps_its_behavior_during_start  # noqa: E402
+from support.popen_signal import assert_descendant_outliving_the_child_is_killed  # noqa: E402
 from support.popen_signal import gone  # noqa: E402
 from support.popen_signal import kill_tracked  # noqa: E402
 from support.popen_signal import signal_into_popen  # noqa: E402
@@ -106,10 +107,7 @@ class TestRunLogged(unittest.TestCase):
         self.assertEqual("m1", mark)
 
     def test_a_descendant_outliving_the_child_is_killed_on_normal_exit(self):
-        pidfile = self.root / "pid"
-        status = self.run_sh(f'sleep 60 & echo $! > "{pidfile}"; exit 0')
-        self.assertEqual(0, status)
-        self.assertTrue(gone(int(pidfile.read_text(encoding="utf-8"))))
+        assert_descendant_outliving_the_child_is_killed(self)
 
     def test_timeout_logs_the_named_wait_that_expired(self):
         # The caller still gets None, but the log now says which wait expired
