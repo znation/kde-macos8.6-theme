@@ -5,6 +5,110 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme: draw the desktop computer with an original `computer` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** The Computer place — the machine root Dolphin's places panel and
+KInfoCenter draw — is drawn with Breeze's art beside the Platinum hard
+disk, folder and Trash. Ship one original placeholder icon, `computer`,
+at 16x16, 22x22 and 32x32.
+Planning-time probe with `kiconfinder6` and a copy of the theme selected
+through scratch XDG homes (the control, `x-office-document`, resolved to
+the theme's 32x32 file): `computer`, `input-mouse`, `input-keyboard`,
+`printer`, `video-display`, `camera-photo`, `phone`, `network-wireless`,
+`battery` and `media-floppy` all resolved to Breeze. `computer` is the
+most visible of these: it names the machine itself in the places list.
+The installed `libKF6Solid.so.6` contains exactly two names with this
+stem (`strings -e l`): `computer` and `computer-apple-ipad`. One file
+covers only its own name, and the iPad subname is a niche surface, so
+this plan ships `computer.svg` only; `computer-apple-ipad` stays out of
+scope, as do the other probed names. This plan shares no drawing with
+the drive family: the computer is a monitor over a case, not a drive
+body, so it gets its own pins and no sharing test.
+
+**Approach.**
+
+- Add `devices/computer.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original desktop-computer illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a Platinum monitor over its desktop
+  case: the raised #DDDDDD face with the 1px #000000 outline and the
+  #FFFFFF/#999999 bevel on both, a #000000 screen with a white glint,
+  a #000000 stand and drive slot and a #000000 power light. Each file
+  holds these elements in order, written `x,y width×height fill` for
+  rects and `cx,cy r fill` for circles:
+  - 32x32: `4,2 24×18 #000000`; `5,3 22×16 #DDDDDD`; `5,3 22×2
+    #FFFFFF`; `5,3 1×16 #FFFFFF`; `5,17 22×2 #999999`; `26,3 1×16
+    #999999`; `8,6 16×10 #000000`; `10,8 6×2 #FFFFFF`; `10,12 4×1
+    #999999`; `14,20 4×1 #000000`; `10,21 12×9 #000000`; `11,22 10×7
+    #DDDDDD`; `11,22 10×1 #FFFFFF`; `11,22 1×7 #FFFFFF`; `11,28 10×1
+    #999999`; `20,22 1×7 #999999`; `13,25 5×2 #000000`; `19,26 1
+    #000000`.
+  - 22x22: `2,1 18×13 #000000`; `3,2 16×11 #DDDDDD`; `3,2 16×1
+    #FFFFFF`; `3,2 1×11 #FFFFFF`; `3,12 16×1 #999999`; `18,2 1×11
+    #999999`; `5,4 12×7 #000000`; `6,5 4×2 #FFFFFF`; `10,14 2×1
+    #000000`; `6,15 10×6 #000000`; `7,16 8×4 #DDDDDD`; `7,16 8×1
+    #FFFFFF`; `7,16 1×4 #FFFFFF`; `7,19 8×1 #999999`; `14,16 1×4
+    #999999`; `8,17 3×1 #000000`.
+  - 16x16: `1,1 14×9 #000000`; `2,2 12×7 #DDDDDD`; `2,2 12×1 #FFFFFF`;
+    `2,2 1×7 #FFFFFF`; `2,8 12×1 #999999`; `13,2 1×7 #999999`; `4,3
+    8×5 #000000`; `5,4 3×1 #FFFFFF`; `7,10 2×1 #000000`; `4,11 8×4
+    #000000`; `5,12 6×2 #DDDDDD`; `5,12 6×1 #FFFFFF`; `5,12 1×2
+    #FFFFFF`; `10,12 1×2 #999999`; `5,13 3×1 #999999`.
+
+  These were rendered at planning time and read as a monitor over a
+  desktop case at each size, the screen glint clear of the bevel.
+- `PLACEHOLDERS.md`: one row per file beside that size's `drive-harddisk`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the other `devices` paths, and name the desktop
+  computer in the comment above it.
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `computer` in the last cell: no reference pixels were
+  used, the name is a KDE-required value read from `libKF6Solid.so.6`
+  (which also loads `computer-apple-ipad`, out of scope), and the
+  monitor-over-case drawing is this theme's own choice.
+- `docs/installing.md`: add the desktop-computer icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and has
+  a `PLACEHOLDERS.md` row; the existing inventory, palette, geometry and
+  placeholder-register tests cover all three.
+- Changing an element's position, size or fill, the power light's centre,
+  radius or fill, or the element order, in one file makes
+  `test_each_icon_draws_its_pinned_artwork` fail; dropping a file while
+  leaving it shipped makes `test_the_geometry_registry_covers_every_shipped_icon`
+  fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `computer` resolves to the theme's 32x32
+  file, and `media-floppy`, `input-mouse`, `input-keyboard`, `printer`,
+  `video-display`, `camera-photo`, `phone`, `network-wireless` and
+  `battery` stay on Breeze. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw fonts with an original `font-x-generic` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
 
 **Goal.** A font file in the file manager is drawn with no themed icon at

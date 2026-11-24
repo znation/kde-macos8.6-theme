@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original desktop-computer illustration pending user-approved artwork. -->
+<!-- Platinum desktop computer icon, 22x22.
+
+     Our own 22x22 drawing in the Platinum palette: a monitor with a
+     #DDDDDD face, 1px #000000 outline and the Platinum bevel
+     (#FFFFFF top/left, #999999 bottom/right) over a #000000 screen with
+     a white glint, and a desktop case with the same bevel, a #000000
+     drive slot and no room for a power light. Drawn for this theme, not
+     traced from anyone's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <!-- Monitor outline and #DDDDDD face. -->
+  <rect x="2" y="1" width="18" height="13" fill="#000000"/>
+  <rect x="3" y="2" width="16" height="11" fill="#DDDDDD"/>
+  <!-- Platinum bevel: white along the top and left, grey along the bottom
+       and right. -->
+  <rect x="3" y="2" width="16" height="1" fill="#FFFFFF"/>
+  <rect x="3" y="2" width="1" height="11" fill="#FFFFFF"/>
+  <rect x="3" y="12" width="16" height="1" fill="#999999"/>
+  <rect x="18" y="2" width="1" height="11" fill="#999999"/>
+  <!-- Screen. -->
+  <rect x="5" y="4" width="12" height="7" fill="#000000"/>
+  <!-- Screen glint. -->
+  <rect x="6" y="5" width="4" height="2" fill="#FFFFFF"/>
+  <!-- Stand neck. -->
+  <rect x="10" y="14" width="2" height="1" fill="#000000"/>
+  <!-- Case outline and #DDDDDD face. -->
+  <rect x="6" y="15" width="10" height="6" fill="#000000"/>
+  <rect x="7" y="16" width="8" height="4" fill="#DDDDDD"/>
+  <rect x="7" y="16" width="8" height="1" fill="#FFFFFF"/>
+  <rect x="7" y="16" width="1" height="4" fill="#FFFFFF"/>
+  <rect x="7" y="19" width="8" height="1" fill="#999999"/>
+  <rect x="14" y="16" width="1" height="4" fill="#999999"/>
+  <!-- Drive slot. -->
+  <rect x="8" y="17" width="3" height="1" fill="#000000"/>
+</svg>

@@ -71,7 +71,9 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `font-x-generic` icon at all three sizes (our own drawing of the
 # generic document's page under a capital letter A; the name is the
 # `generic-icon` of the 23 font MIME types in the installed shared MIME
-# database), the
+# database), the desktop-computer `computer` icon at all three sizes
+# (our own drawing of a monitor over a desktop case; the name is a
+# KDE-required value read from `libKF6Solid.so.6`), the
 # `media-optical` optical disc at all three sizes (our own drawing of a
 # CD or DVD: a disc with white glints and a hub),
 # the kicker logo the menu bar's top-left button shows at the two panel sizes,
@@ -93,6 +95,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "media-flash.svg"),
     os.path.join("16x16", "devices", "media-flash.svg"),
     os.path.join("22x22", "devices", "media-flash.svg"),
+    os.path.join("32x32", "devices", "computer.svg"),
+    os.path.join("16x16", "devices", "computer.svg"),
+    os.path.join("22x22", "devices", "computer.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "text-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "text-x-generic.svg"),
