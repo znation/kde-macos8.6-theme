@@ -210,6 +210,43 @@ PINS = {
         _shape("rect", x="9", y="3", width="4", height="1", fill="#000000"),
         _shape("rect", x="10", y="16", width="2", height="2", fill="#000000"),
     ),
+    # `smartphone` shares the `phone` art exactly: KDE Connect and plasma-nm
+    # draw phone-type devices under the `smartphone` name, and the shipped
+    # smartphone.svg files carry the same element lists as the same size's
+    # phone.svg.
+    os.path.join("32x32", "devices", "smartphone.svg"): (
+        _shape("rect", x="9", y="2", width="14", height="28", fill="#000000"),
+        _shape("rect", x="10", y="3", width="12", height="26", fill="#DDDDDD"),
+        _shape("rect", x="10", y="3", width="12", height="1", fill="#FFFFFF"),
+        _shape("rect", x="10", y="3", width="1", height="26", fill="#FFFFFF"),
+        _shape("rect", x="10", y="28", width="12", height="1", fill="#999999"),
+        _shape("rect", x="21", y="3", width="1", height="26", fill="#999999"),
+        _shape("rect", x="11", y="7", width="10", height="14", fill="#000000"),
+        _shape("rect", x="14", y="5", width="4", height="1", fill="#000000"),
+        _shape("rect", x="15", y="24", width="2", height="2", fill="#000000"),
+    ),
+    os.path.join("16x16", "devices", "smartphone.svg"): (
+        _shape("rect", x="3", y="1", width="10", height="14", fill="#000000"),
+        _shape("rect", x="4", y="2", width="8", height="12", fill="#DDDDDD"),
+        _shape("rect", x="4", y="2", width="8", height="1", fill="#FFFFFF"),
+        _shape("rect", x="4", y="2", width="1", height="12", fill="#FFFFFF"),
+        _shape("rect", x="4", y="13", width="8", height="1", fill="#999999"),
+        _shape("rect", x="11", y="2", width="1", height="12", fill="#999999"),
+        _shape("rect", x="5", y="4", width="6", height="7", fill="#000000"),
+        _shape("rect", x="7", y="3", width="2", height="1", fill="#000000"),
+        _shape("rect", x="7", y="12", width="2", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "devices", "smartphone.svg"): (
+        _shape("rect", x="5", y="1", width="12", height="20", fill="#000000"),
+        _shape("rect", x="6", y="2", width="10", height="18", fill="#DDDDDD"),
+        _shape("rect", x="6", y="2", width="10", height="1", fill="#FFFFFF"),
+        _shape("rect", x="6", y="2", width="1", height="18", fill="#FFFFFF"),
+        _shape("rect", x="6", y="19", width="10", height="1", fill="#999999"),
+        _shape("rect", x="15", y="2", width="1", height="18", fill="#999999"),
+        _shape("rect", x="7", y="5", width="8", height="10", fill="#000000"),
+        _shape("rect", x="9", y="3", width="4", height="1", fill="#000000"),
+        _shape("rect", x="10", y="16", width="2", height="2", fill="#000000"),
+    ),
     os.path.join("32x32", "devices", "input-keyboard.svg"): (
         _shape("rect", x="2", y="8", width="28", height="16", fill="#000000"),
         _shape("rect", x="3", y="9", width="26", height="14", fill="#DDDDDD"),

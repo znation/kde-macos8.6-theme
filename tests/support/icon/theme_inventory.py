@@ -191,6 +191,13 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "phone.svg"),
     os.path.join("16x16", "devices", "phone.svg"),
     os.path.join("22x22", "devices", "phone.svg"),
+    # The `smartphone` icon at all three sizes shares the `phone` art: the
+    # name is the device name KDE Connect and plasma-nm draw phone-type
+    # devices with and the shared MIME database gives the name no binding,
+    # so one file covers exactly its own name.
+    os.path.join("32x32", "devices", "smartphone.svg"),
+    os.path.join("16x16", "devices", "smartphone.svg"),
+    os.path.join("22x22", "devices", "smartphone.svg"),
     os.path.join("32x32", "devices", "battery.svg"),
     os.path.join("16x16", "devices", "battery.svg"),
     os.path.join("22x22", "devices", "battery.svg"),

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER: original smartphone illustration pending user-approved artwork. -->
+<!-- Platinum smartphone icon, 22x22.
+
+     Our own 22x22 drawing in the Platinum palette, shared with the
+     phone icon: an upright smartphone
+     with a raised #DDDDDD body, a 1px #000000 outline and the Platinum
+     bevel (#FFFFFF top and left, #999999 bottom and right), a black
+     screen, a black speaker slot above the screen and a black home
+     button below it. Drawn for this theme, not traced from anyone's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <!-- Body outline and #DDDDDD face. -->
+  <rect x="5" y="1" width="12" height="20" fill="#000000"/>
+  <rect x="6" y="2" width="10" height="18" fill="#DDDDDD"/>
+  <!-- Platinum bevel: white along the top and left, grey along the bottom
+       and right. -->
+  <rect x="6" y="2" width="10" height="1" fill="#FFFFFF"/>
+  <rect x="6" y="2" width="1" height="18" fill="#FFFFFF"/>
+  <rect x="6" y="19" width="10" height="1" fill="#999999"/>
+  <rect x="15" y="2" width="1" height="18" fill="#999999"/>
+  <!-- Screen. -->
+  <rect x="7" y="5" width="8" height="10" fill="#000000"/>
+  <!-- Speaker slot. -->
+  <rect x="9" y="3" width="4" height="1" fill="#000000"/>
+  <!-- Home button. -->
+  <rect x="10" y="16" width="2" height="2" fill="#000000"/>
+</svg>
