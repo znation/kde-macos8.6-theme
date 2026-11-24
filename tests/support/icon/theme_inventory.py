@@ -38,7 +38,11 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # the type-spelled icon name of the `application/pgp-keys` MIME type in
 # the installed shared MIME database),
 # the shell-script `application-x-shellscript` icon at all three sizes
-# (our own drawing of a document with a terminal prompt), the package
+# (our own drawing of a document with a terminal prompt), the core-dump
+# `application-x-core` icon at all three sizes (our own drawing of that
+# document with a crash-core band; the name is the type-spelled icon
+# name of the `application/x-core` MIME type in the installed shared
+# MIME database), the package
 # `package-x-generic` icon at all three sizes (our own drawing of a sealed
 # box; the name is the `generic-icon` of the archive and package MIME types
 # in the installed shared MIME database), the ZIP-archive
@@ -314,6 +318,16 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "application-x-shellscript.svg"),
     os.path.join("16x16", "mimetypes", "application-x-shellscript.svg"),
     os.path.join("22x22", "mimetypes", "application-x-shellscript.svg"),
+    # The core-dump `application-x-core` icon at all three sizes (our own
+    # drawing of the shell-script document's page with a black band
+    # holding a white square ring and dot; the name is the type-spelled
+    # icon name of the `application/x-core` MIME type in the installed
+    # shared MIME database, which has no `generic-icon`, no aliases and
+    # no per-type fallback, and at the exact name Breeze's own file beats
+    # the theme's otherwise-missing fallback).
+    os.path.join("32x32", "mimetypes", "application-x-core.svg"),
+    os.path.join("16x16", "mimetypes", "application-x-core.svg"),
+    os.path.join("22x22", "mimetypes", "application-x-core.svg"),
     # The desktop-launcher `application-x-desktop` icon at all three sizes
     # (our own drawing of the generic document's page with a small window;
     # the name is the type-spelled icon name of the `application/x-desktop`
