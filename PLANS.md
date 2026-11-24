@@ -211,6 +211,141 @@ this theme's own choice.
   `make check` after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw X.509 certificates with an original `application-pkix-cert` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** An X.509 certificate file (`*.cer`, as the file manager
+identifies it) draws Breeze's art beside the Platinum documents and
+folders. Ship one original placeholder icon, `application-pkix-cert`,
+at 16x16, 22x22 and 32x32, in the same mimetype-item series as the
+landed `application-x-shellscript`, `application-json`,
+`application-vnd.efi.iso`, `application-x-cpio`,
+`application-x-bittorrent` and `application-pgp-keys` files and the
+in-flight sqlite3, backup-file, core-dump and python-bytecode entries.
+Provenance: the installed shared MIME database
+(`/usr/share/mime/packages/freedesktop.org.xml`) declares the type
+`application/pkix-cert` ("X.509 certificate") with no `<icon>`
+element, no `<generic-icon>` element, no `<alias>` element, the single
+glob `<glob pattern="*.cer">` at the default weight 50, and two
+`<magic>` matchers; no other MIME type in the database declares a
+`.cer` glob, and the string `application-pkix-cert` occurs 0 times in
+the database (`str.count` is 0 — `grep -c` counts lines, not
+matches). With no icon element the type asks its literal name; the
+theme's `index.theme` declares `Inherits=breeze`, so the lookup falls
+through to Breeze's exact-name file. Planning-time probe on
+2026-11-24 with `kiconfinder6`, the theme installed into scratch XDG
+homes (`XDG_DATA_DIRS=/usr/share` naming the scratch data root beside
+the system data root, `[Icons] Theme=org.macos8.desktop` in the
+scratch `kdeglobals`, `QT_QPA_PLATFORM=offscreen`, no `DISPLAY`):
+`application-pkix-cert` resolved to
+`:/icons/breeze/mimetypes/32/application-pkix-cert.svg` while
+`text-x-generic` resolved to the theme's own 32x32 file — the gap is
+real, not the screened-out shape where the theme's own generic art
+wins. No reference screenshot shows a certificate item icon, so no
+reference pixels are used and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `mimetypes/application-pkix-cert.svg` under `16x16`, `22x22`
+  and `32x32` of `theme/icons/org.macos8.desktop/`. `index.theme`
+  already declares the three MimeTypes directories. Give each file the
+  XML declaration, the comment `<!-- PLACEHOLDER: original X.509
+  certificate illustration pending user-approved artwork. -->`, a
+  short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art shares the document page (every
+  drawing element of that size's `application-x-shellscript.svg`
+  except the prompt glyphs) and holds a black band carrying a white
+  award seal — a square seal ring with two ribbon tails hanging from
+  its bottom row — an original certificate mark distinct from the
+  shell script's `>_` prompt, JSON's curly braces, BitTorrent's
+  download arrow, the PGP key, the SQLite canister and the crash
+  core's square ring with center dot (the tails are what separate it
+  from the crash-core ring at every size):
+  - 32x32: the page paths `M6 3 h14 l6 6 v20 H6 Z` `#000000`,
+    `M7 4 h12 l6 6 v18 H7 Z` `#FFFFFF` and the flap
+    `M19 4 L25 4 L25 10 Z` `#DDDDDD`; band `10,15 12×7` `#000000`;
+    then, all `#FFFFFF`, seal top rim `13,16 6×1` (row 16), left
+    wall `13,17 1×2` (rows 17..18), right wall `18,17 1×2`
+    (rows 17..18), seal bottom rim `13,19 6×1` (row 19) and ribbon
+    tails `14,20 1×2` (rows 20..21) and `17,20 1×2` (rows 20..21);
+    every cell sits inside the band.
+  - 22x22: the page paths `M4 1 h10 l4 4 v15 H4 Z` `#000000`,
+    `M5 2 h8 l4 4 v13 H5 Z` `#FFFFFF` and the flap
+    `M13 2 L17 2 L17 6 Z` `#DDDDDD`; band `7,10 8×5` `#000000`;
+    then, all `#FFFFFF`, seal top rim `9,11 4×1` (row 11), left
+    wall `9,12 1×1` (row 12), right wall `12,12 1×1` (row 12),
+    seal bottom rim `9,13 4×1` (row 13) and ribbon tails `9,14 1×1`
+    (row 14) and `12,14 1×1` (row 14).
+  - 16x16: the page paths `M3 1 h7 l3 3 v10 H3 Z` `#000000`,
+    `M4 2 h5 l3 3 v8 H4 Z` `#FFFFFF` and the flap
+    `M9 2 L12 2 L12 5 Z` `#DDDDDD`; band `5,6 6×5` `#000000`;
+    then, all `#FFFFFF`, seal top rim `6,7 4×1` (row 7), left
+    wall `6,8 1×1` (row 8), right wall `9,8 1×1` (row 8), seal
+    bottom rim `6,9 4×1` (row 9) and ribbon tails `6,10 1×1`
+    (row 10) and `9,10 1×1` (row 10).
+
+  Validate by XML only, never by rasterizing: `convert`'s MSVG reader
+  bleeds 1px shapes, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside the shell-script row,
+  described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths beside
+  the other `mimetypes` paths in `SHIPPED_ICONS`.
+- `tests/support/icon/shape_pins/mimetypes.py`: pin the three drawings
+  in `PINS` from the lists above (the `*_PAGE_*` page tuple, then the
+  rims, walls and tails).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `application-pkix-cert` in the last cell, as the
+  `application-pgp-keys` sentence there does.
+- `docs/installing.md`: add the X.509-certificate icon to the sentence
+  listing the icon theme's placeholder illustrations and their sizes.
+- The in-flight sqlite3, backup-file, core-dump and python-bytecode
+  entries edit the same inventory block, `PINS` registry, invariants
+  row and installing.md sentence; this entry sits behind them in the
+  queue, so rebase on whatever they have landed when picking this up,
+  keeping one row per icon.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/mimetypes.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size (the page elements matching
+  the `application-x-shellscript.svg` pin's page tuple, in the same
+  order, then the rims, walls and tails), carries a placeholder marker
+  and has a `PLACEHOLDERS.md` row; the existing inventory, palette,
+  geometry and placeholder-register tests cover all three.
+- Changing one seal rectangle's or ribbon tail's position, size or
+  fill, or the element order, in one file makes the geometry test
+  fail; dropping a file while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The `#000000`, `#FFFFFF` and `#DDDDDD` fills stay inside
+  `PLATINUM_FILLS`, so `test_each_icon_uses_only_the_platinum_palette`
+  passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme`
+  puts the three files in the installed theme, and uninstalling
+  removes them (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme
+  into a scratch `XDG_DATA_HOME`, use a scratch `HOME`,
+  `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset
+  `DISPLAY` and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `application-pkix-cert` resolves to the theme's 32x32
+  `mimetypes/application-pkix-cert.svg` (at planning time, before
+  this change, it resolved to Breeze's
+  `:/icons/breeze/mimetypes/32/application-pkix-cert.svg`), and
+  `text-x-generic` still resolves to the theme's own file. Report the
+  output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are
+  unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full
+  `make check` after the final edit, apart from main's known-red
+  tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
