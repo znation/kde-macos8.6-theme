@@ -117,6 +117,24 @@ class TestFieldProbe(unittest.TestCase):
             self.assertEqual(2, status)
             self.assertEqual("", stdout)
 
+    def test_a_python_only_coordinate_spelling_exits_2_naming_the_text(self):
+        # int() would silently accept underscore separators, surrounding
+        # whitespace and non-ASCII digits as coordinates; the probe refuses
+        # them like every other command-line number in tools/. Each axis is
+        # probed so a check of only one coordinate could not pass here.
+        with tempfile.TemporaryDirectory() as root:
+            png = Path(root) / "capture.png"
+            png.write_bytes(field_png())
+            spellings = (("1_0", "398"), ("2", "39_8"), (" 2", "398"), ("\u0662", "398"))
+            for x_text, y_text in spellings:
+                argv = [str(png), FIELD_COLOR, x_text, y_text]
+                with self.subTest(spelling=(x_text, y_text)):
+                    status, stderr, stdout = run_probe(argv)
+                    self.assertEqual(2, status)
+                    self.assertEqual("", stdout)
+                    self.assertIn(repr(x_text), stderr)
+                    self.assertIn(repr(y_text), stderr)
+
 
 class TestFieldProbeScript(unittest.TestCase):
     """Direct-script invocation agrees with the pinned callable."""
@@ -141,6 +159,15 @@ class TestFieldProbeScript(unittest.TestCase):
                         (expected, ""), (result.returncode, result.stdout)
                     )
                     self.assertEqual(run_probe(argv)[1], result.stderr)
+            # An underscore coordinate exits 2 the same way, and the direct
+            # script's shared plain-ASCII check reaches the bare-run path.
+            underscored = probe_argv(Path(root) / "absent.png", x="3_20")
+            result = subprocess.run(
+                [sys.executable, str(script), *underscored],
+                capture_output=True, text=True, timeout=30,
+            )
+            self.assertEqual((2, ""), (result.returncode, result.stdout))
+            self.assertEqual(run_probe(underscored)[1], result.stderr)
             # A missing capture exits 2 the same way.
             absent = probe_argv(Path(root) / "absent.png")
             result = subprocess.run(

@@ -23,6 +23,7 @@ from __future__ import annotations
 import sys
 
 if __package__:
+    from tools.argument_parsing import is_plain_ascii_number
     from tools.png import PngError, read_png
 else:  # run directly: python3 tools/render/field_probe.py
     # A directly run script's sys.path[0] is this file's directory, so the
@@ -30,6 +31,7 @@ else:  # run directly: python3 tools/render/field_probe.py
     from pathlib import Path
 
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from argument_parsing import is_plain_ascii_number
     from png import PngError, read_png
 
 TOOL = "field_probe"
@@ -59,6 +61,16 @@ def main(argv: list[str] | None = None) -> int:
     expected = _parse_colour(colour_text)
     if expected is None:
         return _fail(f"{colour_text!r} is not an RRGGBB colour")
+    # int() accepts Python-only spellings a command-line coordinate should
+    # not: underscore digit separators, non-ASCII decimal digits and
+    # surrounding whitespace (see tools/argument_parsing.py), each silently
+    # naming a different pixel. The shared plain-ASCII check refuses them
+    # before parsing, naming the received text; an empty field still needs
+    # the int() failure path beneath it.
+    if not (is_plain_ascii_number(x_text) and is_plain_ascii_number(y_text)):
+        return _fail(
+            f"coordinates ({x_text!r}, {y_text!r}) are not plain ASCII integers"
+        )
     try:
         x, y = int(x_text), int(y_text)
     except ValueError:
