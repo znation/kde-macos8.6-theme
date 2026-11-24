@@ -15,7 +15,9 @@ pinned deterministically.
 from __future__ import annotations
 
 import atexit
+import contextlib
 import os
+import subprocess
 import unittest
 from unittest import mock
 
@@ -54,11 +56,14 @@ class TestRenderBatch(unittest.TestCase):
             Renders.failure,
         ) = self._saved
 
-    def _run_with_stubbed_runner(self, *kinds):
-        """Request *kinds* and run the batch with a stubbed process runner.
+    @contextlib.contextmanager
+    def _stubbed_runner(self, finish_raises=None):
+        """Stub ``process_runner.start``/``finish`` around a batch run.
 
-        Returns the ``(argv, kwargs)`` list ``start`` received in call
-        order and the ``(process, timeout)`` list ``finish`` received.
+        Yields the ``(argv, kwargs)`` list ``start`` received in call order
+        and the ``(process, timeout)`` list ``finish`` received. When
+        *finish_raises* is given, every ``finish`` call raises it instead of
+        answering, so the batch's failure attribution can be probed.
         """
         started = []
 
@@ -70,12 +75,13 @@ class TestRenderBatch(unittest.TestCase):
 
         def fake_finish(process, timeout=None):
             finished.append((process, timeout))
+            if finish_raises is not None:
+                raise finish_raises
             # Each session answers with its own capture path and a distinct
             # exit status, so a result filed under the wrong kind shows.
             process.returncode = len(finished)
             return (f"out {process.argv[2]}", f"err {process.argv[2]}")
 
-        Renders.request(*kinds)
         with (
             mock.patch.object(
                 render_gates.process_runner, "start", side_effect=fake_start
@@ -84,6 +90,16 @@ class TestRenderBatch(unittest.TestCase):
                 render_gates.process_runner, "finish", side_effect=fake_finish
             ),
         ):
+            yield started, finished
+
+    def _run_with_stubbed_runner(self, *kinds):
+        """Request *kinds* and run the batch with a stubbed process runner.
+
+        Returns the ``(argv, kwargs)`` list ``start`` received in call
+        order and the ``(process, timeout)`` list ``finish`` received.
+        """
+        Renders.request(*kinds)
+        with self._stubbed_runner() as (started, finished):
             Renders._run_all()
         return started, finished
 
@@ -220,6 +236,53 @@ class TestRenderBatch(unittest.TestCase):
                 Renders.ensure("checkbox")
         self.assertIs(error, first.exception)
         self.assertIs(error, second.exception)
+
+    def test_a_timed_out_finish_names_the_kind_and_quotes_its_output(self):
+        # A hung render dies as a subprocess.TimeoutExpired from finish,
+        # carrying whatever output it had printed when it was killed; the
+        # batch's failure must name the kind and quote that partial output,
+        # not surface a bare timeout to every sibling gate.
+        error = subprocess.TimeoutExpired(
+            [render_gates.SCRIPT, "capture.png"],
+            150,
+            output="partial session log\n",
+            stderr="partial diagnostic\n",
+        )
+        Renders.request("checkbox")
+        with (
+            self._stubbed_runner(finish_raises=error),
+            mock.patch.object(atexit, "register"),
+        ):
+            with self.assertRaises(RuntimeError) as raised:
+                Renders.ensure("checkbox")
+            # A later ensure re-raises the batch's attributable error.
+            with self.assertRaises(RuntimeError) as sibling:
+                Renders.ensure("checkbox")
+        self.assertIs(Renders.failure, raised.exception)
+        self.assertIs(Renders.failure, sibling.exception)
+        message = str(raised.exception)
+        self.assertIn("checkbox", message)
+        self.assertIn("dialog.png", message)
+        self.assertIn("partial session log", message)
+        self.assertIn("partial diagnostic", message)
+        self.assertEqual(message, str(sibling.exception))
+
+    def test_a_finish_failure_with_no_output_still_names_the_kind_and_capture(self):
+        # A finish failure that carries no partial output (the re-raised
+        # timeout when even the reap bound yields no EOF) still names the
+        # kind and its capture path, so a failure is attributable.
+        error = subprocess.TimeoutExpired([render_gates.SCRIPT, "capture.png"], 150)
+        Renders.request("checkbox")
+        with (
+            self._stubbed_runner(finish_raises=error),
+            mock.patch.object(atexit, "register"),
+        ):
+            with self.assertRaises(RuntimeError) as raised:
+                Renders.ensure("checkbox")
+        message = str(raised.exception)
+        self.assertIn("checkbox", message)
+        self.assertIn("dialog.png", message)
+        self.assertNotIn("render output:", message)
 
 
 if __name__ == "__main__":

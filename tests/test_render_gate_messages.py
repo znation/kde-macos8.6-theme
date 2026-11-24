@@ -11,7 +11,24 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.render.gates import RenderOutputMessages, render_output_note
+from support.render.gates import DialogGate, RenderOutputMessages, render_output_note
+
+
+class _GateProbe(RenderOutputMessages, unittest.TestCase):
+    """A gate stand-in that runs ``DialogGate.test_exits_zero``.
+
+    ``DialogGate`` itself registers a batch kind at class-definition time
+    and starts a render in ``setUpClass``; the probe reuses only its
+    ``test_exits_zero`` message building, driven on the attributes a
+    gate's ``setUpClass`` would set. It declares no ``test_`` methods of
+    its own, so discovery collects nothing from the probe class itself.
+    """
+
+    def runTest(self):
+        pass
+
+    def exit_status(self):
+        DialogGate.test_exits_zero(self)
 
 
 class _Probe(RenderOutputMessages, unittest.TestCase):
@@ -62,6 +79,53 @@ class TestPixelAssertionMessages(unittest.TestCase):
 
     def test_a_matching_pair_passes(self):
         _probe("out", "").assertEqual("#000000", "#000000")
+
+
+class TestExitStatusMessage(unittest.TestCase):
+    """A failed render's exit-status message quotes both streams.
+
+    A passing render's session-log tail lands on stdout and prints nothing
+    on stderr, so a gate whose render exits non-zero must build its
+    failure message from both streams: quoting stderr alone would report
+    a bare ``0 != 1`` with the log the render did print discarded.
+    """
+
+    @staticmethod
+    def _gate(returncode, stdout, stderr):
+        probe = _GateProbe()
+        probe.returncode = returncode
+        probe.stdout = stdout
+        probe.stderr = stderr
+        return probe
+
+    def test_a_failed_render_quotes_its_stdout_tail_when_stderr_is_empty(self):
+        gate = self._gate(
+            1, "render log (12 bytes), last lines:\n  settle marker\n", ""
+        )
+        with self.assertRaises(AssertionError) as caught:
+            gate.exit_status()
+        message = str(caught.exception)
+        self.assertIn("0 != 1", message)
+        self.assertIn("render output:", message)
+        self.assertIn("settle marker", message)
+
+    def test_a_failed_render_quotes_both_streams(self):
+        gate = self._gate(2, "log tail\n", "diagnostic\n")
+        with self.assertRaises(AssertionError) as caught:
+            gate.exit_status()
+        message = str(caught.exception)
+        self.assertIn("0 != 2", message)
+        self.assertIn("log tail", message)
+        self.assertIn("diagnostic", message)
+
+    def test_a_silent_failed_render_stays_bare(self):
+        gate = self._gate(1, "", "")
+        with self.assertRaises(AssertionError) as caught:
+            gate.exit_status()
+        self.assertEqual("0 != 1", str(caught.exception))
+
+    def test_a_passing_render_raises_nothing(self):
+        self._gate(0, "render log\n", "").exit_status()
 
 
 if __name__ == "__main__":

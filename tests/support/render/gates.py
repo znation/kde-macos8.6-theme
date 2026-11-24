@@ -88,6 +88,21 @@ def band_mismatch_context(colours, stderr):
     return f"whole band colours: {summary}\n{render}"
 
 
+def _stream_text(part):
+    """Return an exception's partial stream output as text, or ``""``.
+
+    ``support.process_runner.finish`` attaches the drained pipes as text
+    (the batch starts every render with ``text=True``), so *part* is
+    normally ``None`` or ``str``; a ``bytes`` decode keeps a non-text
+    exception's output quotable too.
+    """
+    if part is None:
+        return ""
+    if isinstance(part, bytes):
+        return part.decode("utf-8", errors="replace")
+    return part
+
+
 def software_renderer_skip_reason():
     """Return the capture gates' skip reason when Mesa is forced to software."""
     if os.environ.get("LIBGL_ALWAYS_SOFTWARE") == "1":
@@ -350,20 +365,49 @@ class Renders:
                 text=True,
                 env=environment,
             )
-        for kind, _, _ in cls.KINDS:
+        for kind, _, filename in cls.KINDS:
             if kind not in cls.requested:
                 continue
             # The first finish below waits one settle budget while the
             # other two renders run alongside it.
-            stdout, stderr = process_runner.finish(
-                started[kind], timeout=cls.FINISH_TIMEOUTS.get(kind, 150)
-            )
+            try:
+                stdout, stderr = process_runner.finish(
+                    started[kind], timeout=cls.FINISH_TIMEOUTS.get(kind, 150)
+                )
+            except Exception as error:
+                raise cls._finish_failure(kind, filename, error) from error
             cls.results[kind] = (
                 stdout,
                 stderr,
                 started[kind].returncode,
                 cls.directories[kind],
             )
+
+    @classmethod
+    def _finish_failure(cls, kind, filename, error):
+        """Return the attributable failure for a finish of *kind* that raised.
+
+        An exception from ``process_runner.finish`` -- the
+        ``subprocess.TimeoutExpired`` of a hung render, or any other failure
+        -- reaches :meth:`ensure` with no kind name and no output, so every
+        sibling gate re-raises the same unattributable error. The
+        replacement names the kind and its capture path and quotes the
+        partial output the exception carries (``output``/``stderr``, which
+        ``support.process_runner.finish`` attaches), so a recurrence records
+        its cause by itself.
+        """
+        capture = os.path.join(cls.directories[kind], filename)
+        message = (
+            f"the {kind} render failed while the batch finished it "
+            f"(capture {capture})"
+        )
+        note = render_output_note(
+            _stream_text(getattr(error, "output", None)),
+            _stream_text(getattr(error, "stderr", None)),
+        )
+        if note:
+            message = f"{message}\n{note}"
+        return RuntimeError(message)
 
     @classmethod
     def _remove_directories(cls):
@@ -437,7 +481,14 @@ class DialogGate(RenderOutputMessages, PixelPins):
         return cls._candidate
 
     def test_exits_zero(self):
-        self.assertEqual(0, self.returncode, self.stderr)
+        # The failure message is built from both streams: a failed render's
+        # session-log tail lands on stdout and may print nothing on stderr,
+        # so quoting stderr alone would report a bare ``0 != 1``.
+        self.assertEqual(
+            0,
+            self.returncode,
+            render_output_note(self.stdout, self.stderr) or None,
+        )
 
     def test_writes_a_480x360_png(self):
         image = self.candidate_image()

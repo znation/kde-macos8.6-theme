@@ -5,6 +5,77 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Render gate failures name the render kind and carry its own output
+(planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
+
+**Goal.** When a render capture gate fails, the failure record must say
+which render kind failed and carry the render's own output — the
+session-log tail on stdout and the diagnostics on stderr — instead of a
+bare colour pair or a bare `0 != 1`. BUGS.md's umbrella entry "Seven
+icon-dialog render gates failed with the same pixel mismatch" and the
+quarantined gates under it record the gap: their quarantines preserved
+neither the icon render's exit-status message nor any session log, so
+the class-wide cause (a non-zero exit or a batch exception inside
+`Renders`) could not be assigned. This plan adds the capture those
+entries ask for, so a recurrence records the cause by itself; it does
+not close the umbrella entry and does not touch tumwater's quarantine
+excerpt extraction, which lives outside this repository.
+
+**Approach.**
+
+- `tests/support/render/gates.py`:
+  - In `Renders._run_all`, wrap each kind's `process_runner.finish`
+    call so an exception raised while finishing that kind (a
+    `subprocess.TimeoutExpired` from a hung render, or any other
+    failure) is re-raised with a message naming the kind, its capture
+    path, and any partial output the exception carries (`exc.output` /
+    `exc.stderr`, which `support.process_runner.finish` attaches).
+    Today such an exception reaches `Renders.ensure`'s `cls.failure`
+    with no kind name and no output, so every sibling gate re-raises
+    the same unattributable error.
+  - In `DialogGate.test_exits_zero`, build the failure message from
+    both streams instead of `self.stderr` alone: a non-zero exit whose
+    session-log tail lands on stdout and prints nothing on stderr
+    currently reports a bare `0 != 1`.
+- The pixel-assertion path stays as it is: `render_output_note` and
+  `RenderOutputMessages.assertEqual` already attach both streams to
+  pixel and band mismatches.
+- Non-goals: the sibling gates' own `test_exits_zero` copies outside
+  `gates.py` (`tests/test_render_surface.py`,
+  `tests/test_render_splash_gate.py`) keep their current messages;
+  no production render tooling under `tools/` changes.
+
+**Files.** `tests/support/render/gates.py`,
+`tests/test_render_gate_messages.py`, `tests/test_render_gates_batch.py`.
+
+**Acceptance criteria.**
+
+- Batch failure attribution: in `tests/test_render_gates_batch.py`
+  (`TestRenderBatch`, extending the existing `_run_with_stubbed_runner`
+  stubbing), a stubbed `process_runner.finish` raising
+  `subprocess.TimeoutExpired(argv, 150, output=..., stderr=...)` makes
+  `Renders.ensure("checkbox")` fail with a message containing the kind
+  name (`checkbox`), the capture path's basename, and the partial
+  output strings; `Renders.failure` holds that error, so a later
+  `ensure` re-raises the same attributable message. A
+  `TimeoutExpired` raised with no output still names the kind and the
+  capture path. (New tests:
+  `test_a_timed_out_finish_names_the_kind_and_quotes_its_output`,
+  `test_a_finish_failure_with_no_output_still_names_the_kind_and_capture`.)
+- Exit-status message: on a probe with `DialogGate.test_exits_zero`'s
+  message building, a gate whose `stdout` carries the session-log tail
+  and whose `stderr` is empty reports a failure message containing
+  that tail (never a bare `0 != 1`), and a fully silent render still
+  adds no fabricated text (extend `tests/test_render_gate_messages.py`
+  beside the existing `TestRenderOutputNote` and
+  `TestPixelAssertionMessages` cases).
+- The existing `tests/test_render_gate_messages.py` and
+  `tests/test_render_gates_batch.py` cases pass unchanged; no test
+  name elsewhere changes.
+- `make check CHECK_TESTS='test_render_gate_messages
+  test_render_gates_batch'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ### Platinum icon theme: draw bzip2-compressed tar archives with an
 original `application-x-bzip2-compressed-tar` icon (planned 2026-11-24
 by the plan role; independent of the waiting plans — done 2026-11-24 by the feature role
