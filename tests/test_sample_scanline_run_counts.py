@@ -152,12 +152,9 @@ class TestSampleScanlineRunCounts(CliTestCase):
         self.assertFalse(getattr(args, "scanline_run_counts", None))
 
     def test_validation_help_and_direct_script(self):
-        with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")), \
-                mock.patch.object(sample, "read_png", side_effect=AssertionError("read")), \
-                mock.patch.object(sample.os, "open", side_effect=AssertionError("open")):
-            invalid = self._run("missing.png", "0", "0", "--scanline-run-counts")
-        self._assert_usage_error(invalid, "--scanline-run-counts requires --runs")
-        self.assertEqual(invalid.stdout, "")
+        self.assert_refused_before_any_read(
+            sample, "missing.png", "0", "0", "--scanline-run-counts",
+            needle="--scanline-run-counts requires --runs")
         histogram = self._run("missing.png", "0", "0", "--histogram", "--scanline-run-counts")
         self._assert_usage_error(histogram, "--scanline-run-counts requires --runs")
         find_color = self._run("missing.png", "0", "0", "--find-color", "010203", "--scanline-run-counts")

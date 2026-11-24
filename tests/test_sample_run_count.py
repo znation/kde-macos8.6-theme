@@ -146,12 +146,9 @@ class TestSampleRunCount(CliTestCase):
         self.assertFalse(getattr(args, "run_count", None))
 
     def test_validation_help_and_direct_script(self):
-        with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")), \
-                mock.patch.object(sample, "read_png", side_effect=AssertionError("read")), \
-                mock.patch.object(sample.os, "open", side_effect=AssertionError("open")):
-            invalid = self._run("missing.png", "0", "0", "--run-count")
-        self._assert_usage_error(invalid, "--run-count requires --runs")
-        self.assertEqual(invalid.stdout, "")
+        self.assert_refused_before_any_read(
+            sample, "missing.png", "0", "0", "--run-count",
+            needle="--run-count requires --runs")
         histogram = self._run("missing.png", "0", "0", "--histogram", "--run-count")
         self._assert_usage_error(histogram, "--run-count requires --runs")
         self.assertIn("--run-count", self._run("--help").stdout)

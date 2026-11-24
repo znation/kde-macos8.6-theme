@@ -179,6 +179,26 @@ class CliTestCase(unittest.TestCase):
         missing = self._run(*base, flag)
         self.assertEqual((missing.returncode, missing.stdout), (2, ""))
 
+    def assert_refused_before_any_read(self, module, *args: str, needle: str) -> None:
+        """Assert ``MAIN(*args)`` refuses with exit 2 before touching the image.
+
+        While the run executes, *module*'s ``read_png_size``, ``read_png``
+        and ``os.open`` raise AssertionError, so a validation that probed,
+        decoded or opened the image before refusing fails the test instead
+        of printing the refusal. The refusal must name *needle* on stderr
+        and print nothing on stdout. The five sample suites whose
+        dependency-refusal test pins the ``missing.png`` run share this
+        helper; the suites that patch only ``read_png_size``, or the
+        ``read_png_size`` + ``read_png`` pair with a distinct decode guard,
+        pin fewer entry points and stay as they are.
+        """
+        with mock.patch.object(module, "read_png_size", side_effect=AssertionError("read")), \
+                mock.patch.object(module, "read_png", side_effect=AssertionError("read")), \
+                mock.patch.object(module.os, "open", side_effect=AssertionError("open")):
+            result = self._run(*args)
+        self._assert_usage_error(result, needle)
+        self.assertEqual(result.stdout, "")
+
     def _tmp_dir(self) -> Path:
         """Return a fresh temp dir that is removed when the test ends."""
         return make_tmp_dir(self)

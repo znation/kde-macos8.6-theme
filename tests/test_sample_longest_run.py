@@ -208,12 +208,9 @@ class TestSampleLongestRun(CliTestCase):
                 self.assertEqual(color_runs.call_count, 4)
 
     def test_validation_help_and_direct_script(self):
-        with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")), \
-                mock.patch.object(sample, "read_png", side_effect=AssertionError("read")), \
-                mock.patch.object(sample.os, "open", side_effect=AssertionError("open")):
-            invalid = self._run("missing.png", "0", "0", "--longest-run")
-        self._assert_usage_error(invalid, "--longest-run requires --runs")
-        self.assertEqual(invalid.stdout, "")
+        self.assert_refused_before_any_read(
+            sample, "missing.png", "0", "0", "--longest-run",
+            needle="--longest-run requires --runs")
         histogram = self._run("missing.png", "0", "0", "--histogram", "--longest-run")
         self._assert_usage_error(histogram, "--longest-run requires --runs")
         search = self._run("missing.png", "0", "0", "--find-color", "010203", "--longest-run")

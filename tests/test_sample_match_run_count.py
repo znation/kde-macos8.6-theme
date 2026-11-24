@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.cli_fixtures import CliTestCase
@@ -76,12 +75,9 @@ class TestSampleMatchRunCount(CliTestCase):
         self.assertNotIn("run_count", json.loads(without_flag.stdout)["match"])
 
     def test_validation_help_and_direct_script(self):
-        with mock.patch.object(sample, "read_png_size", side_effect=AssertionError("read")), \
-                mock.patch.object(sample, "read_png", side_effect=AssertionError("read")), \
-                mock.patch.object(sample.os, "open", side_effect=AssertionError("open")):
-            invalid = self._run("missing.png", "0", "0", "--match-run-count")
-        self._assert_usage_error(invalid, "--match-run-count requires --find-color")
-        self.assertEqual(invalid.stdout, "")
+        self.assert_refused_before_any_read(
+            sample, "missing.png", "0", "0", "--match-run-count",
+            needle="--match-run-count requires --find-color")
         self.assertIn("--match-run-count", self._run("--help").stdout)
         _, encoded = rgb_image(1, 1, lambda _x, _y: (1, 2, 3))
         path = self._write(self._tmp_dir(), "one.png", encoded)
