@@ -22,8 +22,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main_with_env
-from support.flock_fixtures import hold_directory_flock
-from support.process_assertions import assert_lock_time_out
+from support.flock_fixtures import assert_run_lock_time_out, hold_directory_flock
 from support.theme_install import write_file
 from support.tmp_dir import make_tmp_dir
 from tools import kvantum_selection
@@ -300,12 +299,10 @@ class TestSelectionRemoval(RemoveKvantumCase):
         hold_directory_flock(self, lock_dir)
         before = self.read_bytes()
 
-        with mock.patch.object(kvantum_selection, "LOCK_TIMEOUT", 0.05):
-            result = self.run_tool()
-
-        assert_lock_time_out(
+        result = assert_run_lock_time_out(
             self,
-            result,
+            kvantum_selection,
+            self.run_tool,
             "waiting for another remove-kvantum",
             self.config,
         )

@@ -45,10 +45,10 @@ def assert_exit_2_without_traceback(case, result):
 def assert_lock_time_out(case, result, message, path):
     """Assert *result* is a bounded-wait refusal on a held directory flock.
 
-    The apply and selection suites patch a tool's ``LOCK_TIMEOUT`` short
-    while a fixture holds the lock, then assert the shared timeout
-    diagnostic once here: exit 2 with no traceback, the holder refusal
-    (*message*) and the locked *path* on stderr. Every holder diagnostic in
+    The lock-time-out suites assert the shared timeout diagnostic once
+    here, through ``flock_fixtures.assert_run_lock_time_out``: exit 2 with
+    no traceback, the holder refusal (*message*) and the locked *path* on
+    stderr. Every holder diagnostic in
     ``tools/file_lock.py`` names its path, so the *path* assertion repeats
     the diagnostic's own wording as separate insurance.
     """

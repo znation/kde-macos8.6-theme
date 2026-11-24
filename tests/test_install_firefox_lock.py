@@ -15,8 +15,12 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.firefox_profile_case import FirefoxProfileTestCase
-from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
-from support.process_assertions import assert_lock_time_out, assert_succeeded
+from support.flock_fixtures import (
+    assert_directory_flock_free,
+    assert_run_lock_time_out,
+    hold_directory_flock,
+)
+from support.process_assertions import assert_succeeded
 from tools import file_lock, install_firefox
 
 
@@ -32,12 +36,10 @@ class TestProfileLock(FirefoxProfileTestCase):
     ):
         self.hold_profile_lock()
 
-        with mock.patch.object(install_firefox, "LOCK_TIMEOUT", 0.05):
-            result = self.run_tool("--profile", str(self.profile))
-
-        assert_lock_time_out(
+        result = assert_run_lock_time_out(
             self,
-            result,
+            install_firefox,
+            lambda: self.run_tool("--profile", str(self.profile)),
             "waiting for another install-firefox/remove-firefox",
             self.profile,
         )
@@ -50,12 +52,10 @@ class TestProfileLock(FirefoxProfileTestCase):
         before_js = self.user_js_path().read_bytes()
         self.hold_profile_lock()
 
-        with mock.patch.object(install_firefox, "LOCK_TIMEOUT", 0.05):
-            result = self.run_tool("--remove", "--profile", str(self.profile))
-
-        assert_lock_time_out(
+        result = assert_run_lock_time_out(
             self,
-            result,
+            install_firefox,
+            lambda: self.run_tool("--remove", "--profile", str(self.profile)),
             "waiting for another install-firefox/remove-firefox",
             self.profile,
         )

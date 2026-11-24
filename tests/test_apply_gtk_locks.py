@@ -17,12 +17,15 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main_with_env
-from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
+from support.flock_fixtures import (
+    assert_directory_flock_free,
+    assert_run_lock_time_out,
+    hold_directory_flock,
+)
 from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_failed,
-    assert_lock_time_out,
     assert_succeeded,
 )
 from tools import apply_gtk
@@ -43,12 +46,10 @@ class TestConfigLock(ApplyGtkTestCase):
         self.write(self.settings("gtk-3.0"), before)
         self.hold_config_lock()
 
-        with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
-            result = self.run_tool()
-
-        assert_lock_time_out(
+        result = assert_run_lock_time_out(
             self,
-            result,
+            apply_gtk,
+            self.run_tool,
             "waiting for another apply-gtk/remove-gtk",
             self.config,
         )
@@ -74,12 +75,10 @@ class TestConfigLock(ApplyGtkTestCase):
         self.write(self.settings("gtk-3.0"), before)
         self.hold_config_lock()
 
-        with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
-            result = self.run_tool("--remove")
-
-        assert_lock_time_out(
+        result = assert_run_lock_time_out(
             self,
-            result,
+            apply_gtk,
+            lambda: self.run_tool("--remove"),
             "waiting for another apply-gtk/remove-gtk",
             self.config,
         )
@@ -90,12 +89,10 @@ class TestConfigLock(ApplyGtkTestCase):
     def test_remove_waits_for_the_lock_even_without_a_config_home(self):
         self.hold_config_lock()
 
-        with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
-            result = self.run_tool("--remove")
-
-        assert_lock_time_out(
+        result = assert_run_lock_time_out(
             self,
-            result,
+            apply_gtk,
+            lambda: self.run_tool("--remove"),
             "waiting for another apply-gtk/remove-gtk",
             self.config,
         )
@@ -151,12 +148,10 @@ class TestDataHomeLock(ApplyGtkTestCase):
         self.write(self.settings("gtk-3.0"), before)
         self.hold_data_lock()
 
-        with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
-            result = self.run_tool()
-
-        assert_lock_time_out(
+        result = assert_run_lock_time_out(
             self,
-            result,
+            apply_gtk,
+            self.run_tool,
             "waiting for another install or uninstall",
             self.data,
         )

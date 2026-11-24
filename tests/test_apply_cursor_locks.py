@@ -21,12 +21,12 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.executable_stubs import write_executable
 from support.cli_fixtures import run_main_with_env
 from support.cursor_theme_fixtures import write_cursor_theme
-from support.flock_fixtures import assert_directory_flock_free, hold_directory_flock
-from support.process_assertions import (
-    assert_failed,
-    assert_lock_time_out,
-    assert_succeeded,
+from support.flock_fixtures import (
+    assert_directory_flock_free,
+    assert_run_lock_time_out,
+    hold_directory_flock,
 )
+from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_session_home
 from tools.cursor import link as cursor_link, workflow as cursor_workflow
 from tools import apply_cursor
@@ -68,12 +68,10 @@ class TestDataHomeLock(CursorLockCase):
         os.symlink(str(self.installed), str(self.link))
         self.hold_data_lock()
 
-        with mock.patch.object(cursor_workflow, "LOCK_TIMEOUT", 0.05):
-            result = self.run_tool("--remove")
-
-        assert_lock_time_out(
+        result = assert_run_lock_time_out(
             self,
-            result,
+            cursor_workflow,
+            lambda: self.run_tool("--remove"),
             "waiting for another install or uninstall",
             self.data,
         )
@@ -83,12 +81,10 @@ class TestDataHomeLock(CursorLockCase):
         self.stub_selector()
         self.hold_data_lock()
 
-        with mock.patch.object(cursor_workflow, "LOCK_TIMEOUT", 0.05):
-            result = self.run_tool()
-
-        assert_lock_time_out(
+        result = assert_run_lock_time_out(
             self,
-            result,
+            cursor_workflow,
+            self.run_tool,
             "waiting for another install or uninstall",
             self.data,
         )
