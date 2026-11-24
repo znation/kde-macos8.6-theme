@@ -230,7 +230,7 @@ class TestMainWiring(unittest.TestCase):
         )
 
     def test_every_recipe_flag_is_required_to_run_a_scan(self):
-        for flag, value in RECIPE_FLAGS:
+        for flag, _value in RECIPE_FLAGS:
             with self.subTest(flag=flag):
                 captured = {}
                 config = str(make_tmp_dir(self))

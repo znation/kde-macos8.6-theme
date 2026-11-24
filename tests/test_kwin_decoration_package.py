@@ -154,7 +154,7 @@ class TestSingleton(unittest.TestCase):
             "titleEdgeLeft": ("Layout/TitleEdgeLeft", "4"),
             "titleEdgeRight": ("Layout/TitleEdgeRight", "4"),
         }
-        for name, (key, literal) in expected.items():
+        for name, (_key, literal) in expected.items():
             self.assertEqual(self.value(name), literal, name)
 
     def test_derived_top_borders_match_upstreams_borders(self):

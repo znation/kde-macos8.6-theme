@@ -76,6 +76,6 @@ def _assert_keys_distinct(case, node, label):
             return
     repeats = sorted(name for name in set(names) if names.count(name) > 1)
     case.assertEqual(repeats, [], f"{label} repeats the key(s) {repeats}")
-    for key, spelling, value in zip(node.keys, spellings, node.values):
+    for _key, spelling, value in zip(node.keys, spellings, node.values):
         if isinstance(value, ast.Dict):
             _assert_keys_distinct(case, value, f"{label}.{spelling}")
