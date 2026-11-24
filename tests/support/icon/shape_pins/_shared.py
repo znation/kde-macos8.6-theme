@@ -83,11 +83,11 @@ def _thick_raised_panel(x, y, w, h):
 
 # The sealed package box: the outline, lid highlight, white body and grey
 # tape stripe the package-backed mimetypes draw in common (the generic
-# package, zip, tar, 7z, gzip, deb, rar and the three compressed-tar
+# package, zip, tar, 7z, gzip, deb, rar and the four compressed-tar
 # names), one tuple per size. Every package-backed pin in the mimetypes
 # registry spreads the tuple as its prefix and then draws its own mark on
-# the white body, so a box edit lands in one place per size and all ten
-# package-backed pins per size stay in step; the pins test in
+# the white body, so a box edit lands in one place per size and all
+# eleven package-backed pins per size stay in step; the pins test in
 # ``test_icon_theme_geometry`` still compares each pin with its shipped
 # file element by element.
 _SEALED_PACKAGE_32 = (
