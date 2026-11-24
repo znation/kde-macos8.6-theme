@@ -7,9 +7,9 @@
 ``tests/test_render_file_dialog.py`` (the file-dialog gate) and
 ``tests/test_render_gtk_dialog.py`` (the GTK 4 window gate) all pin
 ``tools/render_surface.py``'s captures. The tool lists, the software-renderer
-skip condition, the pixel-reading mixin, the render session batch and the
-dialog-gate scaffolding and skip guards live here so the three suites share
-one copy.
+skip condition, the pixel-reading and preservation-probe mixins, the render
+session batch and the dialog-gate scaffolding and skip guards live here so
+all of these suites share one copy.
 """
 
 from __future__ import annotations

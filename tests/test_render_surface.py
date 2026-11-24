@@ -9,7 +9,7 @@ what the CLI's captures draw of the applet window's Aurorae chrome and the
 desktop bar. The startup splash's gate is in
 ``tests/test_render_splash_gate.py``. The dialog clients' engine-drawn widgets
 are pinned in ``tests/test_render_dialog_gates.py`` and
-``tests/test_render_file_dialog.py``, the capture plumbing the three suites
+``tests/test_render_file_dialog.py``, the capture plumbing these suites
 share in ``tests/support/render/gates.py``, the CLI's failure paths against
 shell stubs in ``tests/test_render_failure_paths.py`` and its live-session
 capture outcomes in ``tests/test_render_live_capture.py``, and the session
