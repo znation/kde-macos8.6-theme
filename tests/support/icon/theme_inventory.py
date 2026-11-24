@@ -57,7 +57,12 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # `image-x-generic` icon at all three sizes (our own drawing of a framed
 # photograph; the name captures the raster image icon names by
 # type-spelling fallback and is the `generic-icon` of the graphics and
-# 3D-model MIME types in the installed shared MIME database), the
+# 3D-model MIME types in the installed shared MIME database), the audio
+# `audio-x-generic` icon at all three sizes (our own drawing of a beamed
+# pair of eighth notes; the name captures the audio MIME types by
+# type-spelling fallback and is the `generic-icon` of the playlist,
+# lossless-audio and SMAF audio types in the installed shared MIME
+# database), the
 # `media-optical` optical disc at all three sizes (our own drawing of a
 # CD or DVD: a disc with white glints and a hub),
 # the kicker logo the menu bar's top-left button shows at the two panel sizes,
@@ -109,6 +114,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "image-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "image-x-generic.svg"),
+    os.path.join("32x32", "mimetypes", "audio-x-generic.svg"),
+    os.path.join("16x16", "mimetypes", "audio-x-generic.svg"),
+    os.path.join("22x22", "mimetypes", "audio-x-generic.svg"),
     os.path.join("32x32", "places", "folder.svg"),
     os.path.join("32x32", "places", "inode-directory.svg"),
     os.path.join("32x32", "places", "user-home.svg"),

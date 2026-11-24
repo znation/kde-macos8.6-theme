@@ -509,6 +509,27 @@ ICON_SHAPES = {
         _shape("rect", x="10", y="12", width="1", height="2", fill="#000000"),
         _shape("rect", x="12", y="11", width="1", height="3", fill="#000000"),
     ),
+    os.path.join("32x32", "mimetypes", "audio-x-generic.svg"): (
+        _shape("rect", x="6", y="23", width="7", height="4", fill="#000000"),
+        _shape("rect", x="11", y="6", width="2", height="21", fill="#000000"),
+        _shape("rect", x="18", y="21", width="7", height="4", fill="#000000"),
+        _shape("rect", x="23", y="6", width="2", height="19", fill="#000000"),
+        _shape("rect", x="11", y="6", width="14", height="5", fill="#000000"),
+    ),
+    os.path.join("22x22", "mimetypes", "audio-x-generic.svg"): (
+        _shape("rect", x="4", y="16", width="5", height="3", fill="#000000"),
+        _shape("rect", x="8", y="4", width="2", height="15", fill="#000000"),
+        _shape("rect", x="12", y="14", width="5", height="3", fill="#000000"),
+        _shape("rect", x="15", y="4", width="2", height="13", fill="#000000"),
+        _shape("rect", x="8", y="4", width="9", height="3", fill="#000000"),
+    ),
+    os.path.join("16x16", "mimetypes", "audio-x-generic.svg"): (
+        _shape("rect", x="2", y="11", width="4", height="2", fill="#000000"),
+        _shape("rect", x="5", y="3", width="1", height="10", fill="#000000"),
+        _shape("rect", x="9", y="10", width="4", height="2", fill="#000000"),
+        _shape("rect", x="12", y="3", width="1", height="9", fill="#000000"),
+        _shape("rect", x="5", y="3", width="8", height="2", fill="#000000"),
+    ),
     os.path.join("32x32", "mimetypes", "text-html.svg"): (
         _shape("rect", x="3", y="5", width="26", height="22", fill="#000000"),
         _shape("rect", x="4", y="6", width="24", height="4", fill="#DDDDDD"),
