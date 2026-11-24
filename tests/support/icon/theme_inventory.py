@@ -67,6 +67,10 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 # pair of eighth notes; the name captures the audio MIME types by
 # type-spelling fallback and is the `generic-icon` of the playlist,
 # lossless-audio and SMAF audio types in the installed shared MIME
+# database), the font
+# `font-x-generic` icon at all three sizes (our own drawing of the
+# generic document's page under a capital letter A; the name is the
+# `generic-icon` of the 23 font MIME types in the installed shared MIME
 # database), the
 # `media-optical` optical disc at all three sizes (our own drawing of a
 # CD or DVD: a disc with white glints and a hub),
@@ -125,6 +129,9 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "mimetypes", "audio-x-generic.svg"),
     os.path.join("16x16", "mimetypes", "audio-x-generic.svg"),
     os.path.join("22x22", "mimetypes", "audio-x-generic.svg"),
+    os.path.join("32x32", "mimetypes", "font-x-generic.svg"),
+    os.path.join("16x16", "mimetypes", "font-x-generic.svg"),
+    os.path.join("22x22", "mimetypes", "font-x-generic.svg"),
     os.path.join("32x32", "places", "folder.svg"),
     os.path.join("32x32", "places", "inode-directory.svg"),
     os.path.join("32x32", "places", "user-home.svg"),
