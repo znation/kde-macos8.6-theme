@@ -23,6 +23,19 @@ from tools.check.parallel_results import (
 )
 
 
+def _run_report(modules, statuses, log_paths, timeout=30):
+    """Run print_results with stdout captured; return (status, printed text).
+
+    Both reporter suites (TestPrintResults and TestPrintResultsOrder) call
+    the reporter in-process with stdout captured; this is the one place
+    holding that boilerplate. Twenty-two call sites.
+    """
+    output = StringIO()
+    with redirect_stdout(output):
+        status = print_results(modules, statuses, log_paths, timeout)
+    return status, output.getvalue()
+
+
 class TestBoundedLogText(unittest.TestCase):
     def test_log_exactly_the_tail_window_is_not_marked_truncated(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -85,19 +98,17 @@ class TestPrintResults(unittest.TestCase):
     def test_directory_worker_log_fails_without_stopping_the_report(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)
-            output = StringIO()
-            with redirect_stdout(output):
-                status = print_results(
-                    ["broken", "ok"],
-                    {"broken": 0, "ok": 0},
-                    {"broken": str(path)},
-                    30,
-                )
+            status, text = _run_report(
+                ["broken", "ok"],
+                {"broken": 0, "ok": 0},
+                {"broken": str(path)},
+                30,
+            )
 
         self.assertEqual(status, 1)
-        self.assertIn("===== broken: worker log could not be read =====", output.getvalue())
-        self.assertIn("===== ok: exit 0 =====", output.getvalue())
-        self.assertIn("check: 2 modules, 1 module failed", output.getvalue())
+        self.assertIn("===== broken: worker log could not be read =====", text)
+        self.assertIn("===== ok: exit 0 =====", text)
+        self.assertIn("check: 2 modules, 1 module failed", text)
 
     def test_a_log_without_a_final_newline_ends_before_the_next_header(self):
         # Each section's log is followed by the next "=====" header. A log
@@ -112,29 +123,23 @@ class TestPrintResults(unittest.TestCase):
             with self.subTest(contents=contents), tempfile.TemporaryDirectory() as directory:
                 path = Path(directory) / "first.log"
                 path.write_bytes(contents)
-                output = StringIO()
-                with redirect_stdout(output):
-                    status = print_results(
-                        ["first", "second"],
-                        {"first": 0, "second": 0},
-                        {"first": str(path)},
-                        30,
-                    )
+                status, text = _run_report(
+                    ["first", "second"],
+                    {"first": 0, "second": 0},
+                    {"first": str(path)},
+                    30,
+                )
 
                 self.assertEqual(status, 0)
                 self.assertEqual(
-                    output.getvalue(),
+                    text,
                     "===== first: exit 0 =====\n" + body
                     + "===== second: exit 0 =====\n",
                 )
 
     def test_module_name_control_characters_are_escaped_in_the_header(self):
         module = "pkg\x1b[31m\nforged"
-        output = StringIO()
-        with redirect_stdout(output):
-            print_results([module], {module: 0}, {}, 30)
-
-        text = output.getvalue()
+        _, text = _run_report([module], {module: 0}, {}, 30)
         self.assertNotIn("\x1b", text)
         self.assertIn("pkg\\u001b[31m\\u000aforged: exit 0", text)
 
@@ -146,18 +151,16 @@ class TestPrintResults(unittest.TestCase):
                 "Ran 0 tests\nNO TESTS RAN\n",
                 encoding="utf-8",
             )
-            output = StringIO()
-            with redirect_stdout(output):
-                status = print_results(
-                    ["example"], {"example": 5}, {"example": str(path)}, 30
-                )
+            status, text = _run_report(
+                ["example"], {"example": 5}, {"example": str(path)}, 30
+            )
 
         self.assertEqual(status, 1)
         self.assertIn(
             "example: exit 5 but the log shows a started test beside ",
-            output.getvalue(),
+            text,
         )
-        self.assertIn("check: 1 module, 1 module failed", output.getvalue())
+        self.assertIn("check: 1 module, 1 module failed", text)
 
     def test_exit_five_without_the_summary_is_failure_not_no_tests(self):
         log_path = make_tmp_dir(self) / "worker.log"
@@ -169,48 +172,40 @@ class TestPrintResults(unittest.TestCase):
             "test_example\nok\nworker died before the runner reported\n",
             encoding="utf-8",
         )
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_ok"], {"test_ok": 5}, {"test_ok": str(log_path)}, 10
-            )
+        status, text = _run_report(
+            ["test_ok"], {"test_ok": 5}, {"test_ok": str(log_path)}, 10
+        )
         self.assertEqual(1, status)
         self.assertIn(
             "===== test_ok: exit 5 but the log shows no unittest "
             "NO TESTS RAN summary =====",
-            output.getvalue(),
+            text,
         )
-        self.assertIn(
-            "worker died before the runner reported", output.getvalue()
-        )
+        self.assertIn("worker died before the runner reported", text)
         self.assertIn(
             "check: test_ok: exit 5 but the log shows no unittest "
             "NO TESTS RAN summary",
-            output.getvalue(),
+            text,
         )
-        self.assertIn("1 module failed", output.getvalue())
+        self.assertIn("1 module failed", text)
 
     def test_missing_worker_log_fails_even_when_worker_exited_zero(self):
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_ok"], {"test_ok": 0}, {"test_ok": "/missing/worker.log"}, 10
-            )
+        status, text = _run_report(
+            ["test_ok"], {"test_ok": 0}, {"test_ok": "/missing/worker.log"}, 10
+        )
         self.assertEqual(1, status)
-        self.assertIn("test_ok: worker log could not be read", output.getvalue())
-        self.assertIn("1 module failed", output.getvalue())
+        self.assertIn("test_ok: worker log could not be read", text)
+        self.assertIn("1 module failed", text)
 
     def test_fifo_worker_log_read_fails_without_blocking(self):
         fifo = make_tmp_dir(self) / "worker.log"
         os.mkfifo(fifo)
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_ok"], {"test_ok": 0}, {"test_ok": str(fifo)}, 10
-            )
+        status, text = _run_report(
+            ["test_ok"], {"test_ok": 0}, {"test_ok": str(fifo)}, 10
+        )
         self.assertEqual(1, status)
-        self.assertIn("test_ok: worker log could not be read", output.getvalue())
-        self.assertIn("1 module failed", output.getvalue())
+        self.assertIn("test_ok: worker log could not be read", text)
+        self.assertIn("1 module failed", text)
 
     def test_a_fifo_started_test_scan_fails_without_blocking(self):
         fifo = make_tmp_dir(self) / "worker.log"
@@ -223,27 +218,23 @@ class TestPrintResults(unittest.TestCase):
             "tools.check.parallel_results._bounded_log_text",
             return_value="Ran 0 tests\nNO TESTS RAN\n",
         ):
-            output = StringIO()
-            with redirect_stdout(output):
-                status = print_results(
-                    ["test_ok"], {"test_ok": 5}, {"test_ok": str(fifo)}, 10
-                )
+            status, text = _run_report(
+                ["test_ok"], {"test_ok": 5}, {"test_ok": str(fifo)}, 10
+            )
         self.assertEqual(1, status)
-        self.assertIn("test_ok: worker log could not be read", output.getvalue())
-        self.assertIn("1 module failed", output.getvalue())
+        self.assertIn("test_ok: worker log could not be read", text)
+        self.assertIn("1 module failed", text)
 
     def test_missing_worker_status_reports_did_not_finish_and_keeps_log(self):
         log_path = make_tmp_dir(self) / "worker.log"
         log_path.write_text("partial worker output\n", encoding="utf-8")
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_ok"], {}, {"test_ok": str(log_path)}, 10
-            )
+        status, text = _run_report(
+            ["test_ok"], {}, {"test_ok": str(log_path)}, 10
+        )
         self.assertEqual(1, status)
-        self.assertIn("===== test_ok: did not finish =====", output.getvalue())
-        self.assertIn("partial worker output", output.getvalue())
-        self.assertIn("1 module not finished", output.getvalue())
+        self.assertIn("===== test_ok: did not finish =====", text)
+        self.assertIn("partial worker output", text)
+        self.assertIn("1 module not finished", text)
 
     def test_a_flooded_log_prints_a_bounded_tail_with_a_hidden_byte_note(self):
         """A log past the printed section's cap keeps only its tail.
@@ -257,12 +248,9 @@ class TestPrintResults(unittest.TestCase):
         """
         log_path = make_tmp_dir(self) / "worker.log"
         log_path.write_bytes(b"x" * 100_000 + b"\n" + b"tail line\n" + b"Ran 1 test in 0.001s\n\nOK\n")
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
-            )
-        text = output.getvalue()
+        status, text = _run_report(
+            ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
+        )
         self.assertEqual(0, status)
         # The flood is gone from the printout: a window cut at 64 KiB falls
         # inside the x-run, and everything through the flood line's break
@@ -296,27 +284,23 @@ class TestPrintResults(unittest.TestCase):
             + b"\n"
             + b"Ran 0 tests in 0.000s\n\nNO TESTS RAN\n"
         )
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_ok"], {"test_ok": 5}, {"test_ok": str(log_path)}, 10
-            )
+        status, text = _run_report(
+            ["test_ok"], {"test_ok": 5}, {"test_ok": str(log_path)}, 10
+        )
         self.assertEqual(0, status)
         self.assertIn(
             "===== test_ok: ran no tests (unittest's NO TESTS RAN, exit 5) =====",
-            output.getvalue(),
+            text,
         )
 
     def test_invalid_utf8_in_worker_log_is_replaced(self):
         log_path = make_tmp_dir(self) / "worker.log"
         log_path.write_bytes(b"worker output: \xff\n")
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
-            )
+        status, text = _run_report(
+            ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
+        )
         self.assertEqual(0, status)
-        self.assertIn("worker output: \ufffd", output.getvalue())
+        self.assertIn("worker output: \ufffd", text)
 
     def test_a_window_without_any_line_break_is_shown_whole(self):
         # A worker killed while writing one continuous line can leave a log
@@ -326,17 +310,15 @@ class TestPrintResults(unittest.TestCase):
         # from the file's size is named -- instead of dropping the tail.
         log_path = make_tmp_dir(self) / "worker.log"
         log_path.write_bytes(b"x" * 100_000)
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
-            )
+        status, text = _run_report(
+            ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
+        )
         self.assertEqual(0, status)
         self.assertIn(
             "check: 34464 earlier log bytes hidden; showing the last 65536",
-            output.getvalue(),
+            text,
         )
-        self.assertIn("x" * 65_536, output.getvalue())
+        self.assertIn("x" * 65_536, text)
 
     def test_crlf_worker_log_lines_end_before_the_line_breaks(self):
         # The bounded read replaced a text-mode whole-file read, whose
@@ -346,13 +328,10 @@ class TestPrintResults(unittest.TestCase):
         # literal carriage returns.
         log_path = make_tmp_dir(self) / "worker.log"
         log_path.write_bytes(b"line one\r\nline two\r\nRan 1 test in 0.001s\n\nOK\n")
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
-            )
+        status, text = _run_report(
+            ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
+        )
         self.assertEqual(0, status)
-        text = output.getvalue()
         self.assertIn("line one\nline two\n", text)
         self.assertNotIn("line one\r", text)
         self.assertNotIn("\u000d", text)
@@ -364,20 +343,18 @@ class TestPrintResults(unittest.TestCase):
         )
         failed_log = make_tmp_dir(self) / "failed.log"
         failed_log.write_text("failure detail\n", encoding="utf-8")
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_empty", "test_failed"],
-                {"test_empty": 5, "test_failed": 1},
-                {"test_empty": str(empty_log), "test_failed": str(failed_log)},
-                10,
-            )
+        status, text = _run_report(
+            ["test_empty", "test_failed"],
+            {"test_empty": 5, "test_failed": 1},
+            {"test_empty": str(empty_log), "test_failed": str(failed_log)},
+            10,
+        )
         self.assertEqual(1, status)
-        self.assertIn("test_empty: ran no tests", output.getvalue())
-        self.assertIn("test_failed: exit 1", output.getvalue())
+        self.assertIn("test_empty: ran no tests", text)
+        self.assertIn("test_failed: exit 1", text)
         self.assertIn(
             "check: 2 modules, 1 module failed, 1 module ran no tests",
-            output.getvalue(),
+            text,
         )
 
     def test_summary_combines_failed_timed_out_and_unfinished_modules(self):
@@ -385,16 +362,13 @@ class TestPrintResults(unittest.TestCase):
         failed_log.write_text("failure detail\n", encoding="utf-8")
         timeout_log = make_tmp_dir(self) / "timeout.log"
         timeout_log.write_text("partial output\n", encoding="utf-8")
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_failed", "test_timeout", "test_unfinished"],
-                {"test_failed": 1, "test_timeout": None},
-                {"test_failed": str(failed_log), "test_timeout": str(timeout_log)},
-                2,
-            )
+        status, rendered = _run_report(
+            ["test_failed", "test_timeout", "test_unfinished"],
+            {"test_failed": 1, "test_timeout": None},
+            {"test_failed": str(failed_log), "test_timeout": str(timeout_log)},
+            2,
+        )
         self.assertEqual(1, status)
-        rendered = output.getvalue()
         self.assertIn("test_failed: exit 1", rendered)
         self.assertIn("test_timeout: timed out after 2s (process group killed)", rendered)
         self.assertIn("test_unfinished: did not finish", rendered)
@@ -405,15 +379,12 @@ class TestPrintResults(unittest.TestCase):
         )
 
     def test_summary_counts_multiple_failed_workers_including_a_signal_exit(self):
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_failed", "test_signalled"],
-                {"test_failed": 1, "test_signalled": -9},
-                {},
-                10,
-            )
-        rendered = output.getvalue()
+        status, rendered = _run_report(
+            ["test_failed", "test_signalled"],
+            {"test_failed": 1, "test_signalled": -9},
+            {},
+            10,
+        )
         self.assertEqual(1, status)
         self.assertIn("test_failed: exit 1", rendered)
         self.assertIn("test_signalled: exit -9", rendered)
@@ -424,16 +395,13 @@ class TestPrintResults(unittest.TestCase):
         empty_log.write_text(
             "Ran 0 tests in 0.000s\n\nNO TESTS RAN\n", encoding="utf-8"
         )
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(
-                ["test_empty", "test_timeout"],
-                {"test_empty": 5, "test_timeout": None},
-                {"test_empty": str(empty_log)},
-                3,
-            )
+        status, rendered = _run_report(
+            ["test_empty", "test_timeout"],
+            {"test_empty": 5, "test_timeout": None},
+            {"test_empty": str(empty_log)},
+            3,
+        )
         self.assertEqual(1, status)
-        rendered = output.getvalue()
         self.assertIn("test_empty: ran no tests", rendered)
         self.assertIn(
             "test_timeout: timed out after 3s (process group killed)", rendered
@@ -446,12 +414,6 @@ class TestPrintResults(unittest.TestCase):
 
 class TestPrintResultsOrder(unittest.TestCase):
     """Unsuccessful modules print last, with check lines above the summary."""
-
-    def _run_report(self, modules, statuses, log_paths, timeout=30):
-        output = StringIO()
-        with redirect_stdout(output):
-            status = print_results(modules, statuses, log_paths, timeout)
-        return status, output.getvalue()
 
     def test_unsuccessful_sections_print_last_with_check_lines_above_summary(self):
         directory = make_tmp_dir(self)
@@ -476,7 +438,7 @@ class TestPrintResultsOrder(unittest.TestCase):
             "f_ok": 0,
         }
 
-        status, out = self._run_report(modules, statuses, log_paths)
+        status, out = _run_report(modules, statuses, log_paths)
 
         self.assertEqual(1, status)
         headers = [line for line in out.splitlines() if line.startswith("=====")]
@@ -506,7 +468,7 @@ class TestPrintResultsOrder(unittest.TestCase):
 
     def test_zero_status_unreadable_log_prints_in_the_unsuccessful_group(self):
         unreadable = make_tmp_dir(self)
-        status, out = self._run_report(
+        status, out = _run_report(
             ["a_ok", "b_bad", "c_ok"],
             {"a_ok": 0, "b_bad": 0, "c_ok": 0},
             {"b_bad": str(unreadable)},
@@ -534,7 +496,7 @@ class TestPrintResultsOrder(unittest.TestCase):
         directory = make_tmp_dir(self)
         empty_log = directory / "b_empty.log"
         empty_log.write_text("Ran 0 tests in 0.000s\n\nNO TESTS RAN\n", encoding="utf-8")
-        status, out = self._run_report(
+        status, out = _run_report(
             ["a_ok", "b_empty", "c_ok"],
             {"a_ok": 0, "b_empty": 5, "c_ok": 0},
             {"b_empty": str(empty_log)},
@@ -554,7 +516,7 @@ class TestPrintResultsOrder(unittest.TestCase):
 
     def test_failed_module_check_line_escapes_its_name_onto_one_line(self):
         name = "bad\x1b[31m\nname"
-        status, out = self._run_report([name], {name: 1}, {})
+        status, out = _run_report([name], {name: 1}, {})
 
         self.assertEqual(1, status)
         self.assertNotIn("\x1b", out)
