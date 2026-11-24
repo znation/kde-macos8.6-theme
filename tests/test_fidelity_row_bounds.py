@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import json
 import unittest
-from unittest import mock
 
 from support import repo_root  # noqa: F401
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import make_png  # noqa: E402
-from tools import fidelity  # noqa: E402
 from tools.fidelity_lib.spatial import difference_column_bounds, difference_row_bounds  # noqa: E402
 from tools.png import Image  # noqa: E402
 
@@ -97,25 +95,9 @@ class TestDifferenceRowBoundsCli(FidelityCliTestCase):
         self.assertTrue(json.loads(passed.stdout)["difference_row_bounds"][1])
 
     def test_opt_in_direct_script_and_errors(self):
-        candidate = make_png(2, 2, [bytes(6), bytes([1, 0, 0, 0, 0, 0])])
-        reference = make_png(2, 2, [bytes(6), bytes(6)])
-        with mock.patch.object(fidelity, "difference_row_bounds") as helper:
-            ordinary = self._run_png_pair(candidate, reference, "--json")
-        self.assertNotIn("difference_row_bounds", json.loads(ordinary.stdout))
-        self.assertNotIn("difference row bounds:", ordinary.stdout)
-        helper.assert_not_called()
-        tmp = self._tmp_dir()
-        candidate_path = self._write(tmp, "candidate.png", candidate)
-        reference_path = self._write(tmp, "reference.png", reference)
-        direct = self._run_script(candidate_path, reference_path, "--difference-row-bounds", "--json")
-        self.assertEqual(json.loads(direct.stdout)["difference_row_bounds"],
-                         [None, {"x": 0, "width": 1}])
-        bad = self._run(candidate_path, self._write(tmp, "missing.png", b"bad"),
-                         "--difference-row-bounds")
-        self.assertEqual((bad.returncode, bad.stdout), (2, ""))
-        mismatch = self._run_png_pair(make_png(1, 1, [bytes(3)]),
-                                      make_png(2, 1, [bytes(6)]), "--difference-row-bounds")
-        self.assertEqual((mismatch.returncode, mismatch.stdout), (2, ""))
+        self.assert_difference_bounds_opt_in(
+            "--difference-row-bounds", [None, {"x": 0, "width": 1}]
+        )
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ This module defines no test cases, so ``unittest discover`` never collects it.
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 from unittest import mock
@@ -101,6 +102,41 @@ class FidelityCliTestCase(CliTestCase):
         ):
             result = self._run_png_pair(candidate, reference, "--tolerance", "9")
         self._assert_fail(result)
+
+    def assert_difference_bounds_opt_in(
+        self, flag: str, direct_expected: list[dict[str, int] | None]
+    ) -> None:
+        """Pin one axis's opt-in difference-bounds scan end to end.
+
+        Shared by test_opt_in_direct_script_and_errors in
+        test_fidelity_column_bounds and test_fidelity_row_bounds: *flag* is
+        ``--difference-column-bounds`` or ``--difference-row-bounds``. A
+        default ``--json`` run carries no report under the flag's key and
+        never touches ``fidelity``'s scan callable; the direct script emits
+        the axis bounds *direct_expected* for the shared 2x2 pair whose
+        (0, 1) red byte is the only mismatch; and the flag refuses an
+        unreadable PNG and a size-mismatched pair with a usage error and
+        empty stdout.
+        """
+        key = flag.removeprefix("--").replace("-", "_")
+        candidate = make_png(2, 2, [bytes(6), bytes([1, 0, 0, 0, 0, 0])])
+        reference = make_png(2, 2, [bytes(6), bytes(6)])
+        with mock.patch.object(fidelity, key) as helper:
+            ordinary = self._run_png_pair(candidate, reference, "--json")
+        self.assertNotIn(key, json.loads(ordinary.stdout))
+        self.assertNotIn(key.replace("_", " ") + ":", ordinary.stdout)
+        helper.assert_not_called()
+        tmp = self._tmp_dir()
+        candidate_path = self._write(tmp, "candidate.png", candidate)
+        reference_path = self._write(tmp, "reference.png", reference)
+        direct = self._run_script(candidate_path, reference_path, flag, "--json")
+        self.assertEqual(json.loads(direct.stdout)[key], direct_expected)
+        bad = self._run(candidate_path, self._write(tmp, "missing.png", b"bad"), flag)
+        self.assertEqual((bad.returncode, bad.stdout), (2, ""))
+        mismatch = self._run_png_pair(
+            make_png(1, 1, [bytes(3)]), make_png(2, 1, [bytes(6)]), flag
+        )
+        self.assertEqual((mismatch.returncode, mismatch.stdout), (2, ""))
 
     def _write_altered_pair(self, directory: Path) -> tuple[str, str]:
         """Write a 3x3 candidate and a one-pixel-altered copy of it.
