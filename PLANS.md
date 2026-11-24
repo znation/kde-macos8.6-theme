@@ -143,6 +143,126 @@ docs/invariants.md.
   test_render_session_command test_render_readiness'` passes, and so does
   full `make check` after the final edit, apart from main's known-red tests.
 
+### Platinum icon theme: draw displays with an original `video-display` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A display — the device the installed KInfoCenter draws for its
+information modules (`video-display` is the plugin icon of the installed
+KInfoCenter EDID, GLX, EGL, OpenCL and Vulkan modules, read with
+`strings` from each module's metadata in the installed
+`/usr/lib/x86_64-linux-gnu/qt6/plugins/plasma/kcms/kinfocenter/kcm_edid.so`
+and its four siblings) — is drawn with Breeze's art beside the Platinum
+placeholders. Ship one original placeholder icon, `video-display`, at
+16x16, 22x22 and 32x32, in the same devices series as the landed
+`computer`, `printer`, `phone`, `battery`, `camera-photo`, `network-vpn`
+and `network-server` files and the waiting `video-x-generic` and
+`media-floppy` entries. The drawing is a monitor alone: the `computer`
+file already draws a monitor above a desktop case, and this one is the
+display without the case. Planning-time probe with `kiconfinder6` under
+scratch `XDG_DATA_HOME`, `XDG_CONFIG_HOME` (with
+`[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME`
+and `XDG_RUNTIME_DIR`, with `DISPLAY` and `WAYLAND_DISPLAY` unset and
+`QT_QPA_PLATFORM=offscreen`: with the theme installed and no
+`video-display` of its own, `video-display` resolved to Breeze's
+internal `:/icons/breeze/devices/64/video-display.svg`. The brightness
+applet (`org.kde.plasma.brightness`) draws `video-display-brightness`,
+but Breeze ships that exact name
+(`:/icons/breeze/devices/22/video-display-brightness.svg`, measured in
+the same probe), so the shipped display file does not capture it: one
+file covers its own name only — no alias files, nothing but
+`video-display`. The other recorded straggler, `network-wireless`,
+stays out of scope and stays on Breeze, because the same probe shows
+Breeze ships every name the network applet asks for (`network-wireless`
+resolved to Breeze's internal `:/icons/breeze/devices/22/network-wireless.svg`
+and `network-wireless-on` and `network-wireless-80` to Breeze's system
+`status/24` files), so no theme file could win there (re-verified
+2026-11-24 by the plan role). No reference screenshot shows a display
+icon: no reference pixels are used, and the monitor drawing is this
+theme's own choice.
+
+**Approach.**
+
+- Add `devices/video-display.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original display illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a Platinum monitor alone: a screen
+  housing with the 1px #000000 outline, the #DDDDDD face and the
+  #FFFFFF/#999999 bevel, a #000000 screen with white and grey glints,
+  and a #000000 stand (neck and base). Each file holds these elements
+  in order, written `x,y width×height fill` for rects:
+  - 32x32 (11): `3,3 26×22 #000000`; `4,4 24×20 #DDDDDD`; `4,4 24×2
+    #FFFFFF`; `4,4 1×20 #FFFFFF`; `4,22 24×2 #999999`; `27,4 1×20
+    #999999`; `7,7 18×13 #000000`; `9,9 7×2 #FFFFFF`; `9,15 5×1
+    #999999`; `14,25 4×2 #000000`; `10,27 12×3 #000000`.
+  - 22x22 (11): `2,2 18×15 #000000`; `3,3 16×13 #DDDDDD`; `3,3 16×2
+    #FFFFFF`; `3,3 1×13 #FFFFFF`; `3,14 16×2 #999999`; `18,3 1×13
+    #999999`; `5,5 12×8 #000000`; `6,6 5×2 #FFFFFF`; `6,10 3×1
+    #999999`; `9,17 4×1 #000000`; `6,18 10×2 #000000`.
+  - 16x16 (10): `1,2 14×12 #000000`; `2,3 12×10 #DDDDDD`; `2,3 12×1
+    #FFFFFF`; `2,3 1×10 #FFFFFF`; `2,12 12×1 #999999`; `13,3 1×10
+    #999999`; `4,5 8×6 #000000`; `5,6 3×2 #FFFFFF`; `6,14 4×1
+    #000000`; `4,15 8×1 #000000`.
+
+  These were drawn to read as a monitor with a centred screen and a
+  two-part stand under the housing at every size (painted rect by rect
+  at planning time), and to stay distinct from the `computer` file's
+  monitor-above-case drawing.
+- `PLACEHOLDERS.md`: one row per file beside that size's `network-vpn`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths to
+  `SHIPPED_ICONS` beside the `network-server` paths, and name the
+  display icon in the comment above them (the comment records the
+  requesting surface: the five installed KInfoCenter information
+  modules' plugin icons).
+- `tests/support/icon/shape_pins.py`: pin the three drawings in
+  `ICON_SHAPES` from the lists above (every element is a `_shape("rect",
+  ...)` keeping its attributes); the existing
+  `test_the_geometry_registry_covers_every_shipped_icon` and
+  `test_each_icon_draws_its_pinned_artwork` then enforce the pins in
+  both directions.
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, record the
+  provenance of `video-display` in the last cell: no reference pixels
+  were used, the name is the plugin icon of the five installed
+  KInfoCenter EDID, GLX, EGL, OpenCL and Vulkan information modules
+  (read with `strings` from the installed `.so` files under
+  `.../plasma/kcms/kinfocenter/`; measured with `kiconfinder6`:
+  `video-display` resolves to the shipped file), Breeze's own
+  `video-display-brightness` name is not captured because Breeze ships
+  that exact file, and the monitor drawing is this theme's own choice.
+- `docs/installing.md`: add the display icon to the sentence listing
+  the icon theme's placeholder illustrations and their sizes.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`, `tests/support/icon/shape_pins.py`,
+`docs/invariants.md`, `docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding exactly
+  the elements listed for that size, carries a placeholder marker and
+  comment and has a `PLACEHOLDERS.md` row; the existing inventory, palette,
+  geometry and placeholder-register tests cover all three.
+- Changing a rectangle's position, size or fill, or the element order in
+  one file makes the geometry pin fail.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME` (create the destination `icons` directory before
+  copying the theme into it, so the copy does not flatten), use a scratch
+  `HOME`, `XDG_CONFIG_HOME` (with `[Icons] Theme=org.macos8.desktop` in
+  `kdeglobals`), `XDG_CACHE_HOME` and `XDG_RUNTIME_DIR`, unset `DISPLAY`
+  and `WAYLAND_DISPLAY`, and set `QT_QPA_PLATFORM=offscreen`.
+  `video-display` resolves to the theme's 32x32 file, and `computer`
+  stays on the theme's 32x32 file. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
