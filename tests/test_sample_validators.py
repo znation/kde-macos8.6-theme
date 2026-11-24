@@ -110,6 +110,15 @@ class TestSampleValidators(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(argparse.ArgumentTypeError):
                 validators.max_color_fraction(value)
 
+    def test_the_smallest_match_alpha_is_accepted(self):
+        # Zero is a legal --match-alpha (match only fully transparent
+        # pixels), so it sits on the range's inclusive lower bound. The
+        # suite pins the largest alpha (255) and the past-the-low refusal
+        # (-1) elsewhere; this pins the smallest value, where a low bound
+        # slipped to 1 would silently refuse a legal exact-transparent
+        # match the colour matchers need.
+        self.assertEqual(validators.match_alpha("0"), 0)
+
     def test_color_offset_accepts_zero_and_a_plain_count(self):
         # Zero is a legal offset (start at the first ranked color); a
         # comparison that slipped to "<= 0" would refuse it, and the CLI-level
