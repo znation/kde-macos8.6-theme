@@ -189,6 +189,82 @@ drawn by this entry.
   `make check` after the final edit, apart from main's known-red
   tests.
 
+### Split the mimetypes shape-pin registry into per-group modules mirroring the icon series (planned 2026-11-24 by the organize role; queued after the two Flatpak icon entries, which edit the same file)
+
+**Goal.** `tests/support/icon/shape_pins/mimetypes.py` holds 1,792
+lines — about twelve times the project's ~146-line median module —
+while its sibling family modules (`actions.py` 36, `places.py` 138,
+`devices.py` 600) each stay readable in one sitting. The file is one
+`PINS` dict literal pinning 188 shipped files across 61 mimetype
+icons, and every icon feature appends its three sizes to it: the six
+icon commits landed on 2026-11-24 alone each touched it, and the two
+queued Flatpak entries will too. An append now lands inside one
+correct but unreadable dict, and a merge to the file conflicts with
+whichever icon entry is in flight — this is the registry-side twin of
+the accreted invariants row the organize role split on 2026-11-24
+(lesson L12). This entry must not start before both Flatpak icon
+entries above have landed: they edit the exact lines this split moves.
+
+**Approach.** Turn `shape_pins/mimetypes.py` into a `mimetypes/`
+subpackage of per-group pin modules, the same way the family modules
+mirror the shipped tree's family directories. Move each icon's three
+size entries verbatim into the group module for its series; the
+groups follow the series the icon plans and the invariants register
+already name:
+
+- `documents.py` — the page-backed documents (`text-x-generic`,
+  `text-x-generic-template`, `x-office-*`, `font-x-generic`,
+  `text-html`, `application-pdf`, `application-json`,
+  `application-x-mimearchive`, `application-epub+zip`,
+  `application-x-gettext-translation`, `application-x-desktop`),
+- `executables.py` — scripts, executables and zero-data files
+  (`application-x-shellscript`, `application-x-perl`,
+  `application-x-python-bytecode`, `application-x-executable`,
+  `application-octet-stream`, `application-x-core`,
+  `application-x-zerosize`, `application-x-trash`, `unknown`),
+- `archives.py` — archives and packages (`application-zip`,
+  `application-gzip`, `application-x-{tar,cpio,ms-wim}` and the
+  compressed-tar family, `application-x-7z-compressed`,
+  `application-x-arj`, `application-vnd.{rar,squashfs,appimage,snap,`
+  `debian.binary-package,android.package-archive}`, `package-x-generic`,
+  `application-x-{bittorrent,nzb,openzim}`),
+- `media.py` — `audio-*`, `image-x-generic`, `video-x-generic`,
+  `internet-mail`,
+- `certificates.py` — `application-pgp-keys`,
+  `application-pgp-signature`, `application-pkcs12`,
+  `application-pkix-{cert,crl}`, `application-vnd.iccprofile`,
+- `disks.py` — `application-vnd.efi.iso`, `application-x-qemu-disk`,
+  `application-vnd.sqlite3`, `application-x-sharedlib`.
+
+Each group module exports its own `PINS` dict;
+`mimetypes/__init__.py` merges them into the family `PINS` exactly as
+`shape_pins/__init__.py` merges the families, so
+`from support.icon.shape_pins.mimetypes import PINS` and the merged
+`ICON_SHAPES` keep working unchanged. No pin tuple, no key and no
+import of `_shared` changes. Files touched:
+`tests/support/icon/shape_pins/mimetypes.py` (replaced by the
+subpackage), `tests/support/icon/shape_pins/__init__.py` (docstring
+only if it names the layout). No production file changes; the
+geometry tests in `test_icon_theme_geometry` are the acceptance
+harness and stay untouched. `tests/support/icon/theme_inventory.py`
+(752 lines, about five times the median) is watched, not split: it is
+the same single-registry shape but its per-icon entries are short, and
+this entry keeps to the one clear outlier.
+
+**Acceptance criteria.**
+
+- Every pin moves verbatim: a script check shows all 188 pinned paths
+  and their tuples present in the new package, and
+  `python3 -c "from support.icon.shape_pins import ICON_SHAPES"`
+  yields the same dict content as before the split (compare against a
+  pre-split dump saved in the run's scratch).
+- The two Flatpak icon entries have landed before this entry starts.
+- No test file edits; `make check CHECK_TESTS='test_icon_theme
+  test_icon_theme_geometry'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+- The largest module under `tests/support/icon/` is at most about 600
+  lines (`devices.py`, whose own split this entry does not decide).
+
 ## Done
 
 ### Platinum icon theme: draw detached OpenPGP signatures with an original `application-pgp-signature` icon (planned 2026-11-24 by the plan role; independent of the waiting plans) — done 2026-11-24 by the feature role
