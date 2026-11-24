@@ -1,4 +1,4 @@
-"""Pins for the devices family: drives, phones, input and media hardware.
+"""Pins for the devices family: the shipped hardware device icons.
 
 Every entry is a ``os.path.join(size, "devices", name.svg)`` key holding
 the pinned tuple of drawing elements for that shipped file, in document
