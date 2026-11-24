@@ -20,7 +20,7 @@ from support.repo_root import ROOT
 
 
 class TestHelpers(InvariantsRegisterTestCase):
-    """Pin the register parser and the reference checks on a synthetic repository."""
+    """Pin the register parser on synthetic register text."""
 
     def test_parse_rows_reads_sections_and_rows(self):
         sections = parse_rows(
