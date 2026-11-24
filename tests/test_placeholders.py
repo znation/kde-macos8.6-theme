@@ -330,6 +330,41 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "not a regular file"):
             cross_check(tmp, register)
 
+    def test_cross_check_names_a_register_path_that_is_a_fifo(self):
+        # A FIFO is present but not a regular file, just like a directory;
+        # the wording before this test called every such path "a directory",
+        # which mislabels a pipe. The diagnostic must give the shared reason
+        # without inventing a kind it has not checked.
+        tmp = make_tmp_dir(self)
+        fifo = tmp / "theme" / "wallpaper.png"
+        fifo.parent.mkdir(parents=True)
+        os.mkfifo(str(fifo))
+        register = self._write_register(
+            tmp, {os.path.join("theme", "wallpaper.png"): "a wallpaper"}
+        )
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(tmp, register)
+        message = str(caught.exception)
+        self.assertIn("exists but is not a regular file", message)
+        self.assertNotIn("a directory", message)
+
+    def test_cross_check_names_a_register_path_that_is_a_dangling_symlink(self):
+        # A dangling symlink lexists but resolves to nothing, so it is not a
+        # regular file either; the wording before this test called it "a
+        # directory". The diagnostic must give the shared reason instead.
+        tmp = make_tmp_dir(self)
+        link = tmp / "theme" / "cursor.png"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(tmp / "theme" / "missing.png")
+        register = self._write_register(
+            tmp, {os.path.join("theme", "cursor.png"): "a cursor"}
+        )
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(tmp, register)
+        message = str(caught.exception)
+        self.assertIn("exists but is not a regular file", message)
+        self.assertNotIn("a directory", message)
+
     def test_cross_check_names_an_existing_file_parent(self):
         # A row one level under a row that is itself a plain file has an
         # existing parent that is not a directory; naming the parent tells
