@@ -188,6 +188,114 @@ class TestBadStates(_FreshCacheHome, unittest.TestCase):
                                         max_cols=None,
                                         decode=lambda: _read(missing, False))
 
+    def test_an_entry_with_a_foreign_magic_falls_back_to_a_fresh_decode(self):
+        # The magic pins the entry layout version: an entry a future format
+        # wrote (here, a bumped magic in place) must fall back to a fresh
+        # decode, never be unpacked with the wrong layout.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_png(tmp, "reference.png", _BLANK_2X2)
+            reference_decode_cache.load(path, alpha=False, max_rows=None,
+                                        max_cols=None,
+                                        decode=lambda: _read(path, False))
+            directory = reference_decode_cache.cache_dir()
+            (entry,) = os.listdir(directory)
+            entry_path = os.path.join(directory, entry)
+            with open(entry_path, "rb") as handle:
+                data = handle.read()
+            with open(entry_path, "wb") as handle:
+                handle.write(b"KREFDC02" + data[len(b"KREFDC02"):])
+            fresh = _read(path, False)
+            decode, calls = _decode_spy()
+            served = reference_decode_cache.load(path, alpha=False,
+                                                 max_rows=None, max_cols=None,
+                                                 decode=lambda: decode(path))
+        self.assertEqual(1, len(calls))
+        self.assertEqual(fresh.rgb, served.rgb)
+
+    def test_an_entry_with_trailing_junk_falls_back_to_a_fresh_decode(self):
+        # The alpha plane is the tail of the entry, so bytes past the packed
+        # planes can only be a damaged or overwritten entry: png.Image
+        # rejects the too-long alpha and the load re-decodes.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_png(tmp, "reference.png", _BLANK_2X2)
+            reference_decode_cache.load(path, alpha=True, max_rows=None,
+                                        max_cols=None,
+                                        decode=lambda: _read(path, True))
+            directory = reference_decode_cache.cache_dir()
+            (entry,) = os.listdir(directory)
+            entry_path = os.path.join(directory, entry)
+            with open(entry_path, "ab") as handle:
+                handle.write(b"junk")
+            fresh = _read(path, True)
+            calls = []
+
+            def decode():
+                calls.append(path)
+                return _read(path, True)
+
+            served = reference_decode_cache.load(path, alpha=True,
+                                                 max_rows=None, max_cols=None,
+                                                 decode=decode)
+        self.assertEqual(1, len(calls))
+        self.assertEqual(fresh.alpha, served.alpha)
+
+    def test_a_directory_at_the_entry_path_falls_back_to_a_fresh_decode(self):
+        # An entry that cannot even be opened (here: a directory where the
+        # entry name sits) is unreadable, and the OSError branch must fall
+        # back to the decode like every other bad state.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_png(tmp, "reference.png", _BLANK_2X2)
+            reference_decode_cache.load(path, alpha=False, max_rows=None,
+                                        max_cols=None,
+                                        decode=lambda: _read(path, False))
+            directory = reference_decode_cache.cache_dir()
+            (entry,) = os.listdir(directory)
+            os.unlink(os.path.join(directory, entry))
+            os.mkdir(os.path.join(directory, entry))
+            fresh = _read(path, False)
+            decode, calls = _decode_spy()
+            served = reference_decode_cache.load(path, alpha=False,
+                                                 max_rows=None, max_cols=None,
+                                                 decode=lambda: decode(path))
+        self.assertEqual(1, len(calls))
+        self.assertEqual(fresh.rgb, served.rgb)
+
+    def test_a_relative_or_empty_xdg_cache_home_falls_back_below_home(self):
+        # Both an empty and a relative XDG_CACHE_HOME are unusable, so the
+        # cache lands under $HOME/.cache either way.
+        expected = os.path.join(
+            os.path.expanduser("~"), ".cache",
+            "kde-macos8.6-theme", "reference-decodes",
+        )
+        for value in ("", "relative-cache"):
+            with self.subTest(value=value or "<empty>"):
+                with mock.patch.dict(os.environ,
+                                     {"XDG_CACHE_HOME": value}):
+                    self.assertEqual(
+                        expected, reference_decode_cache.cache_dir()
+                    )
+
+    def test_prune_skips_a_directory_in_the_cache_directory(self):
+        # Pruning drops only files: a directory a user or another tool put
+        # in the cache directory must survive the sweep untouched.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_png(tmp, "reference.png", _BLANK_2X2)
+            reference_decode_cache.load(path, alpha=False, max_rows=None,
+                                        max_cols=None,
+                                        decode=lambda: _read(path, False))
+            directory = reference_decode_cache.cache_dir()
+            subdir = os.path.join(directory, "kept-subdirectory")
+            os.mkdir(subdir)
+            old = os.path.getmtime(subdir) - 31 * 24 * 60 * 60
+            os.utime(subdir, (old, old))
+            other = os.path.join(tmp, "other.png")
+            with open(other, "wb") as handle:
+                handle.write(encode_png(3, 2, bytes(18)))
+            reference_decode_cache.load(other, alpha=False, max_rows=None,
+                                        max_cols=None,
+                                        decode=lambda: _read(other, False))
+        self.assertTrue(os.path.isdir(subdir))
+
     def test_entries_past_the_max_age_are_pruned_on_write(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = _write_png(tmp, "reference.png", _BLANK_2X2)
