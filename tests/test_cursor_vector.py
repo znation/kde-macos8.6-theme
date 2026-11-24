@@ -111,6 +111,17 @@ class TestRenderValidation(unittest.TestCase):
         ):
             cursor_vector.checked_size(0, noun="frame width")
 
+    def test_a_size_at_either_boundary_of_the_frame_limit_round_trips(self):
+        # checked_size owns the frame-size rule for every renderer, and its
+        # range is inclusive at both ends: the smallest frame (1) and the
+        # writer's Xcursor frame limit (0x7FFF) are both valid sizes, and the
+        # function returns the size it accepted. A guard written with an
+        # exclusive end (>= MAX_IMAGE_SIZE) would reject the limit silently,
+        # shrinking every renderer's largest frame by one pixel.
+        for size in (1, MAX_IMAGE_SIZE):
+            with self.subTest(size=size):
+                self.assertEqual(size, cursor_vector.checked_size(size))
+
     def test_checked_size_names_custom_noun_above_limit(self):
         with self.assertRaisesRegex(
             ValueError,
@@ -195,6 +206,15 @@ class TestVectorCursorFields(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "face vertex 2 x"):
             VectorCursor(face=((8, 8), (24, 8), (33, 24)))
 
+    def test_a_vertex_on_the_design_grid_edges_is_accepted(self):
+        # The coordinate range is inclusive at both ends: 0 and design_size
+        # itself are on the grid the art is measured on, so a face may touch
+        # the design boundary. A check written as 0 < x < design_size would
+        # refuse a face that touches the edge and shrink every shape by one
+        # design unit at each side.
+        art = VectorCursor(face=((0, 0), (16, 8), (32, 24)), design_size=32)
+        self.assertEqual(((0, 0), (16, 8), (32, 24)), art.face)
+
     def test_rejects_a_negative_outline_width(self):
         with self.assertRaisesRegex(ValueError, "outline_width"):
             VectorCursor(face=SQUARE, outline_width=-1)
@@ -241,6 +261,14 @@ class TestVectorHotspot(unittest.TestCase):
     def test_fractional_hotspot_floors_and_stays_inside_the_frame(self):
         self.assertEqual(
             cursor_vector.vector_hotspot((31.9, 31.9), self.art, 16), (15, 15))
+
+    def test_the_zero_hotspot_maps_to_the_origin_at_any_size(self):
+        # The hotspot range is inclusive at its lower end: [0, design_size)
+        # starts at 0, and floor(0 * size / design_size) is 0 at every size.
+        # A check written 0 < value would refuse the top-left hotspot.
+        for size in (16, 32):
+            with self.subTest(size=size):
+                self.assertEqual((0, 0), cursor_vector.vector_hotspot((0, 0), self.art, size))
 
     def test_rejects_a_hotspot_at_or_beyond_the_design_size(self):
         with self.assertRaisesRegex(ValueError, "hotspot x"):
