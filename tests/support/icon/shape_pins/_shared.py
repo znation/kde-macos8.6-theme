@@ -58,6 +58,37 @@ def _raised_panel(x, y, w, h):
     )
 
 
+# The sealed package box: the outline, lid highlight, white body and grey
+# tape stripe the package-backed mimetypes draw in common (the generic
+# package, zip, tar, 7z, gzip, deb, rar and both compressed-tar names),
+# one tuple per size. Every package-backed pin in the mimetypes registry
+# spreads the tuple as its prefix and then draws its own mark on the
+# white body, so a box edit lands in one place per size and all nine
+# package-backed pins per size stay in step; the pins test in
+# ``test_icon_theme_geometry`` still compares each pin with its shipped
+# file element by element.
+_SEALED_PACKAGE_32 = (
+    _shape("rect", x="3", y="6", width="26", height="22", fill="#000000"),
+    _shape("rect", x="4", y="7", width="24", height="3", fill="#DDDDDD"),
+    _shape("rect", x="4", y="7", width="24", height="1", fill="#FFFFFF"),
+    _shape("rect", x="4", y="10", width="24", height="17", fill="#FFFFFF"),
+    _shape("rect", x="15", y="10", width="2", height="17", fill="#999999"),
+)
+_SEALED_PACKAGE_22 = (
+    _shape("rect", x="2", y="4", width="18", height="16", fill="#000000"),
+    _shape("rect", x="3", y="5", width="16", height="2", fill="#DDDDDD"),
+    _shape("rect", x="3", y="5", width="16", height="1", fill="#FFFFFF"),
+    _shape("rect", x="3", y="7", width="16", height="12", fill="#FFFFFF"),
+    _shape("rect", x="10", y="7", width="2", height="12", fill="#999999"),
+)
+_SEALED_PACKAGE_16 = (
+    _shape("rect", x="1", y="3", width="14", height="11", fill="#000000"),
+    _shape("rect", x="2", y="4", width="12", height="2", fill="#DDDDDD"),
+    _shape("rect", x="2", y="4", width="12", height="1", fill="#FFFFFF"),
+    _shape("rect", x="2", y="6", width="12", height="7", fill="#FFFFFF"),
+    _shape("rect", x="7", y="6", width="2", height="7", fill="#999999"),
+)
+
 # The trash body: the lid and can the empty and full Trash draw in common,
 # one tuple per size. Each Trash pin below is its own head (the empty one's
 # lid-top rects, the full one's waste-bag paths) followed by this body, so a
