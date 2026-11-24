@@ -240,7 +240,6 @@ class TestRequireConfigAndDataHomeWrappers(unittest.TestCase):
         )
 
 
-
 class TestUnresolvedHomeState(unittest.TestCase):
     def test_an_empty_value_counts_as_unset(self):
         for value in ("",):

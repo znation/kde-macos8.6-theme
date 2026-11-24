@@ -91,8 +91,8 @@ def require_config_home(env: dict[str, str], error) -> Path:
 
     The one shared incantation of :func:`config_home` and
     :func:`require_home` for the ``XDG_CONFIG_HOME`` variable and its
-    ``$HOME/.config`` fallback; the GTK, Kvantum, Ghostty, theme and
-    Konsole-font tools call this instead of repeating the five arguments.
+    ``$HOME/.config`` fallback; the GTK, Kvantum, Ghostty and Konsole-font
+    tools call this instead of repeating the five arguments.
     """
     return require_home(
         config_home(env), env, "XDG_CONFIG_HOME", "$HOME/.config", error=error
@@ -110,7 +110,6 @@ def require_data_home(env: dict[str, str], error) -> Path:
     return require_home(
         data_home(env), env, "XDG_DATA_HOME", "$HOME/.local/share", error=error
     )
-
 
 
 def unresolved_home_state(value: str) -> str:
