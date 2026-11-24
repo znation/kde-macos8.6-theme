@@ -498,6 +498,36 @@ PINS = {
         _shape("path", d="M2 5 L11 12 L20 5 Z", fill="#000000"),
         _shape("path", d="M3 6 L11 11 L19 6 Z", fill="#DDDDDD"),
     ),
+    # The PDF item icon KDE draws for `application/pdf` items (the
+    # type-spelled icon name of the installed shared MIME database's
+    # `application/pdf` type, whose `generic-icon` is the shipped
+    # `x-office-document`); one file covers exactly its own name, and the
+    # drawing shares the generic document's page.
+    os.path.join("32x32", "mimetypes", "application-pdf.svg"): (
+        _shape("path", d="M6 3 h14 l6 6 v20 H6 Z", fill="#000000"),
+        _shape("path", d="M7 4 h12 l6 6 v18 H7 Z", fill="#FFFFFF"),
+        _shape("path", d="M19 4 L25 4 L25 10 Z", fill="#DDDDDD"),
+        _shape("rect", x="10", y="12", width="12", height="1", fill="#999999"),
+        _shape("rect", x="10", y="15", width="8", height="1", fill="#999999"),
+        _shape("rect", x="16", y="18", width="8", height="8", fill="#000000"),
+        _shape("rect", x="17", y="19", width="6", height="6", fill="#DDDDDD"),
+    ),
+    os.path.join("16x16", "mimetypes", "application-pdf.svg"): (
+        _shape("path", d="M3 1 h7 l3 3 v10 H3 Z", fill="#000000"),
+        _shape("path", d="M4 2 h5 l3 3 v8 H4 Z", fill="#FFFFFF"),
+        _shape("path", d="M9 2 L12 2 L12 5 Z", fill="#DDDDDD"),
+        _shape("rect", x="5", y="6", width="6", height="1", fill="#999999"),
+        _shape("rect", x="7", y="8", width="5", height="5", fill="#000000"),
+        _shape("rect", x="8", y="9", width="3", height="3", fill="#DDDDDD"),
+    ),
+    os.path.join("22x22", "mimetypes", "application-pdf.svg"): (
+        _shape("path", d="M4 1 h10 l4 4 v15 H4 Z", fill="#000000"),
+        _shape("path", d="M5 2 h8 l4 4 v13 H5 Z", fill="#FFFFFF"),
+        _shape("path", d="M13 2 L17 2 L17 6 Z", fill="#DDDDDD"),
+        _shape("rect", x="7", y="8", width="8", height="1", fill="#999999"),
+        _shape("rect", x="11", y="11", width="5", height="5", fill="#000000"),
+        _shape("rect", x="12", y="12", width="3", height="3", fill="#DDDDDD"),
+    ),
     os.path.join("32x32", "mimetypes", "image-x-generic.svg"): (
         _shape("rect", x="3", y="3", width="26", height="26", fill="#000000"),
         _shape("rect", x="4", y="4", width="24", height="24", fill="#DDDDDD"),
