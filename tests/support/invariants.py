@@ -108,6 +108,48 @@ def parsed_module(path, root):
     return tree
 
 
+def registry_key_conflicts(path, root, names):
+    """Return ``{name: [repeated key, ...]}`` for the named dict literals.
+
+    A pin registry is a module-level dict literal whose consumers deduplicate
+    (``.items()`` loops over one pin per key, or reads pin the key directly),
+    so a duplicated key literal — the merge slip when two pins are appended
+    on the same day — is legal Python that silently keeps the last pin and
+    lets the discarded entry's assertions drift unobserved. Parse *path*
+    through :func:`parsed_module`, take the module-level assignments named in
+    *names*, and report each literal that repeats a constant string key. A
+    named literal that is missing, is not a ``ast.Dict``, or carries a
+    non-constant key raises ``ValueError`` so the caller's guard is re-pointed
+    at the registry's new shape instead of passing vacuously.
+    """
+    module = parsed_module(path, root)
+    found = set()
+    conflicts = {}
+    for node in module.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if not (isinstance(target, ast.Name) and target.id in names):
+                continue
+            if not isinstance(node.value, ast.Dict):
+                raise ValueError(f"{path}: {target.id} is not a dict literal")
+            found.add(target.id)
+            keys = []
+            for key in node.value.keys:
+                if not isinstance(key, ast.Constant) or not isinstance(key.value, str):
+                    raise ValueError(
+                        f"{path}: {target.id} has a non-constant key; "
+                        "extend the registry-key guard first"
+                    )
+                keys.append(key.value)
+            repeated = sorted({key for key in keys if keys.count(key) > 1})
+            if repeated:
+                conflicts[target.id] = repeated
+    if set(names) != found:
+        raise ValueError(f"{path}: missing dict literals {sorted(set(names) - found)}")
+    return conflicts
+
+
 def _cells(line):
     """Return a table row's three cells, or None for a non-row line.
 

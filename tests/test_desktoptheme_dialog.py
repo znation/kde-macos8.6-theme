@@ -8,6 +8,7 @@ from support.aurorae_fixtures import (
     REFERENCE as ABOUTSYSTEM_REFERENCE,
     REFERENCE_ROWS as ABOUTSYSTEM_MAX_ROWS,
 )
+from support.invariants import registry_key_conflicts
 from support.desktoptheme_paths import (
     ARCHIVEORG_MAX_ROWS,
     ARCHIVEORG_REFERENCE,
@@ -19,6 +20,7 @@ from support.desktoptheme_paths import (
 from support.platinum_palette import BLACK, FACE, WHITE, hex_colour
 from support.desktoptheme.raised_face_case import RaisedFaceCase
 from support.reference_image import ReferenceScreenshotMixin
+from support.repo_root import ROOT
 from support.svg_case import parse_svg
 from svg_assertions import (
     assert_edge_bevels,
@@ -116,6 +118,19 @@ class TestDialogBackgroundRaisedReference(
             )
             for name, (origin_x, origin_y) in _REFERENCE_CORNERS.items()
         }
+
+    def test_the_pin_registries_name_each_key_exactly_once(self):
+        # _REFERENCE_ANCHORS and _REFERENCE_CORNERS are consumed as one
+        # reference pixel per colour, so a duplicated key literal (the merge
+        # slip when two anchors are added together) silently keeps the last
+        # anchor and the dropped colour's pin drifts unobserved. Parse this
+        # module's literals and require distinct keys.
+        self.assertEqual(
+            {},
+            registry_key_conflicts(
+                __file__, ROOT, {"_REFERENCE_ANCHORS", "_REFERENCE_CORNERS"}
+            ),
+        )
 
     def test_reference_window_body_is_the_raised_arrangement(self):
         # Derive the colours from one pixel each, then pin the values. The

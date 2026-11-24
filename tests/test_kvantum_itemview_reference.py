@@ -20,7 +20,9 @@ from __future__ import annotations
 import unittest
 
 from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
+from support.invariants import registry_key_conflicts
 from support.kvantum_fixtures import SVG
+from support.repo_root import ROOT
 from support.reference_image import ReferenceScreenshotMixin
 from support.sunken_field_reference import (
     ShippedSunkenFieldMixin,
@@ -106,6 +108,14 @@ class TestItemViewReference(
     SLICE_SVG = SVG
     SLICE_NAME = "itemview-normal"
     SLICE_SIZE = 30
+
+    def test_the_pin_registries_name_each_key_exactly_once(self):
+        # FIELD_ANCHORS is consumed as one reference pixel per colour, so a
+        # duplicated key literal (the merge slip when two anchors are added
+        # together) silently keeps the last anchor and the dropped colour's
+        # pin drifts unobserved. Parse this module's literal and require
+        # distinct keys.
+        self.assertEqual({}, registry_key_conflicts(__file__, ROOT, {"FIELD_ANCHORS"}))
 
 
 if __name__ == "__main__":
