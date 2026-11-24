@@ -23,6 +23,7 @@ from support.process_assertions import assert_succeeded
 from support.theme_install import write_file as _write
 from support.firefox_profile_case import FirefoxProfileTestCase, read_utf8 as _read
 from tools import install_firefox
+from tools.firefox import user_files as firefox_user_files
 from tools.firefox import user_js as firefox_user_js
 
 
@@ -81,6 +82,48 @@ class TestRemove(FirefoxProfileTestCase):
         result = self.run_tool("--remove", "--profile", str(self.profile))
         assert_succeeded(self, result)
         self.assertEqual(foreign, _read(self.user_js_path()))
+
+    def test_a_foreign_over_cap_user_js_is_reported_by_name_and_nothing_is_removed(
+        self,
+    ):
+        # The removal reads user.js before it deletes or rewrites anything,
+        # so a multi-gigabyte file at that path is refused by name and the
+        # owned sheet the removal would have touched survives the failed
+        # removal untouched. A sparse file keeps the test cheap without
+        # changing what the reader sees.
+        _write(self.sheet_path(), f"{install_firefox.CSS_MARKER}\n/* owned */\n")
+        path = self.user_js_path()
+        with path.open("wb") as handle:
+            handle.truncate(firefox_user_files.MAX_PROFILE_FILE_BYTES + 1)
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(2, result.returncode, result.stderr)
+        self.assertIn(str(path), result.stderr)
+        self.assertIn("larger than", result.stderr)
+        self.assertTrue(self.sheet_path().is_file())
+        self.assertEqual(
+            firefox_user_files.MAX_PROFILE_FILE_BYTES + 1, path.stat().st_size
+        )
+
+    def test_a_foreign_over_cap_user_chrome_is_reported_by_name_and_nothing_is_removed(
+        self,
+    ):
+        # The sheets are read before the first unlink, so an oversize
+        # foreign userChrome.css refuses the whole removal before anything
+        # is deleted, and the refusal must not be mistaken for an absent
+        # profile that leaves nothing to do.
+        path = self.sheet_path()
+        path.parent.mkdir(parents=True)
+        with path.open("wb") as handle:
+            handle.truncate(firefox_user_files.MAX_PROFILE_FILE_BYTES + 1)
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(2, result.returncode, result.stderr)
+        self.assertIn(str(path), result.stderr)
+        self.assertIn("larger than", result.stderr)
+        self.assertEqual(
+            firefox_user_files.MAX_PROFILE_FILE_BYTES + 1, path.stat().st_size
+        )
+        self.assertTrue(self.sheet_path().parent.is_dir())
+        self.assertFalse(self.user_js_path().exists())
 
     def test_remove_deletes_bom_prefixed_our_sheets(self):
         for relative, marker in (
