@@ -12,6 +12,10 @@ literal string key, its nested dict values included.
 Plain string keys need no evaluation, so the guard reads them without
 executing the module; a registry that grows a computed key must extend the
 guard first.
+
+Only ``tree.body``'s assignments count: a same-named dict inside a function
+or class body is not the registry, and letting the walk see it would let a
+nested scope's literal shadow the module-level one the guard must inspect.
 """
 
 from __future__ import annotations
@@ -22,16 +26,19 @@ from support.invariants import parsed_module
 from support.repo_root import ROOT
 
 
-def assert_registries_name_each_key_once(case, module_path, registry_names):
+def assert_registries_name_each_key_once(case, module_path, registry_names, root=ROOT):
     """Assert each named registry dict in *module_path* repeats no key.
 
     *case* is the calling ``unittest.TestCase``; a missing registry name, a
     non-dict literal or a non-literal key fails there with the registry's
-    name, so the extension the failure asks for is the guard itself.
+    name, so the extension the failure asks for is the guard itself. *root*
+    bounds the read, like :func:`support.invariants.cross_check`'s; it
+    defaults to the repository, and the manufactured-registry tests pass a
+    scratch root instead.
     """
-    tree = parsed_module(module_path, ROOT)
+    tree = parsed_module(module_path, root)
     literals = {}
-    for node in ast.walk(tree):
+    for node in tree.body:
         if (
             isinstance(node, ast.Assign)
             and len(node.targets) == 1
