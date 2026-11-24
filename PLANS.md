@@ -56,6 +56,118 @@ desktoptheme, kvantum and render tests).
 - `make check` passes after the final edit, apart from main's known-red
   tests.
 
+### Platinum icon theme: draw scanners with an original `scanner` icon (planned 2026-11-24 by the plan role; independent of the waiting plans)
+
+**Goal.** A scanner is drawn with Breeze's art beside the Platinum
+placeholders. Ship one original placeholder icon, `scanner`, at 16x16,
+22x22 and 32x32, in the same devices series as the landed `computer`,
+`input-keyboard`, `input-mouse`, `printer`, `media-floppy`,
+`camera-photo`, `modem` and `video-display` files. Provenance: the
+installed `libkcupslib.so.6.3.5` (print-manager) carries the bare
+`scanner` literal (`strings -e l`), so a KDE consumer requests the
+name. Breeze ships the name under `devices/64` (plus `apps/48`); this
+theme declares devices directories at 16x16, 22x22 and 32x32 and no
+symbolic or scaled directories, so exactly three files go in
+`devices/` and the apps, symbolic and scaled renditions stay out of
+scope. Planning-time probe with `kiconfinder6` and the theme installed
+into scratch XDG homes: with no scanner icon of its own, `scanner`
+resolved to Breeze's `devices/64` file, so the theme must ship the name
+to win it. The shared MIME database gives the name no `generic-icon`
+binding and no MIME type carries the name (zero `name="scanner"`
+hits counted on `/usr/share/mime/packages/freedesktop.org.xml`), so
+no alias files and no MIME fallback are in play — one file covers
+exactly its own name. No reference screenshot shows a scanner icon: no
+reference pixels are used, and the drawing is this theme's own choice.
+
+**Approach.**
+
+- Add `devices/scanner.svg` under `16x16`, `22x22` and `32x32` of
+  `theme/icons/org.macos8.desktop/`. `index.theme` already declares the
+  three directories. Give each file the XML declaration, the comment
+  `<!-- PLACEHOLDER: original scanner illustration pending user-approved artwork. -->`,
+  a short comment saying it is our own drawing in the Platinum palette,
+  not traced from anyone's artwork, and a root with matching `width`,
+  `height` and `viewBox`. The art is a flat Platinum flatbed scanner
+  seen from above: a landscape body with the 1px #000000 outline and
+  the #FFFFFF/#999999 bevel, a closed lid holding a white glass strip,
+  a black scan-lamp bar sweeping the glass (22x22 and 32x32 only), and
+  a black status LED below the glass (22x22 and 32x32 only). Each file
+  holds these elements in order, written `x,y width×height fill` for
+  rects:
+  - 32x32: `3,8 26×18 #000000`; `4,9 24×16 #DDDDDD`; `4,9 24×1
+    #FFFFFF`; `4,9 1×16 #FFFFFF`; `4,24 24×1 #999999`; `27,9 1×16
+    #999999`; `7,12 18×8 #000000`; `8,13 16×6 #FFFFFF`; `10,16 12×2
+    #000000`; `5,21 2×2 #000000`.
+  - 22x22: `1,4 20×15 #000000`; `2,5 18×13 #DDDDDD`; `2,5 18×1
+    #FFFFFF`; `2,5 1×13 #FFFFFF`; `2,17 18×1 #999999`; `19,5 1×13
+    #999999`; `4,7 12×5 #000000`; `5,8 10×3 #FFFFFF`; `6,9 8×1
+    #000000`; `3,14 2×2 #000000`.
+  - 16x16: `1,2 14×11 #000000`; `2,3 12×9 #DDDDDD`; `2,3 12×1
+    #FFFFFF`; `2,3 1×9 #FFFFFF`; `2,11 12×1 #999999`; `13,3 1×9
+    #999999`; `3,5 8×4 #000000`; `4,6 6×2 #FFFFFF`.
+
+  In each list the first six elements are the body outline, fill and
+  bevels, the next two are the lid frame and glass face, and the last
+  two (22x22 and 32x32) are the scan bar and status LED. Validate by
+  XML only, never by rasterizing: `convert`'s MSVG reader bleeds 1px
+  rects, so the pins below are the drawing contract.
+- `PLACEHOLDERS.md`: one row per file beside that size's `media-floppy`
+  row, described as the marker describes it.
+- `tests/support/icon/theme_inventory.py`: add the three paths where
+  the other `devices` paths are listed in `SHIPPED_ICONS` (the base
+  tuple or one of the `SHIPPED_ICONS += tuple(...)` blocks), and name
+  the scanner icon in the comment above the list beside `media-floppy`.
+- `tests/support/icon/shape_pins/devices.py`: pin the three drawings
+  in its `PINS` table from the lists above (the table feeds
+  `ICON_SHAPES` in `tests/support/icon/shape_pins/__init__.py`).
+- `docs/invariants.md`: in the row anchored to
+  `tests/test_icon_theme_geometry.py::TestIconGeometry`, append the
+  provenance of `scanner` to the row's last cell: no reference pixels
+  were used, the name is a KDE-required value read from
+  `libkcupslib.so.6` (the installed `libkcupslib.so.6.3.5` carries the
+  bare `scanner` literal), the shared MIME database gives the name no
+  `generic-icon` binding, Breeze's own art was beaten by shipping the
+  name at the theme's sizes (before the change, `kiconfinder6 scanner`
+  resolved to Breeze's `devices/64` file), and the
+  body-lid-glass-lamp drawing is this theme's own choice.
+- `docs/installing.md`: add the scanner icon to the sentence listing
+  the icon theme's placeholder illustrations and their sizes, beside
+  the floppy-disk sentence.
+
+**Files touched.** Three new SVGs, `PLACEHOLDERS.md`,
+`tests/support/icon/theme_inventory.py`,
+`tests/support/icon/shape_pins/devices.py`, `docs/invariants.md`,
+`docs/installing.md`.
+
+**Acceptance criteria.**
+
+- Each new SVG is a square drawing of its directory's size holding
+  exactly the elements listed for that size, carries a placeholder
+  marker and has a `PLACEHOLDERS.md` row; the existing inventory,
+  palette, geometry and placeholder-register tests cover all three.
+- Changing an element's position, size, fill or order, the glass's
+  position or size, or the scan bar's or LED's position or size, in
+  one file makes `test_each_icon_draws_its_pinned_artwork` fail;
+  dropping a file while leaving it shipped makes
+  `test_the_geometry_registry_covers_every_shipped_icon` fail.
+- The new fills stay inside `PLATINUM_FILLS`, so
+  `test_each_icon_uses_only_the_platinum_palette` passes unchanged.
+- Installing into a scratch root with `INSTALL_PACKAGES=icon-theme` puts
+  the three files in the installed theme, and uninstalling removes them
+  (the existing `TestInstall` cases).
+- Manual check, when `kiconfinder6` is present: install the theme into a
+  scratch `XDG_DATA_HOME`, use a scratch `HOME`, `XDG_CONFIG_HOME` (with
+  `[Icons] Theme=org.macos8.desktop` in `kdeglobals`), `XDG_CACHE_HOME` and
+  `XDG_RUNTIME_DIR`, unset `DISPLAY` and `WAYLAND_DISPLAY`, and set
+  `QT_QPA_PLATFORM=offscreen`. `scanner` resolves to the theme's
+  32x32 file (at planning time, before this change, it resolved to
+  Breeze's `devices/64` file), and `modem` and `input-keyboard` stay
+  on the theme's 32x32 files. Report the output in VERIFIED.
+- The existing icon files, `index.theme` and the cursors are unchanged.
+- `make check CHECK_TESTS='test_icon_theme test_icon_theme_geometry
+  test_placeholders test_invariants'` passes, and so does full `make check`
+  after the final edit, apart from main's known-red tests.
+
 ## Done
 
 ### GTK 3 suite extraction: isolate drag-and-drop declarations (planned 2026-11-18 by the plan role) — done 2026-11-18 by the feature role
