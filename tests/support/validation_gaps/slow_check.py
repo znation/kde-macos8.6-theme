@@ -49,7 +49,7 @@ SLOW_CHECK_REPRODUCTIONS = (
             "test_render_dialog_gates.TestInactiveDialogRender."
             "test_title_ink_is_the_inactive_text_colour",
         ),
-        "tests/test_render_window_rules.py::TestWindowRules"
+        "tests/test_render_settle_scripts.py::TestSettleScripts"
         "::test_the_pair_readiness_script_names_both_titles_and_their_focus_states",
     ),
     Reproduction(

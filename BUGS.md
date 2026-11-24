@@ -641,7 +641,7 @@ quarantined. The 2026-11-13 incident had the same five-pin signature, with the r
 under a full parallel `make check`"). Two causes fit both runs, and the recorded output cannot
 tell them apart: a focus swap (left window active, right inactive) or a capture that holds no
 correctly placed pair of windows. The focus settle loop
-(`tools/render/window_rules.py::focus_settle_text`) has shipped since then, so this run shows that
+(`tools/render/settle_scripts.py::focus_settle_text`) has shipped since then, so this run shows that
 loop does not rule the failure out. No diagnostic change is needed for the next recurrence. With
 no explicit message, `RenderOutputMessages.assertEqual` (tests/support/render/gates.py) already
 appends the render's stdout and stderr to each ring pin's failure. The gap is only that the

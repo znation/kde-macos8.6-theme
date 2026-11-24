@@ -15,6 +15,7 @@ from unittest import mock
 
 from support.render.stub_tools import StubTools
 from tools.render import setup as render_setup, window_rules as render_window_rules, workflow as render_workflow
+from tools.render import settle_scripts as render_settle_scripts
 
 
 class TestSessionModes(StubTools, unittest.TestCase):
@@ -66,16 +67,16 @@ class TestSessionModes(StubTools, unittest.TestCase):
     def test_the_inactive_mode_writes_the_pair_readiness_text(self):
         written = self._written_readiness_texts("--inactive-dialog")
         self.assertEqual(
-            [render_window_rules.pair_readiness_text().encode("utf-8")], written,
+            [render_settle_scripts.pair_readiness_text().encode("utf-8")], written,
         )
         self.assertNotEqual(
-            render_window_rules.readiness_settle_text().encode("utf-8"), written[0],
+            render_settle_scripts.readiness_settle_text().encode("utf-8"), written[0],
         )
 
     def test_a_single_dialog_mode_writes_the_existing_readiness_text(self):
         written = self._written_readiness_texts("--combobox-dialog")
         self.assertEqual(
-            [render_window_rules.readiness_settle_text().encode("utf-8")], written,
+            [render_settle_scripts.readiness_settle_text().encode("utf-8")], written,
         )
 
     def test_inactive_dialog_launches_its_two_window_wrapper(self):
@@ -101,9 +102,9 @@ class TestSessionModes(StubTools, unittest.TestCase):
         # script, which ends the settle once both titled windows are settled.
         prologue = shlex.split(argv[-1])[2]
         self.assertNotIn('focus=""', prologue)
-        self.assertIn(render_window_rules.FOCUS_SETTLE_SCRIPT, prologue)
+        self.assertIn(render_settle_scripts.FOCUS_SETTLE_SCRIPT, prologue)
         self.assertNotIn('readiness=""', prologue)
-        self.assertIn(render_window_rules.READINESS_SETTLE_SCRIPT, prologue)
+        self.assertIn(render_settle_scripts.READINESS_SETTLE_SCRIPT, prologue)
         self.assertIn("kdialog", argv[-1])
         self.assertIn(render_window_rules.INACTIVE_TITLE, argv[-1])
         self.assertIn(render_window_rules.FOCUSED_TITLE, argv[-1])
@@ -111,7 +112,7 @@ class TestSessionModes(StubTools, unittest.TestCase):
         # newest-window activation is a race under the parallel check's
         # load), loaded by the scratch path the workflow wrote it to.
         self.assertIn("org.kde.kwin.Scripting.loadScript", argv[-1])
-        self.assertIn(render_window_rules.FOCUS_SETTLE_SCRIPT, argv[-1])
+        self.assertIn(render_settle_scripts.FOCUS_SETTLE_SCRIPT, argv[-1])
         self.assertNotIn("org.kde.plasma.calculator", argv[-1])
         self.assert_failed_run(
             status, stderr, output, 1, "render session exited 1",

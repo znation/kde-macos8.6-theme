@@ -15,11 +15,10 @@ if __package__.startswith("tools"):
     from tools.render.dialogs import DIALOG_MODES, DialogMode
     from tools.render.capture_diagnosis import capture_is_unpainted, client_exited_during_capture, log_size, report_render_log
     from tools.render.session import Session, session_command
-    from tools.render.window_rules import (
-        RULES_FILE,
+    from tools.render.window_rules import RULES_FILE, write_window_rules
+    from tools.render.settle_scripts import (
         write_focus_settle_script,
         write_readiness_settle_script,
-        write_window_rules,
     )
     from tools.render.setup import (
         CONFIG_FILES,
@@ -41,11 +40,10 @@ else:  # run directly from render_surface.py
     from render.dialogs import DIALOG_MODES, DialogMode
     from render.capture_diagnosis import capture_is_unpainted, client_exited_during_capture, log_size, report_render_log
     from render.session import Session, session_command
-    from render.window_rules import (
-        RULES_FILE,
+    from render.window_rules import RULES_FILE, write_window_rules
+    from render.settle_scripts import (
         write_focus_settle_script,
         write_readiness_settle_script,
-        write_window_rules,
     )
     from render.setup import (
         CONFIG_FILES,
