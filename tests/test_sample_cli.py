@@ -26,6 +26,30 @@ from support.symlink_fixtures import symlinked_repo  # noqa: E402
 from tools import sample  # noqa: E402
 
 
+def _escaping_repo(tmp, *, refs_to=""):
+    """A ``repo/refs`` folder link whose target sits outside ``repo``.
+
+    Builds ``tmp/repo`` and links ``repo/refs`` at ``tmp/private`` (at
+    ``tmp/private/<refs_to>`` when given), where one ``secret.png`` sits
+    directly under ``private`` -- so a sample spelled through ``refs``
+    resolves outside ``repo``, and ``refs/../secret.png`` still finds the
+    secret when the link lands in a subdirectory. Returns ``(root,
+    private)``: the root to patch ``sample.ROOT`` with and the private
+    folder a test can alias or spell paths under; the sampled path itself
+    stays in the caller, because each escape spelling runs a different
+    one. Exactly the three folder-escape tests in this suite call it; the
+    file-link escapes use ``symlinked_repo`` instead.
+    """
+    root = tmp / "repo"
+    root.mkdir()
+    private = tmp / "private"
+    (private / refs_to).mkdir(parents=True)
+    _, data = solid_rgb(1, 1)
+    (private / "secret.png").write_bytes(data)
+    (root / "refs").symlink_to(private / refs_to)
+    return root, private
+
+
 class TestSampleCli(CliTestCase):
     """The sampler CLI's end-to-end pixel and rectangle reports: JSON and text
     shapes and script parity.
@@ -387,29 +411,15 @@ class TestSampleCli(CliTestCase):
         self.assertNotIn("pixel (", result.stdout)
 
     def test_rejects_an_image_under_a_symlinked_folder_that_escapes(self):
-        _, data = solid_rgb(1, 1)
-        tmp = self._tmp_dir()
-        root = tmp / "repo"
-        root.mkdir()
-        private = tmp / "private"
-        private.mkdir()
-        (private / "secret.png").write_bytes(data)
-        (root / "refs").symlink_to(private)
+        root, _ = _escaping_repo(self._tmp_dir())
         with mock.patch.object(sample, "ROOT", str(root)):
             result = self._run(str(root / "refs" / "secret.png"), "0", "0")
         self._assert_usage_error(result, "resolves outside", str(root))
         self.assertNotIn("pixel (", result.stdout)
 
     def test_rejects_a_symlinked_folder_that_escapes_via_a_checkout_alias(self):
-        _, data = solid_rgb(1, 1)
-        tmp = self._tmp_dir()
-        root = tmp / "repo"
-        root.mkdir()
-        private = tmp / "private"
-        private.mkdir()
-        (private / "secret.png").write_bytes(data)
-        (root / "refs").symlink_to(private)
-        alias = tmp / "alias"
+        root, _ = _escaping_repo(self._tmp_dir())
+        alias = root.parent / "alias"
         alias.symlink_to(root)
         with mock.patch.object(sample, "ROOT", str(root.resolve())):
             result = self._run(str(alias / "refs" / "secret.png"), "0", "0")
@@ -419,14 +429,7 @@ class TestSampleCli(CliTestCase):
     def test_rejects_a_dotdot_path_that_climbs_out_of_an_escaping_folder(self):
         # ``refs/../secret.png`` is ``repo/secret.png`` lexically, but the OS
         # resolves ``refs`` first and opens ``private/../secret.png``.
-        _, data = solid_rgb(1, 1)
-        tmp = self._tmp_dir()
-        root = tmp / "repo"
-        root.mkdir()
-        private = tmp / "private"
-        (private / "sub").mkdir(parents=True)
-        (private / "secret.png").write_bytes(data)
-        (root / "refs").symlink_to(private / "sub")
+        root, _ = _escaping_repo(self._tmp_dir(), refs_to="sub")
         with mock.patch.object(sample, "ROOT", str(root)):
             result = self._run(
                 f"{root}/refs/../secret.png", "0", "0"
