@@ -1,14 +1,18 @@
 """Tests for tools/xdg_homes.py's shared XDG home resolution.
 
-Both the GTK and cursor apply tools read these resolvers, so an absolute XDG
-value, the default below ``$HOME`` and the ``None`` result for an unusable
-``HOME`` are pinned once here.
+The GTK and cursor apply tools read these resolvers, and the two on-disk
+caches (the parallel check's durations cache and the tests' reference decode
+cache) read ``cache_home``, so each resolver's absolute-XDG rule, default
+below ``$HOME`` and ``None``/fallback result for an unusable ``HOME`` is
+pinned once here.
 """
 
 from __future__ import annotations
 
+import os
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import xdg_homes
@@ -98,6 +102,41 @@ class TestConfigHome(unittest.TestCase):
         for env in ({}, {"HOME": "relative/home"}):
             with self.subTest(env=env):
                 self.assertIsNone(xdg_homes.config_home(env))
+
+
+class TestCacheHome(unittest.TestCase):
+    """cache_home: the best-effort resolver both on-disk caches share."""
+
+    def test_absolute_cache_home_is_used_even_without_home(self):
+        self.assertEqual(
+            Path("/cache"),
+            xdg_homes.cache_home({"XDG_CACHE_HOME": "/cache"}),
+        )
+
+    def test_unset_empty_or_relative_cache_home_falls_back_to_home_cache(self):
+        # The fallback reads the process HOME through expanduser, exactly as
+        # the two caches' own resolutions did, so the expected value is
+        # derived from this run's own environment.
+        expected = Path(os.path.expanduser("~")) / ".cache"
+        for env in ({}, {"XDG_CACHE_HOME": ""}, {"XDG_CACHE_HOME": "relative/cache"}):
+            with self.subTest(env=env):
+                self.assertEqual(expected, xdg_homes.cache_home(env))
+
+    def test_the_fallback_follows_the_process_home(self):
+        with mock.patch.dict(os.environ, {"HOME": "/home/u"}):
+            self.assertEqual(
+                Path("/home/u/.cache"), xdg_homes.cache_home({})
+            )
+
+    def test_without_a_mapping_the_process_environment_is_read(self):
+        with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": "/abs/cache"}):
+            self.assertEqual(Path("/abs/cache"), xdg_homes.cache_home())
+        # An unset XDG_CACHE_HOME there reads the fallback again.
+        with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": ""}):
+            self.assertEqual(
+                Path(os.path.expanduser("~")) / ".cache",
+                xdg_homes.cache_home(),
+            )
 
 
 class TestUninstallConfigSharesTheRule(unittest.TestCase):

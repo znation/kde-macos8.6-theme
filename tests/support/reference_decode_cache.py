@@ -26,6 +26,7 @@ from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools.atomic_write import write_bytes_atomically  # noqa: E402
+from tools.xdg_homes import cache_home  # noqa: E402
 
 from tools import png  # noqa: E402
 
@@ -35,7 +36,7 @@ from tools import png  # noqa: E402
 _HEADER = struct.Struct(">8sQQQ?")
 _MAGIC = b"KREFDC01"
 
-# Cache dir, mirroring the durations cache's XDG layout.
+# Cache dir, shared with the durations cache's XDG resolution (xdg_homes.cache_home).
 _CACHE_DIR = ("kde-macos8.6-theme", "reference-decodes")
 
 # Entries last written more than this long ago are pruned whenever a new one
@@ -48,10 +49,7 @@ _MAX_AGE_SECONDS = 30 * 24 * 60 * 60
 
 def cache_dir() -> str:
     """Return the decode cache's directory under the XDG cache home."""
-    base = os.environ.get("XDG_CACHE_HOME")
-    if not base or not os.path.isabs(base):
-        base = os.path.join(os.path.expanduser("~"), ".cache")
-    return os.path.join(base, *_CACHE_DIR)
+    return str(cache_home().joinpath(*_CACHE_DIR))
 
 
 def _content_hash(path) -> str:

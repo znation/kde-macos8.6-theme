@@ -27,9 +27,11 @@ from pathlib import Path
 try:
     from tools.atomic_write import write_bytes_atomically
     from tools.containment import read_capped_bytes
+    from tools.xdg_homes import cache_home
 except ImportError:  # imported from a directly run tool, which puts tools/ on the path
     from atomic_write import write_bytes_atomically
     from containment import read_capped_bytes
+    from xdg_homes import cache_home
 
 _CACHE_VERSION = 1
 _CACHE_DIR = ("kde-macos8.6-theme",)
@@ -39,10 +41,7 @@ _MAX_CACHE_BYTES = 1 << 20
 
 def cache_path() -> str:
     """Return the durations cache path under the XDG cache home."""
-    base = os.environ.get("XDG_CACHE_HOME")
-    if not base or not os.path.isabs(base):
-        base = os.path.join(os.path.expanduser("~"), ".cache")
-    return os.path.join(base, *_CACHE_DIR, _CACHE_FILE)
+    return str(cache_home().joinpath(*_CACHE_DIR, _CACHE_FILE))
 
 
 def load_durations(path: str) -> dict[str, float]:

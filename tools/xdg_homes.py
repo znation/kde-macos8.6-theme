@@ -1,9 +1,9 @@
-"""Resolve the XDG data and config home directories for the tools.
+"""Resolve the XDG data, config and cache home directories for the tools.
 
-An absolute ``$XDG_DATA_HOME`` or ``$XDG_CONFIG_HOME`` is used as given; an
-empty or relative value is invalid under the XDG Base Directory spec and falls
-back to its default below an absolute ``$HOME`` (``.local/share`` or
-``.config``). Each resolver returns ``None`` when no absolute path can be
+An absolute ``$XDG_DATA_HOME``, ``$XDG_CONFIG_HOME`` or ``$XDG_CACHE_HOME`` is
+used as given; an empty or relative value is invalid under the XDG Base
+Directory spec and falls back to its default (``.local/share`` or ``.config``
+below an absolute ``$HOME``, or ``~/.cache`` for the best-effort caches). Each resolver returns ``None`` when no absolute path can be
 resolved, so the caller refuses instead of guessing where to read or write;
 :func:`require_home` raises that refusal with the shared diagnostic naming the
 received values, which the GTK and Kvantum selection tools raise through
@@ -13,6 +13,7 @@ their own :class:`~tools.gtk.user_files.ConfigError`.
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from pathlib import Path
 
 
@@ -60,6 +61,29 @@ def config_home(env: dict[str, str]) -> Path | None:
     so the result is ``None``.
     """
     return _absolute(env, "XDG_CONFIG_HOME") or _home_child(env, ".config")
+
+
+def cache_home(env: Mapping[str, str] | None = None) -> Path:
+    """Resolve the cache home: absolute XDG, else ``~/.cache``, never ``None``.
+
+    The on-disk caches (the parallel check's durations cache and the tests'
+    reference decode cache) share this resolver so one copy of the XDG rule
+    survives: a relative ``XDG_CACHE_HOME`` is invalid under the XDG Base
+    Directory spec and is dropped, not resolved against the working
+    directory. Unlike the resolvers above this one is best-effort and never
+    returns ``None``: a cache must not fail a run, so an unusable ``HOME``
+    still yields the ``~/.cache`` name and the cache write then fails with
+    its own best-effort note. The ``~/.cache`` fallback is the same
+    ``os.path.expanduser("~")`` resolution the two caches used, which reads
+    the process ``HOME``; *env* only carries ``XDG_CACHE_HOME``. With no
+    mapping the process environment is read.
+    """
+    if env is None:
+        env = os.environ
+    value = env.get("XDG_CACHE_HOME", "")
+    if value and os.path.isabs(value):
+        return Path(value)
+    return Path(os.path.expanduser("~")) / ".cache"
 
 
 def require_home(
