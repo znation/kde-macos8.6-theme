@@ -7,7 +7,6 @@ from support.gtk4_sheet import Gtk4SheetRuleCases
 from support.gtk_theme_spec import (
     CHECK,
     ENTRY_FIELD,
-    ETCH_DARK,
     INFOBAR,
     PROGRESSBAR_PROGRESS,
     PROGRESSBAR_TROUGH,
@@ -15,8 +14,9 @@ from support.gtk_theme_spec import (
     SCALE_EMPTY_FILL,
     SCALE_TROUGH,
     SCALE_THUMB,
+    spinbutton_stepper_arms,
 )
-from support.platinum_palette import BLACK, FACE, GREY, WHITE
+from support.platinum_palette import BLACK, GREY
 
 
 class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
@@ -238,10 +238,10 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
         ::test_osd_spinbutton_buttons pins from the same specs), like the
         existing .osd check/radio and scale-thumb restatements: the raised
         #DDDDDD face with a 1px black border, zero radius, the
-        BUTTON_BEVEL etch and black labels; the disabled arms take the
+        RAISED_BEVEL etch and black labels; the disabled arms take the
         existing grey Etch colour (ETCH_DARK) and keep no outline colour,
         as the existing disabled arms also claim none; the vertical pressed
-        arm swaps to the INVERTED_BUTTON_BEVEL; and the vertical arms
+        arm swaps to the INVERTED_RAISED_BEVEL; and the vertical arms
         carry the background-clip: border-box clearance stock's
         padding-box claim needs behind the opaque black border. Stock
         declares no horizontal :active arm and no :backdrop arm in either
@@ -252,26 +252,8 @@ class TestGtk4Osd(Gtk4SheetRuleCases, unittest.TestCase):
         selector keys, so the ten groups hold the sixteen spellings the
         family scan pins.
         """
-        base = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border": f"1px solid {BLACK}",
-            "border-radius": "0",
-            "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {GREY}",
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        active = {
-            **base,
-            "box-shadow": f"inset 1px 1px {GREY}, inset -1px -1px {WHITE}",
-        }
-        disabled = {
-            name: value for name, value in base.items()
-            if name != "outline-color"
-        }
-        disabled["color"] = ETCH_DARK
+        base, active, disabled = spinbutton_stepper_arms()
+
         def horizontal(declarations):
             return declarations
 

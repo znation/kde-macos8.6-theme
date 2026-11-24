@@ -70,6 +70,10 @@ BASE_DEFINED_COLOURS = {
 }
 
 RAISED_BEVEL = f"inset 1px 1px {WHITE}, inset -1px -1px {GREY}"
+# The raised bevel with the highlight and shadow halves swapped: the pressed
+# arm of the GTK 4 spinbutton steppers (the sheet's own box-shadow, pinned
+# byte-equal in theme/gtk/src/gtk-4.0/010-spinbutton.css).
+INVERTED_RAISED_BEVEL = f"inset 1px 1px {GREY}, inset -1px -1px {WHITE}"
 BUTTON_BEVEL = f"inset 1px 1px {WHITE}, inset -1px -1px {BUTTON_SHADOW}"
 INVERTED_BUTTON_BEVEL = f"inset 1px 1px {BUTTON_SHADOW}, inset -1px -1px {WHITE}"
 
@@ -90,6 +94,42 @@ OSD_BUTTON_RECIPE = {
     "text-shadow": "none",
     "-gtk-icon-shadow": "none",
 }
+
+
+# The GTK 4 spinbutton stepper recipe: the same raised push-button face
+# ``OSD_BUTTON_RECIPE`` holds, but with the GTK 4 sheet's ``RAISED_BEVEL``
+# etch in the place where the GTK 3 sheet's OSD families carry
+# ``BUTTON_BEVEL`` (theme/gtk/src/gtk-4.0/010-spinbutton.css paints
+# inset 1px 1px #FFFFFF, inset -1px -1px #999999). The suites
+# ``tests/test_gtk4_spinbutton`` and ``tests/test_gtk4_osd`` pin its
+# restatements through ``spinbutton_stepper_arms``.
+SPINBUTTON_STEPPER_RECIPE = {
+    **OSD_BUTTON_RECIPE,
+    "box-shadow": RAISED_BEVEL,
+}
+
+
+def spinbutton_stepper_arms():
+    """Return the GTK 4 spinbutton stepper's (resting, active, disabled) arms.
+
+    The resting arm is :data:`SPINBUTTON_STEPPER_RECIPE`; the active arm
+    swaps only the box-shadow to :data:`INVERTED_RAISED_BEVEL`; the disabled
+    arm keeps the raised bevel with the Inactive grey (``ETCH_DARK``) and no
+    ``outline-color``, like the disabled OSD button arm. Returns fresh
+    dicts, so a suite may trim or extend its own copy without touching the
+    shared recipe.
+
+    Called by the two GTK 4 sheet suites that pin its restatements:
+    ``tests/test_gtk4_spinbutton`` (the seven plain horizontal stepper
+    arms) and ``tests/test_gtk4_osd`` (the ten ``.osd`` stepper arms, whose
+    vertical members add the stock ``background-clip: border-box``
+    clearance in that suite).
+    """
+    base = dict(SPINBUTTON_STEPPER_RECIPE)
+    active = {**base, "box-shadow": INVERTED_RAISED_BEVEL}
+    disabled = {**base, "color": ETCH_DARK}
+    del disabled["outline-color"]
+    return base, active, disabled
 
 
 def osd_button_arms(clip=False):

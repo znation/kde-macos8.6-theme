@@ -5,8 +5,7 @@ from __future__ import annotations
 import unittest
 
 from support.gtk4_sheet import Gtk4SheetRuleCases
-from support.gtk_theme_spec import ETCH_DARK
-from support.platinum_palette import BLACK, FACE, GREY, WHITE
+from support.gtk_theme_spec import spinbutton_stepper_arms
 
 
 class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
@@ -48,10 +47,10 @@ class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
         arms with the existing raised push-button face — the same dictionary
         the existing OSD stepper record pins — so a horizontal stepper
         outside the OSD overlay paints the raised #DDDDDD face with a 1px
-        black border, zero radius, the BUTTON_BEVEL etch, black labels and
+        black border, zero radius, the RAISED_BEVEL etch, black labels and
         no icon shadow. This plain family is the only family stock gives
         an ``:active`` arm, and the pressed arm swaps to the inverted
-        bevel; the disabled arms take the existing grey Etch colour
+        raised bevel; the disabled arms take the existing grey Etch colour
         (ETCH_DARK) and keep no outline colour. Stock's min-height and
         padding geometry are not restated, and stock's plain vertical
         ``spinbutton.vertical > button`` geometry arms stay stock: the
@@ -64,26 +63,7 @@ class TestGtk4Spinbutton(Gtk4SheetRuleCases, unittest.TestCase):
         selector keys, so the seven groups hold the fourteen spellings
         the family scan pins.
         """
-        base = {
-            "background-color": FACE,
-            "background-image": "none",
-            "border": f"1px solid {BLACK}",
-            "border-radius": "0",
-            "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {GREY}",
-            "color": BLACK,
-            "outline-color": BLACK,
-            "text-shadow": "none",
-            "-gtk-icon-shadow": "none",
-        }
-        active = {
-            **base,
-            "box-shadow": f"inset 1px 1px {GREY}, inset -1px -1px {WHITE}",
-        }
-        disabled = {
-            name: value for name, value in base.items()
-            if name != "outline-color"
-        }
-        disabled["color"] = ETCH_DARK
+        base, active, disabled = spinbutton_stepper_arms()
         up = "spinbutton:not(.vertical) > button.image-button.up:not(.flat)"
         down = (
             "spinbutton:not(.vertical)"
