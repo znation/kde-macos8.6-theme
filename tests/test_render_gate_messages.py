@@ -167,6 +167,40 @@ class TestCapturePreservation(DiagnosticsRootSteering, unittest.TestCase):
         self.assertIsNone(preserve_capture("probe", self.directory, "dialog.png"))
         self.assertFalse(os.path.isdir(self.root))
 
+    def test_a_copy_fault_falls_back_to_none(self):
+        """A copy error returns ``None`` instead of raising past the gate.
+
+        The docstring promises no copy error may mask the gate's own
+        failure: every fault in the preservation falls back to ``None``.
+        """
+        self._write_capture()
+        with mock.patch(
+            "support.render.gates.shutil.copyfile",
+            side_effect=OSError("no space left on device"),
+        ):
+            self.assertIsNone(preserve_capture("probe", self.directory, "dialog.png"))
+
+    def test_a_prune_fault_falls_back_to_none_without_losing_the_copy(self):
+        """A prune error returns ``None`` and leaves the copied capture.
+
+        The copy lands before the prune runs, so the diagnostics keep the
+        capture even though the pruning fault takes the return value.
+        """
+        self._write_capture()
+        with mock.patch(
+            "support.render.gates.os.listdir",
+            side_effect=OSError("diagnostics root vanished"),
+        ):
+            self.assertIsNone(preserve_capture("probe", self.directory, "dialog.png"))
+        copies = [
+            os.path.join(directory, "dialog.png")
+            for directory, _, _ in os.walk(self.root)
+            if os.path.basename(directory).endswith("-probe")
+        ]
+        self.assertEqual(1, len(copies))
+        with open(copies[0], "rb") as handle:
+            self.assertEqual(CAPTURE_BYTES, handle.read())
+
     def test_pruning_keeps_the_newest_eight_directories(self):
         for index in range(10):
             os.makedirs(os.path.join(self.root, f"20200101T0000{index:02d}Z-1-old"))
