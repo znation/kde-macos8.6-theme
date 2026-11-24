@@ -10,7 +10,7 @@ behaviour: ``DialogGate`` (``support/render/gates.py``), ``TestRender``
 ``TestSplashRender`` (``tests/test_render_splash_gate.py``).
 ``TestDesktopRender`` keeps its own ``candidate_image`` — it hardens a
 missing capture into an ``AssertionError`` naming the render output
-instead of the bare ``PngError`` this mixin raises — and its exit check
+instead of the read error this mixin lets through — and its exit check
 is one combined test, so it inherits neither method.
 """
 
@@ -29,7 +29,9 @@ class CachedCandidatePng:
 
     - ``candidate_image``: decode the capture once and reuse the decoded
       image for every later read. A failed render leaves the output absent
-      and the first read raises ``PngError`` just as it did before.
+      and the first read raises the read error just as it did before:
+      ``FileNotFoundError`` for a missing file, ``PngError`` naming the path
+      for an unreadable one.
     - ``test_exits_zero``: the render's exit status is 0, with a failure
       message built from both streams — a failed render's session-log tail
       lands on stdout and stderr may print nothing, so quoting stderr
