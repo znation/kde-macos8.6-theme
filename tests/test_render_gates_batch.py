@@ -287,6 +287,45 @@ class TestRenderBatch(unittest.TestCase):
         self.assertIn("dialog.png", message)
         self.assertNotIn("render output:", message)
 
+    def test_a_bytes_partial_output_is_decoded_with_replacements(self):
+        # A finish exception whose drained pipes are bytes (a non-text
+        # exception's output) stays quotable: the message holds the
+        # decoded text with an invalid byte spelled as the replacement
+        # character, not the bytes' Python repr and not a decode crash.
+        error = subprocess.TimeoutExpired(
+            [render_gates.SCRIPT, "capture.png"],
+            150,
+            output=b"broken \xff seed\n",
+            stderr=b"partial diagnostic\n",
+        )
+        Renders.request("checkbox")
+        with (
+            _stubbed_runner(finish_raises=error),
+            mock.patch.object(atexit, "register"),
+        ):
+            with self.assertRaises(RuntimeError) as raised:
+                Renders.ensure("checkbox")
+        message = str(raised.exception)
+        self.assertIn("checkbox", message)
+        self.assertIn("broken \ufffd seed", message)
+        self.assertIn("partial diagnostic", message)
+        self.assertNotIn("b'broken", message)
+
+    def test_the_attributable_failure_chains_the_original_finish_error(self):
+        # The wrapper RuntimeError replaces the finish exception as
+        # Renders.failure, so a caller matching the original type must
+        # reach it through __cause__; dropping the `from error` chain
+        # would strand the underlying exception behind the wrapper.
+        error = subprocess.TimeoutExpired([render_gates.SCRIPT, "capture.png"], 150)
+        Renders.request("checkbox")
+        with (
+            _stubbed_runner(finish_raises=error),
+            mock.patch.object(atexit, "register"),
+        ):
+            with self.assertRaises(RuntimeError) as raised:
+                Renders.ensure("checkbox")
+        self.assertIs(error, raised.exception.__cause__)
+
 
 class TestFinishFailurePreservesTheCapture(unittest.TestCase):
     """A batch-finish failure preserves the kind's capture, or says there is none.
